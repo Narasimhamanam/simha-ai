@@ -5,7 +5,9 @@ import {
 } from "react";
 
 import {
-  Paperclip
+  Paperclip,
+  Copy,
+  Check
 } from "lucide-react";
 
 import API from "../services/api";
@@ -19,7 +21,7 @@ import {
 } from "react-syntax-highlighter";
 
 import {
-  atomDark
+  oneDark
 } from "react-syntax-highlighter/dist/esm/styles/prism";
 
 function ChatArea({
@@ -49,6 +51,9 @@ function ChatArea({
   const [uploading, setUploading] =
     useState(false);
 
+  const [copiedCode, setCopiedCode] =
+    useState("");
+
   const messagesEndRef =
     useRef(null);
 
@@ -63,6 +68,35 @@ function ChatArea({
     });
 
   }, [activeChat, loading]);
+
+  // COPY CODE
+
+  const copyToClipboard =
+    async (code) => {
+
+      try {
+
+        await navigator.clipboard.writeText(
+
+          code
+
+        );
+
+        setCopiedCode(code);
+
+        setTimeout(() => {
+
+          setCopiedCode("");
+
+        }, 2000);
+
+      } catch (error) {
+
+        console.log(error);
+
+      }
+
+    };
 
   // FILE UPLOAD
 
@@ -304,7 +338,7 @@ function ChatArea({
 
       } else {
 
-        // STREAM MODE
+        // STREAM CHAT
 
         const response =
           await fetch(
@@ -413,7 +447,7 @@ function ChatArea({
 
         }
 
-        // FINAL MESSAGE
+        // FINAL RESPONSE
 
         setChats((prevChats) =>
 
@@ -499,13 +533,33 @@ function ChatArea({
 
   return (
 
-    <div className="flex-1 flex flex-col overflow-hidden relative">
+    <div className="
 
-      {/* CHAT */}
+      flex-1
+      flex
+      flex-col
 
-      <div className="flex-1 overflow-y-auto px-10 pt-6 pb-40">
+      overflow-hidden
 
-        <div className="space-y-6">
+      relative
+
+    ">
+
+      {/* CHAT AREA */}
+
+      <div className="
+
+        flex-1
+
+        overflow-y-auto
+
+        px-8
+        pt-6
+        pb-44
+
+      ">
+
+        <div className="space-y-8">
 
           {/* EMPTY SCREEN */}
 
@@ -513,12 +567,13 @@ function ChatArea({
 
             <div className="
 
+              min-h-[70vh]
+
               flex
               flex-col
+
               items-center
               justify-center
-
-              min-h-[70vh]
 
               text-center
 
@@ -531,7 +586,8 @@ function ChatArea({
 
                 bg-gradient-to-r
                 from-purple-400
-                to-pink-500
+                via-pink-500
+                to-cyan-400
 
                 bg-clip-text
                 text-transparent
@@ -540,20 +596,20 @@ function ChatArea({
 
               ">
 
-                Simha Multi Agent
+                Simha AI
 
               </h1>
 
               <p className="
 
-                text-gray-400
                 text-xl
+                text-gray-400
 
                 max-w-3xl
 
                 leading-9
 
-                mb-10
+                mb-12
 
               ">
 
@@ -569,8 +625,8 @@ function ChatArea({
 
                 gap-6
 
+                max-w-6xl
                 w-full
-                max-w-5xl
 
               ">
 
@@ -578,7 +634,7 @@ function ChatArea({
 
                 <div className="
 
-                  p-6
+                  p-7
 
                   rounded-3xl
 
@@ -596,7 +652,7 @@ function ChatArea({
 
                     text-purple-400
 
-                    mb-3
+                    mb-4
 
                   ">
 
@@ -608,15 +664,14 @@ function ChatArea({
 
                     text-gray-400
 
-                    leading-7
+                    leading-8
 
                   ">
 
                     Best for aptitude,
-                    learning,
-                    revision,
-                    concepts,
-                    interview preparation
+                    ML, AI,
+                    engineering subjects,
+                    interview prep,
                     and explanations.
 
                   </p>
@@ -627,7 +682,7 @@ function ChatArea({
 
                 <div className="
 
-                  p-6
+                  p-7
 
                   rounded-3xl
 
@@ -645,7 +700,7 @@ function ChatArea({
 
                     text-pink-400
 
-                    mb-3
+                    mb-4
 
                   ">
 
@@ -657,16 +712,16 @@ function ChatArea({
 
                     text-gray-400
 
-                    leading-7
+                    leading-8
 
                   ">
 
                     Best for DSA,
                     debugging,
-                    development,
-                    AI/ML,
-                    projects,
-                    and coding help.
+                    React,
+                    FastAPI,
+                    AI/ML coding,
+                    and projects.
 
                   </p>
 
@@ -676,7 +731,7 @@ function ChatArea({
 
                 <div className="
 
-                  p-6
+                  p-7
 
                   rounded-3xl
 
@@ -694,7 +749,7 @@ function ChatArea({
 
                     text-cyan-400
 
-                    mb-3
+                    mb-4
 
                   ">
 
@@ -706,16 +761,15 @@ function ChatArea({
 
                     text-gray-400
 
-                    leading-7
+                    leading-8
 
                   ">
 
                     Best for planning,
-                    roadmaps,
-                    productivity,
                     schedules,
-                    resumes,
-                    and organization.
+                    productivity,
+                    roadmaps,
+                    and career guidance.
 
                   </p>
 
@@ -748,22 +802,21 @@ function ChatArea({
                     : "justify-start"}
 
                 `}
+
               >
 
                 <div className={`
 
-                  max-w-[75%]
-
-                  px-6
-                  py-4
+                  max-w-[78%]
 
                   rounded-3xl
 
-                  whitespace-pre-wrap
+                  px-6
+                  py-5
 
-                  overflow-x-auto
+                  overflow-hidden
 
-                  leading-8
+                  shadow-xl
 
                   ${msg.role === "user"
 
@@ -771,9 +824,9 @@ function ChatArea({
 
                     : dark
 
-                    ? "bg-[#2a2a2a] text-white"
+                    ? "bg-[#1f1f1f] text-white border border-gray-800"
 
-                    : "bg-gray-200 text-black"}
+                    : "bg-gray-100 text-black border border-gray-300"}
 
                 `}>
 
@@ -783,20 +836,19 @@ function ChatArea({
 
                     <div className="
 
-                      mb-4
-
                       inline-flex
+
                       items-center
                       gap-2
 
-                      px-3
+                      px-4
                       py-2
 
                       rounded-xl
 
                       bg-purple-500/20
 
-                      text-sm
+                      mb-5
 
                     ">
 
@@ -892,6 +944,25 @@ function ChatArea({
 
                       ),
 
+                      li: ({ children }) => (
+
+                        <li className="
+
+                          ml-6
+                          mb-3
+
+                          list-disc
+
+                          leading-8
+
+                        ">
+
+                          {children}
+
+                        </li>
+
+                      ),
+
                       strong: ({ children }) => (
 
                         <strong className="
@@ -907,42 +978,62 @@ function ChatArea({
 
                       ),
 
-                      li: ({ children }) => (
+                      table: ({ children }) => (
 
-                        <li className="
+                        <div className="overflow-x-auto my-6">
 
-                          ml-6
-                          mb-3
+                          <table className="
 
-                          list-disc
+                            min-w-full
 
-                        ">
+                            border
+                            border-gray-700
 
-                          {children}
+                          ">
 
-                        </li>
+                            {children}
+
+                          </table>
+
+                        </div>
 
                       ),
 
-                      blockquote: ({ children }) => (
+                      th: ({ children }) => (
 
-                        <blockquote className="
+                        <th className="
 
-                          border-l-4
-                          border-purple-500
+                          border
+                          border-gray-700
 
-                          pl-4
-                          italic
+                          px-4
+                          py-3
 
-                          text-gray-300
-
-                          my-6
+                          bg-purple-500/20
 
                         ">
 
                           {children}
 
-                        </blockquote>
+                        </th>
+
+                      ),
+
+                      td: ({ children }) => (
+
+                        <td className="
+
+                          border
+                          border-gray-700
+
+                          px-4
+                          py-3
+
+                        ">
+
+                          {children}
+
+                        </td>
 
                       ),
 
@@ -963,11 +1054,21 @@ function ChatArea({
 
                           );
 
+                        const codeString =
+
+                          String(children).replace(
+
+                            /\n$/,
+
+                            ""
+
+                          );
+
                         return !inline && match ? (
 
                           <div className="
 
-                            my-6
+                            my-7
 
                             rounded-2xl
 
@@ -978,13 +1079,99 @@ function ChatArea({
 
                           ">
 
+                            {/* HEADER */}
+
+                            <div className="
+
+                              flex
+                              items-center
+                              justify-between
+
+                              px-5
+                              py-3
+
+                              bg-[#1e1e1e]
+
+                            ">
+
+                              <span className="
+
+                                text-sm
+                                uppercase
+
+                                text-gray-400
+
+                              ">
+
+                                {match[1]}
+
+                              </span>
+
+                              <button
+
+                                onClick={() =>
+
+                                  copyToClipboard(
+
+                                    codeString
+
+                                  )
+
+                                }
+
+                                className="
+
+                                  flex
+                                  items-center
+                                  gap-2
+
+                                  text-sm
+
+                                  text-gray-300
+
+                                  hover:text-white
+
+                                  transition
+
+                                "
+
+                              >
+
+                                {copiedCode === codeString ? (
+
+                                  <>
+
+                                    <Check size={16} />
+                                    Copied
+
+                                  </>
+
+                                ) : (
+
+                                  <>
+
+                                    <Copy size={16} />
+                                    Copy
+
+                                  </>
+
+                                )}
+
+                              </button>
+
+                            </div>
+
+                            {/* CODE */}
+
                             <SyntaxHighlighter
 
-                              style={atomDark}
+                              style={oneDark}
 
                               language={match[1]}
 
                               PreTag="div"
+
+                              wrapLongLines={true}
 
                               customStyle={{
 
@@ -995,10 +1182,7 @@ function ChatArea({
                                 background:
                                   "#111827",
 
-                                fontSize: "15px",
-
-                                borderRadius:
-                                  "1rem"
+                                fontSize: "15px"
 
                               }}
 
@@ -1006,13 +1190,7 @@ function ChatArea({
 
                             >
 
-                              {String(children).replace(
-
-                                /\n$/,
-
-                                ""
-
-                              )}
+                              {codeString}
 
                             </SyntaxHighlighter>
 
@@ -1029,7 +1207,7 @@ function ChatArea({
 
                               rounded-md
 
-                              bg-black/30
+                              bg-black/40
 
                               text-pink-300
 
@@ -1084,7 +1262,7 @@ function ChatArea({
 
                 ${dark
 
-                  ? "bg-[#2a2a2a] text-white"
+                  ? "bg-[#1f1f1f] text-white"
 
                   : "bg-gray-200 text-black"}
 
@@ -1092,11 +1270,33 @@ function ChatArea({
 
                 <div className="flex gap-2">
 
-                  <div className="w-3 h-3 rounded-full bg-purple-500 animate-bounce" />
+                  <div className="
+
+                    w-3
+                    h-3
+
+                    rounded-full
+
+                    bg-purple-500
+
+                    animate-bounce
+
+                  " />
 
                   <div
 
-                    className="w-3 h-3 rounded-full bg-pink-500 animate-bounce"
+                    className="
+
+                      w-3
+                      h-3
+
+                      rounded-full
+
+                      bg-pink-500
+
+                      animate-bounce
+
+                    "
 
                     style={{
 
@@ -1109,7 +1309,18 @@ function ChatArea({
 
                   <div
 
-                    className="w-3 h-3 rounded-full bg-purple-400 animate-bounce"
+                    className="
+
+                      w-3
+                      h-3
+
+                      rounded-full
+
+                      bg-cyan-400
+
+                      animate-bounce
+
+                    "
 
                     style={{
 
@@ -1142,7 +1353,16 @@ function ChatArea({
 
       {/* INPUT */}
 
-      <div className="absolute bottom-0 left-0 right-0 p-6">
+      <div className="
+
+        absolute
+        bottom-0
+        left-0
+        right-0
+
+        p-6
+
+      ">
 
         <div className={`
 
@@ -1151,6 +1371,7 @@ function ChatArea({
 
           flex
           items-center
+
           gap-4
 
           p-4
@@ -1163,7 +1384,7 @@ function ChatArea({
 
           ${dark
 
-            ? "bg-[#2a2a2a]/90 border-gray-700"
+            ? "bg-[#1f1f1f]/90 border-gray-800"
 
             : "bg-white/90 border-gray-300"}
 
@@ -1194,7 +1415,7 @@ function ChatArea({
 
               ${dark
 
-                ? "bg-[#3a3a3a] text-white"
+                ? "bg-[#2b2b2b] text-white"
 
                 : "bg-gray-100 text-black"}
 
@@ -1294,6 +1515,7 @@ function ChatArea({
                 transition
 
               "
+
             />
 
           </label>
@@ -1325,6 +1547,7 @@ function ChatArea({
               font-semibold
 
             "
+
           >
 
             {uploading
