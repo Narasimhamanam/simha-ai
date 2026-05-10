@@ -1,55 +1,74 @@
-import ollama
-
 from langchain_chroma import Chroma
-from langchain_huggingface import HuggingFaceEmbeddings
+
+from langchain_huggingface import (
+    HuggingFaceEmbeddings
+)
+
+from llm import generate_response
 
 embedding_model = HuggingFaceEmbeddings(
-    model_name="sentence-transformers/all-MiniLM-L6-v2"
+
+    model_name=
+    "sentence-transformers/all-MiniLM-L6-v2"
+
 )
 
 def ask_pdf(question):
 
     vector_db = Chroma(
+
         persist_directory="chroma_db",
-        embedding_function=embedding_model
+
+        embedding_function=
+        embedding_model
+
     )
 
     docs = vector_db.similarity_search(
+
         question,
+
         k=3
+
     )
 
     context = "\n".join([
-        doc.page_content for doc in docs
+
+        doc.page_content
+
+        for doc in docs
+
     ])
 
     prompt = f"""
-        You are an intelligent document assistant.
 
-        Use ONLY the provided document context to answer.
+You are Simha AI,
+an intelligent document assistant.
 
-        Rules:
-        - Give concise answers
-        - Use bullet points if needed
-        - Do not hallucinate
-        - If answer is not in document, say:
-        "Information not found in document."
+STRICT RULES:
 
-        Document Context:
-        {context}
+1. Use ONLY document context.
+2. Never hallucinate.
+3. If answer missing:
+   say:
+   "Information not found in document."
+4. Keep answers concise.
+5. Use markdown formatting.
+6. Use bullet points when useful.
+7. Make response readable.
 
-        Question:
-        {question}
-        """
+DOCUMENT CONTEXT:
 
-    response = ollama.chat(
-        model="gemma:2b",
-        messages=[
-            {
-                "role": "user",
-                "content": prompt
-            }
-        ]
-    )
+{context}
 
-    return response["message"]["content"]
+QUESTION:
+
+{question}
+
+ANSWER:
+
+"""
+
+    response = generate_response(prompt)
+
+    return response

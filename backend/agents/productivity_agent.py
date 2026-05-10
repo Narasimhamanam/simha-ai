@@ -1,4 +1,4 @@
-import ollama
+from llm import generate_response
 
 from agents.system_prompt import SYSTEM_PROMPT
 
@@ -42,22 +42,7 @@ USER QUESTION:
 ASSISTANT:
 """
 
-    response = ollama.chat(
+    response = generate_response(prompt)
+    return response
 
-        model="gemma:2b",
-
-        messages=[
-
-            {
-
-                "role": "user",
-
-                "content": prompt
-
-            }
-
-        ]
-
-    )
-
-    return response["message"]["content"]
+            
