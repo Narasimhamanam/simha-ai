@@ -12,3 +12,29 @@
 body{
   font-family: Arial, sans-serif;
 }
+
+.sidebar-btn {
+
+  width: 100%;
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 12px;
+
+  padding: 14px 16px;
+
+  border-radius: 16px;
+
+  color: white;
+
+  transition: 0.3s;
+
+}
+
+.sidebar-btn:hover {
+
+  background: #1a1a1a;
+
+}

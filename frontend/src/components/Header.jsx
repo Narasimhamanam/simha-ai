@@ -1,59 +1,81 @@
 import ThemeToggle from "./ThemeToggle";
 
 function Header({
-
   theme,
   setTheme,
-
-  profile
-
+  profile,
 }) {
-
   return (
+    <div
+      className="
 
-    <div className="
-      flex
-      justify-between
-      items-center
-      px-10
-      pt-8
-      pb-4
-    ">
+        flex
+        justify-between
+        items-center
+
+        px-6
+        pt-5
+        pb-3
+
+        border-b
+
+        border-gray-800
+
+      "
+    >
+      {/* LEFT */}
 
       <div>
+        <h1
+          className="
 
-        <h1 className="
-          text-5xl
-          font-bold
-        ">
+            text-3xl
+            font-semibold
+
+            text-white
+
+            leading-tight
+
+          "
+        >
           👋 Good Morning,
-          <span className="
-            text-purple-500
-          ">
+          <span
+            className="
+
+              text-purple-500
+
+            "
+          >
             {" "}
             {profile?.nickname}
           </span>
         </h1>
 
-        <p className="
-          mt-3
-          text-gray-400
-          text-lg
-        ">
+        <p
+          className="
+
+            mt-1.5
+
+            text-gray-400
+
+            text-sm
+
+          "
+        >
           How can I help you today?
         </p>
-
       </div>
 
-      <ThemeToggle
-        theme={theme}
-        setTheme={setTheme}
-      />
+      {/* RIGHT */}
 
+      <div className="flex items-center gap-3">
+        <ThemeToggle
+          theme={theme}
+          setTheme={setTheme}
+        />
+      </div>
     </div>
-
   );
-
 }
 
 export default Header;

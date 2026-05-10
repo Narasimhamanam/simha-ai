@@ -1,1571 +1,1210 @@
-import {
-  useEffect,
-  useRef,
-  useState
-} from "react";
+// import React, { useEffect, useRef, useState } from "react";
+// import { Paperclip, Copy, Check } from "lucide-react";
+// import ReactMarkdown from "react-markdown";
+// import remarkGfm from "remark-gfm";
+// import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
+// import { oneDark } from "react-syntax-highlighter/dist/esm/styles/prism";
+// import API from "../services/api";
 
-import {
-  Paperclip,
-  Copy,
-  Check
-} from "lucide-react";
+// function ChatArea({
+//   theme,
+//   setChats,
+//   activeChat,
+//   activeChatId,
+//   user,
+// }) {
+//   const dark = theme === "dark";
 
+//   const [input, setInput] = useState("");
+//   const [selectedAgent, setSelectedAgent] = useState("study");
+//   const [loading, setLoading] = useState(false);
+//   const [selectedFile, setSelectedFile] = useState(null);
+//   const [uploading, setUploading] = useState(false);
+//   const [copiedCode, setCopiedCode] = useState("");
+
+//   const messagesEndRef = useRef(null);
+//   const fileInputRef = useRef(null);
+
+//   useEffect(() => {
+//     messagesEndRef.current?.scrollIntoView({
+//       behavior: "smooth",
+//     });
+//   }, [activeChat, loading]);
+
+//   const copyToClipboard = async (code) => {
+//     try {
+//       await navigator.clipboard.writeText(code);
+//       setCopiedCode(code);
+//       setTimeout(() => setCopiedCode(""), 2000);
+//     } catch (error) {
+//       console.error("Copy failed:", error);
+//     }
+//   };
+
+//   const updateActiveChatMessages = (updater) => {
+//     setChats((prevChats) =>
+//       prevChats.map((chat) => {
+//         if (chat.id !== activeChatId) return chat;
+
+//         const currentMessages = chat.messages || [];
+//         const nextMessages =
+//           typeof updater === "function"
+//             ? updater(currentMessages)
+//             : updater;
+
+//         return {
+//           ...chat,
+//           messages: nextMessages,
+//         };
+//       })
+//     );
+//   };
+
+//   const handleFileChange = (e) => {
+//     const file = e.target.files?.[0] || null;
+//     setSelectedFile(file);
+//   };
+
+//   const uploadFileIfNeeded = async () => {
+//     if (!selectedFile) return null;
+
+//     const formData = new FormData();
+//     formData.append("file", selectedFile);
+
+//     setUploading(true);
+//     try {
+//       const response = await API.post("/upload-pdf", formData, {
+//         headers: {
+//           "Content-Type": "multipart/form-data",
+//         },
+//       });
+
+//       return response.data;
+//     } catch (error) {
+//       console.error("File upload failed:", error);
+//       throw new Error(
+//         error?.response?.data?.detail || "File upload failed"
+//       );
+//     } finally {
+//       setUploading(false);
+//     }
+//   };
+
+//   const handleSend = async () => {
+//     if ((!input.trim() && !selectedFile) || loading || uploading || !activeChatId) {
+//       return;
+//     }
+
+//     const userMessage = {
+//       role: "user",
+//       content: input.trim() || `Analyze this file: ${selectedFile?.name}`,
+//       file: selectedFile?.name || null,
+//     };
+
+//     const currentInput = input.trim();
+//     const currentFile = selectedFile;
+
+//     updateActiveChatMessages((messages) => [...messages, userMessage]);
+
+//     setInput("");
+//     setSelectedFile(null);
+//     if (fileInputRef.current) {
+//       fileInputRef.current.value = "";
+//     }
+
+//     setLoading(true);
+
+//     try {
+//       let uploadedFileData = null;
+
+//       if (currentFile) {
+//         uploadedFileData = await uploadFileIfNeeded();
+//       }
+
+//       const payload = {
+//         chat_id: activeChatId,
+//         user_id: user?.id || user?._id || "guest",
+//         agent: selectedAgent,
+//         query: currentInput || `Analyze the uploaded file: ${currentFile?.name}`,
+//         file_name: currentFile?.name || null,
+//         ...(uploadedFileData ? { file_data: uploadedFileData } : {}),
+//       };
+
+//       const response = await API.post("/chat", payload);
+
+//       const assistantMessage = {
+//         role: "assistant",
+//         content:
+//           response?.data?.response ||
+//           response?.data?.answer ||
+//           "No response received.",
+//       };
+
+//       updateActiveChatMessages((messages) => [...messages, assistantMessage]);
+//     } catch (error) {
+//       console.error("Send message failed:", error);
+
+//       const errorMessage = {
+//         role: "assistant",
+//         content:
+//           error?.response?.data?.detail ||
+//           error?.message ||
+//           "Something went wrong while processing your request.",
+//       };
+
+//       updateActiveChatMessages((messages) => [...messages, errorMessage]);
+//     } finally {
+//       setLoading(false);
+//     }
+//   };
+
+//   const handleKeyDown = (e) => {
+//     if (e.key === "Enter" && !e.shiftKey) {
+//       e.preventDefault();
+//       handleSend();
+//     }
+//   };
+
+//   return (
+//     <div className="flex-1 flex flex-col overflow-hidden relative text-sm">
+//       <div className="flex-1 overflow-y-auto px-4 pt-3 pb-32">
+//         <div className="space-y-3">
+//           {activeChat?.messages?.length === 0 && (
+//             <div className="min-h-[65vh] flex flex-col items-center justify-center text-center">
+//               <h1
+//                 className={`text-3xl font-bold mb-3 ${
+//                   dark ? "text-white" : "text-black"
+//                 }`}
+//               >
+//                 Simha AI
+//               </h1>
+
+//               <p
+//                 className={`text-sm max-w-xl leading-5 mb-8 ${
+//                   dark ? "text-gray-400" : "text-gray-600"
+//                 }`}
+//               >
+//                 Choose the best AI mode based on your task.
+//               </p>
+
+//               <div className="grid md:grid-cols-3 gap-4 max-w-4xl w-full">
+//                 <div
+//                   className={`p-4 rounded-xl border ${
+//                     dark
+//                       ? "bg-[#171717] border-gray-800"
+//                       : "bg-white border-gray-200"
+//                   }`}
+//                 >
+//                   <h2
+//                     className={`text-sm font-semibold mb-2 ${
+//                       dark ? "text-white" : "text-black"
+//                     }`}
+//                   >
+//                     📚 Study
+//                   </h2>
+//                   <p
+//                     className={`text-[13px] leading-5 ${
+//                       dark ? "text-gray-400" : "text-gray-600"
+//                     }`}
+//                   >
+//                     Aptitude, ML, AI, engineering subjects and interview prep.
+//                   </p>
+//                 </div>
+
+//                 <div
+//                   className={`p-4 rounded-xl border ${
+//                     dark
+//                       ? "bg-[#171717] border-gray-800"
+//                       : "bg-white border-gray-200"
+//                   }`}
+//                 >
+//                   <h2
+//                     className={`text-sm font-semibold mb-2 ${
+//                       dark ? "text-white" : "text-black"
+//                     }`}
+//                   >
+//                     💻 Coding
+//                   </h2>
+//                   <p
+//                     className={`text-[13px] leading-5 ${
+//                       dark ? "text-gray-400" : "text-gray-600"
+//                     }`}
+//                   >
+//                     DSA, React, debugging, FastAPI and projects.
+//                   </p>
+//                 </div>
+
+//                 <div
+//                   className={`p-4 rounded-xl border ${
+//                     dark
+//                       ? "bg-[#171717] border-gray-800"
+//                       : "bg-white border-gray-200"
+//                   }`}
+//                 >
+//                   <h2
+//                     className={`text-sm font-semibold mb-2 ${
+//                       dark ? "text-white" : "text-black"
+//                     }`}
+//                   >
+//                     🚀 Productivity
+//                   </h2>
+//                   <p
+//                     className={`text-[13px] leading-5 ${
+//                       dark ? "text-gray-400" : "text-gray-600"
+//                     }`}
+//                   >
+//                     Planning, schedules, roadmaps and career guidance.
+//                   </p>
+//                 </div>
+//               </div>
+//             </div>
+//           )}
+
+//           {activeChat?.messages?.map((msg, index) => (
+//             <div
+//               key={index}
+//               className={`flex ${
+//                 msg.role === "user" ? "justify-end" : "justify-start"
+//               }`}
+//             >
+//               <div
+//                 className={`max-w-[620px] w-fit rounded-xl px-3.5 py-2.5 overflow-hidden shadow-sm ${
+//                   msg.role === "user"
+//                     ? "bg-gradient-to-r from-purple-600 to-pink-500 text-white"
+//                     : dark
+//                     ? "bg-[#181818] text-white border border-gray-800"
+//                     : "bg-white text-black border border-gray-300"
+//                 }`}
+//               >
+//                 {msg.file && (
+//                   <div className="inline-flex items-center gap-2 px-2 py-1 rounded-md bg-black/10 mb-2 text-[11px]">
+//                     📄 {msg.file}
+//                   </div>
+//                 )}
+
+//                 <ReactMarkdown
+//                   remarkPlugins={[remarkGfm]}
+//                   components={{
+//                     h1: ({ children }) => (
+//                       <h1
+//                         className={`text-base font-semibold mt-4 mb-2 ${
+//                           dark ? "text-white" : "text-black"
+//                         }`}
+//                       >
+//                         {children}
+//                       </h1>
+//                     ),
+//                     h2: ({ children }) => (
+//                       <h2
+//                         className={`text-[15px] font-semibold mt-4 mb-2 ${
+//                           dark ? "text-white" : "text-black"
+//                         }`}
+//                       >
+//                         {children}
+//                       </h2>
+//                     ),
+//                     h3: ({ children }) => (
+//                       <h3
+//                         className={`text-[14px] font-medium mt-3 mb-2 ${
+//                           dark ? "text-white" : "text-black"
+//                         }`}
+//                       >
+//                         {children}
+//                       </h3>
+//                     ),
+//                     p: ({ children }) => (
+//                       <p
+//                         className={`leading-5 text-[13px] mb-2 font-normal ${
+//                           dark ? "text-gray-200" : "text-gray-800"
+//                         }`}
+//                       >
+//                         {children}
+//                       </p>
+//                     ),
+//                     ul: ({ children }) => (
+//                       <ul className="mb-2 list-disc pl-4">{children}</ul>
+//                     ),
+//                     ol: ({ children }) => (
+//                       <ol className="mb-2 list-decimal pl-4">{children}</ol>
+//                     ),
+//                     li: ({ children }) => (
+//                       <li
+//                         className={`mb-1 leading-5 text-[13px] ${
+//                           dark ? "text-gray-200" : "text-gray-800"
+//                         }`}
+//                       >
+//                         {children}
+//                       </li>
+//                     ),
+//                     strong: ({ children }) => (
+//                       <strong
+//                         className={`font-semibold ${
+//                           dark ? "text-white" : "text-black"
+//                         }`}
+//                       >
+//                         {children}
+//                       </strong>
+//                     ),
+//                     blockquote: ({ children }) => (
+//                       <blockquote
+//                         className={`border-l-2 pl-3 italic my-3 ${
+//                           dark
+//                             ? "border-gray-700 text-gray-400"
+//                             : "border-gray-300 text-gray-600"
+//                         }`}
+//                       >
+//                         {children}
+//                       </blockquote>
+//                     ),
+//                     table: ({ children }) => (
+//                       <div className="my-3 overflow-x-auto">
+//                         <table
+//                           className={`min-w-full border text-[12px] ${
+//                             dark ? "border-gray-700" : "border-gray-300"
+//                           }`}
+//                         >
+//                           {children}
+//                         </table>
+//                       </div>
+//                     ),
+//                     thead: ({ children }) => (
+//                       <thead
+//                         className={
+//                           dark ? "bg-[#232323]" : "bg-gray-100"
+//                         }
+//                       >
+//                         {children}
+//                       </thead>
+//                     ),
+//                     th: ({ children }) => (
+//                       <th
+//                         className={`px-3 py-2 border text-left font-semibold ${
+//                           dark
+//                             ? "border-gray-700 text-white"
+//                             : "border-gray-300 text-black"
+//                         }`}
+//                       >
+//                         {children}
+//                       </th>
+//                     ),
+//                     td: ({ children }) => (
+//                       <td
+//                         className={`px-3 py-2 border align-top ${
+//                           dark
+//                             ? "border-gray-700 text-gray-200"
+//                             : "border-gray-300 text-gray-800"
+//                         }`}
+//                       >
+//                         {children}
+//                       </td>
+//                     ),
+//                     code({ node, inline, className, children, ...props }) {
+//                       const match = /language-(\w+)/.exec(className || "");
+//                       const codeString = String(children).replace(/\n$/, "");
+
+//                       if (!inline && match) {
+//                         return (
+//                           <div className="my-3 rounded-lg overflow-hidden border border-gray-800">
+//                             <div className="flex items-center justify-between px-3 py-2 bg-[#1e1e1e] border-b border-gray-700">
+//                               <span className="text-[10px] uppercase text-gray-400">
+//                                 {match[1]}
+//                               </span>
+
+//                               <button
+//                                 onClick={() => copyToClipboard(codeString)}
+//                                 className="flex items-center gap-1 text-[11px] text-gray-300 hover:text-white transition"
+//                                 type="button"
+//                               >
+//                                 {copiedCode === codeString ? (
+//                                   <>
+//                                     <Check size={12} />
+//                                     Copied
+//                                   </>
+//                                 ) : (
+//                                   <>
+//                                     <Copy size={12} />
+//                                     Copy
+//                                   </>
+//                                 )}
+//                               </button>
+//                             </div>
+
+//                             <SyntaxHighlighter
+//                               style={oneDark}
+//                               language={match[1]}
+//                               PreTag="div"
+//                               wrapLongLines={true}
+//                               customStyle={{
+//                                 margin: 0,
+//                                 padding: "10px",
+//                                 background: "#111827",
+//                                 fontSize: "11px",
+//                                 lineHeight: "1.5",
+//                               }}
+//                               {...props}
+//                             >
+//                               {codeString}
+//                             </SyntaxHighlighter>
+//                           </div>
+//                         );
+//                       }
+
+//                       return (
+//                         <code
+//                           className="px-1.5 py-0.5 rounded bg-black/10 text-pink-400 text-[11px]"
+//                           {...props}
+//                         >
+//                           {children}
+//                         </code>
+//                       );
+//                     },
+//                   }}
+//                 >
+//                   {msg.content || ""}
+//                 </ReactMarkdown>
+//               </div>
+//             </div>
+//           ))}
+
+//           {loading && (
+//             <div className="flex justify-start">
+//               <div
+//                 className={`px-3 py-2 rounded-xl flex items-center gap-2 ${
+//                   dark
+//                     ? "bg-[#181818] text-white"
+//                     : "bg-gray-100 text-black"
+//                 }`}
+//               >
+//                 <div className="flex gap-1">
+//                   <div className="w-2 h-2 rounded-full bg-purple-500 animate-bounce" />
+//                   <div
+//                     className="w-2 h-2 rounded-full bg-pink-500 animate-bounce"
+//                     style={{ animationDelay: "0.2s" }}
+//                   />
+//                   <div
+//                     className="w-2 h-2 rounded-full bg-cyan-400 animate-bounce"
+//                     style={{ animationDelay: "0.4s" }}
+//                   />
+//                 </div>
+//                 <p className="text-[11px]">
+//                   {uploading ? "Uploading file..." : "Thinking..."}
+//                 </p>
+//               </div>
+//             </div>
+//           )}
+
+//           <div ref={messagesEndRef} />
+//         </div>
+//       </div>
+
+//       <div className="absolute bottom-0 left-0 right-0 p-4">
+//         <div
+//           className={`max-w-4xl mx-auto flex items-center gap-2 p-2.5 rounded-xl border ${
+//             dark
+//               ? "bg-[#181818] border-gray-800"
+//               : "bg-white border-gray-300"
+//           }`}
+//         >
+//           <select
+//             value={selectedAgent}
+//             onChange={(e) => setSelectedAgent(e.target.value)}
+//             disabled={loading || uploading}
+//             className={`px-2.5 py-2 rounded-lg outline-none text-sm ${
+//               dark
+//                 ? "bg-[#252525] text-white"
+//                 : "bg-gray-100 text-black"
+//             }`}
+//           >
+//             <option value="study">Study</option>
+//             <option value="coding">Coding</option>
+//             <option value="productivity">Productivity</option>
+//           </select>
+
+//           <input
+//             type="text"
+//             value={input}
+//             onChange={(e) => setInput(e.target.value)}
+//             onKeyDown={handleKeyDown}
+//             placeholder="Ask anything..."
+//             disabled={loading || uploading}
+//             className={`flex-1 bg-transparent outline-none text-sm ${
+//               dark
+//                 ? "text-white placeholder:text-gray-500"
+//                 : "text-black placeholder:text-gray-400"
+//             }`}
+//           />
+
+//           <label className="cursor-pointer">
+//             <input
+//               ref={fileInputRef}
+//               type="file"
+//               hidden
+//               accept=".pdf,.txt,.doc,.docx"
+//               onChange={handleFileChange}
+//               disabled={loading || uploading}
+//             />
+//             <Paperclip
+//               size={17}
+//               className={`transition ${
+//                 dark
+//                   ? "text-gray-400 hover:text-white"
+//                   : "text-gray-500 hover:text-black"
+//               }`}
+//             />
+//           </label>
+
+//           <button
+//             onClick={handleSend}
+//             disabled={loading || uploading || (!input.trim() && !selectedFile)}
+//             className="px-4 py-2 rounded-lg bg-gradient-to-r from-purple-600 to-pink-500 text-white text-sm font-medium hover:opacity-90 transition disabled:opacity-50 disabled:cursor-not-allowed"
+//             type="button"
+//           >
+//             {loading || uploading ? "..." : "Send"}
+//           </button>
+//         </div>
+
+//         {selectedFile && (
+//           <div
+//             className={`max-w-4xl mx-auto mt-2 px-2 text-xs ${
+//               dark ? "text-gray-400" : "text-gray-600"
+//             }`}
+//           >
+//             Selected file: <span className="font-medium">{selectedFile.name}</span>
+//           </div>
+//         )}
+//       </div>
+//     </div>
+//   );
+// }
+
+// export default ChatArea;
+
+
+
+import React, { useEffect, useRef, useState, useCallback } from "react";
+import { Paperclip, Copy, Check, X } from "lucide-react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
+import { oneDark } from "react-syntax-highlighter/dist/esm/styles/prism";
 import API from "../services/api";
 
-import ReactMarkdown from "react-markdown";
-
-import remarkGfm from "remark-gfm";
-
-import {
-  Prism as SyntaxHighlighter
-} from "react-syntax-highlighter";
-
-import {
-  oneDark
-} from "react-syntax-highlighter/dist/esm/styles/prism";
-
 function ChatArea({
-
   theme,
   setChats,
   activeChat,
   activeChatId,
-  user
-
+  user,
 }) {
-
   const dark = theme === "dark";
 
-  const [input, setInput] =
-    useState("");
+  const [input, setInput] = useState("");
+  const [selectedAgent, setSelectedAgent] = useState("study");
+  const [loading, setLoading] = useState(false);
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [uploading, setUploading] = useState(false);
+  const [copiedCode, setCopiedCode] = useState("");
 
-  const [selectedAgent, setSelectedAgent] =
-    useState("study");
-
-  const [loading, setLoading] =
-    useState(false);
-
-  const [selectedFile, setSelectedFile] =
-    useState(null);
-
-  const [uploading, setUploading] =
-    useState(false);
-
-  const [copiedCode, setCopiedCode] =
-    useState("");
-
-  const messagesEndRef =
-    useRef(null);
-
-  // AUTO SCROLL
+  const messagesEndRef = useRef(null);
+  const fileInputRef = useRef(null);
 
   useEffect(() => {
-
     messagesEndRef.current?.scrollIntoView({
-
-      behavior: "smooth"
-
+      behavior: "smooth",
     });
+  }, [activeChat?.messages, loading]);
 
-  }, [activeChat, loading]);
+  const copyToClipboard = async (code) => {
+    try {
+      await navigator.clipboard.writeText(code);
+      setCopiedCode(code);
 
-  // COPY CODE
+      setTimeout(() => {
+        setCopiedCode("");
+      }, 2000);
+    } catch (error) {
+      console.error("Copy failed:", error);
+    }
+  };
 
-  const copyToClipboard =
-    async (code) => {
-
-      try {
-
-        await navigator.clipboard.writeText(
-
-          code
-
-        );
-
-        setCopiedCode(code);
-
-        setTimeout(() => {
-
-          setCopiedCode("");
-
-        }, 2000);
-
-      } catch (error) {
-
-        console.log(error);
-
-      }
-
-    };
-
-  // FILE UPLOAD
-
-  const handleFileUpload =
-    async (file) => {
-
-      if (!file) return;
-
-      setSelectedFile(file);
-
-      const formData =
-        new FormData();
-
-      formData.append(
-        "file",
-        file
-      );
-
-      try {
-
-        setUploading(true);
-
-        await fetch(
-
-          `${import.meta.env.VITE_BACKEND_URL}/upload-pdf`,
-
-          {
-
-            method: "POST",
-
-            body: formData
-
+  const updateActiveChatMessages = useCallback(
+    (updater) => {
+      setChats((prevChats) =>
+        prevChats.map((chat) => {
+          if (chat.id !== activeChatId) {
+            return chat;
           }
 
-        );
+          const currentMessages = chat.messages || [];
 
-        setUploading(false);
-
-      } catch (error) {
-
-        console.log(error);
-
-        setUploading(false);
-
-      }
-
-    };
-
-  // SEND MESSAGE
-
-  const sendMessage = async () => {
-
-    if (!input.trim()) return;
-
-    const formattedInput =
-
-      `${selectedAgent}: ${input}`;
-
-    const userMessage = {
-
-      role: "user",
-
-      content: formattedInput,
-
-      file: selectedFile
-
-        ? selectedFile.name
-
-        : null
-
-    };
-
-    // ADD USER MESSAGE
-
-    setChats((prevChats) =>
-
-      prevChats.map((chat) => {
-
-        if (
-          chat.id === activeChatId
-        ) {
+          const nextMessages =
+            typeof updater === "function"
+              ? updater(currentMessages)
+              : updater;
 
           return {
-
             ...chat,
-
-            messages: [
-
-              ...chat.messages,
-
-              userMessage
-
-            ]
-
+            messages: nextMessages,
           };
-
-        }
-
-        return chat;
-
-      })
-
-    );
-
-    // SAVE USER MESSAGE
-
-    try {
-
-      await API.post(
-
-        "/save-message",
-
-        {
-
-          chat_id:
-            activeChatId,
-
-          role: "user",
-
-          content:
-            formattedInput
-
-        }
-
+        })
       );
+    },
+    [activeChatId, setChats]
+  );
 
-    } catch (error) {
+  const handleFileChange = (e) => {
+    const file = e.target.files?.[0] || null;
+    setSelectedFile(file);
+  };
 
-      console.log(error);
-
+  // FIXED: now receives file directly instead of using stale state
+  const uploadFileIfNeeded = async (file) => {
+    if (!file) {
+      return null;
     }
 
-    const currentInput =
-      formattedInput;
+    const formData = new FormData();
+    formData.append("file", file);
 
+    setUploading(true);
+
+    try {
+      const response = await API.post("/upload-pdf", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
+      return response.data;
+    } catch (error) {
+      console.error("File upload failed:", error);
+
+      throw new Error(
+        error?.response?.data?.detail ||
+          "Unable to upload file. Please try again."
+      );
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleSend = async () => {
+    if (
+      loading ||
+      uploading ||
+      !activeChatId ||
+      (!input.trim() && !selectedFile)
+    ) {
+      return;
+    }
+
+    const currentInput = input.trim();
+    const currentFile = selectedFile;
+
+    const userMessage = {
+      role: "user",
+      content:
+        currentInput || `Analyze this file: ${currentFile?.name || "File"}`,
+      file: currentFile?.name || null,
+    };
+
+    updateActiveChatMessages((messages) => [
+      ...messages,
+      userMessage,
+    ]);
+
+    // clear input instantly for smooth UX
     setInput("");
-
     setSelectedFile(null);
+
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
 
     setLoading(true);
 
     try {
-
-      // PDF MODE
-
-      if (selectedFile) {
-
-        const response =
-          await fetch(
-
-            `${import.meta.env.VITE_BACKEND_URL}/ask-pdf`,
-
-            {
-
-              method: "POST",
-
-              headers: {
-
-                "Content-Type":
-                  "application/json"
-
-              },
-
-              body: JSON.stringify({
-
-                user_id:
-                  user.email,
-
-                message:
-                  currentInput
-
-              })
-
-            }
-
-          );
-
-        const data =
-          await response.json();
-
-        const aiMessage = {
-
-          role: "assistant",
-
-          content:
-            data.response
-
-        };
-
-        setChats((prevChats) =>
-
-          prevChats.map((chat) => {
-
-            if (
-              chat.id ===
-              activeChatId
-            ) {
-
-              return {
-
-                ...chat,
-
-                messages: [
-
-                  ...chat.messages,
-
-                  aiMessage
-
-                ]
-
-              };
-
-            }
-
-            return chat;
-
-          })
-
-        );
-
-        await API.post(
-
-          "/save-message",
-
-          {
-
-            chat_id:
-              activeChatId,
-
-            role:
-              "assistant",
-
-            content:
-              data.response
-
-          }
-
-        );
-
-      } else {
-
-        // STREAM CHAT
-
-        const response =
-          await fetch(
-
-            `${import.meta.env.VITE_BACKEND_URL}/stream-chat`,
-
-            {
-
-              method: "POST",
-
-              headers: {
-
-                "Content-Type":
-                  "application/json"
-
-              },
-
-              body: JSON.stringify({
-
-                user_id:
-                  user.email,
-
-                message:
-                  currentInput
-
-              })
-
-            }
-
-          );
-
-        const reader =
-          response.body.getReader();
-
-        const decoder =
-          new TextDecoder();
-
-        let streamedText = "";
-
-        while (true) {
-
-          const {
-
-            done,
-            value
-
-          } = await reader.read();
-
-          if (done) break;
-
-          streamedText +=
-
-            decoder.decode(value);
-
-          setChats((prevChats) =>
-
-            prevChats.map((chat) => {
-
-              if (
-                chat.id ===
-                activeChatId
-              ) {
-
-                const filteredMessages =
-
-                  chat.messages.filter(
-
-                    (msg) =>
-
-                      !msg.streaming
-
-                  );
-
-                return {
-
-                  ...chat,
-
-                  messages: [
-
-                    ...filteredMessages,
-
-                    {
-
-                      role:
-                        "assistant",
-
-                      content:
-                        streamedText,
-
-                      streaming:
-                        true
-
-                    }
-
-                  ]
-
-                };
-
-              }
-
-              return chat;
-
-            })
-
-          );
-
-        }
-
-        // FINAL RESPONSE
-
-        setChats((prevChats) =>
-
-          prevChats.map((chat) => {
-
-            if (
-              chat.id ===
-              activeChatId
-            ) {
-
-              const filteredMessages =
-
-                chat.messages.filter(
-
-                  (msg) =>
-
-                    !msg.streaming
-
-                );
-
-              return {
-
-                ...chat,
-
-                messages: [
-
-                  ...filteredMessages,
-
-                  {
-
-                    role:
-                      "assistant",
-
-                    content:
-                      streamedText
-
-                  }
-
-                ]
-
-              };
-
-            }
-
-            return chat;
-
-          })
-
-        );
-
-        await API.post(
-
-          "/save-message",
-
-          {
-
-            chat_id:
-              activeChatId,
-
-            role:
-              "assistant",
-
-            content:
-              streamedText
-
-          }
-
-        );
-
+      let uploadedFileData = null;
+
+      // FIXED: uses currentFile instead of cleared state
+      if (currentFile) {
+        uploadedFileData = await uploadFileIfNeeded(currentFile);
       }
 
-      setLoading(false);
+      const payload = {
+        chat_id: activeChatId,
+        user_id: user?.id || user?._id || "guest",
+        agent: selectedAgent,
+        query:
+          currentInput ||
+          `Analyze uploaded file: ${currentFile?.name || "File"}`,
+        file_name: currentFile?.name || null,
+        ...(uploadedFileData
+          ? {
+              file_data: uploadedFileData,
+            }
+          : {}),
+      };
 
+      const response = await API.post("/chat", payload);
+
+      const assistantMessage = {
+        role: "assistant",
+        content:
+          response?.data?.response ||
+          response?.data?.answer ||
+          response?.data?.message ||
+          "No response received.",
+      };
+
+      updateActiveChatMessages((messages) => [
+        ...messages,
+        assistantMessage,
+      ]);
     } catch (error) {
+      console.error("Send message failed:", error);
 
-      console.log(error);
+      const errorMessage = {
+        role: "assistant",
+        content:
+          error?.response?.data?.detail ||
+          error?.message ||
+          "Something went wrong while processing your request.",
+      };
 
+      updateActiveChatMessages((messages) => [
+        ...messages,
+        errorMessage,
+      ]);
+    } finally {
       setLoading(false);
-
     }
+  };
 
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleSend();
+    }
   };
 
   return (
-
-    <div className="
-
-      flex-1
-      flex
-      flex-col
-
-      overflow-hidden
-
-      relative
-
-    ">
-
+    <div className="flex-1 flex flex-col overflow-hidden relative text-sm">
       {/* CHAT AREA */}
-
-      <div className="
-
-        flex-1
-
-        overflow-y-auto
-
-        px-8
-        pt-6
-        pb-44
-
-      ">
-
-        <div className="space-y-8">
-
-          {/* EMPTY SCREEN */}
-
-          {activeChat?.messages?.length === 0 && (
-
-            <div className="
-
-              min-h-[70vh]
-
-              flex
-              flex-col
-
-              items-center
-              justify-center
-
-              text-center
-
-            ">
-
-              <h1 className="
-
-                text-6xl
-                font-bold
-
-                bg-gradient-to-r
-                from-purple-400
-                via-pink-500
-                to-cyan-400
-
-                bg-clip-text
-                text-transparent
-
-                mb-6
-
-              ">
-
+      <div className="flex-1 overflow-y-auto px-3 pt-3 pb-32">
+        <div className="space-y-3 max-w-5xl mx-auto w-full">
+          {(!activeChat?.messages ||
+            activeChat.messages.length === 0) && (
+            <div className="min-h-[70vh] flex flex-col items-center justify-center text-center px-4">
+              <h1
+                className={`text-2xl font-semibold mb-3 ${
+                  dark ? "text-white" : "text-black"
+                }`}
+              >
                 Simha AI
-
               </h1>
 
-              <p className="
-
-                text-xl
-                text-gray-400
-
-                max-w-3xl
-
-                leading-9
-
-                mb-12
-
-              ">
-
-                Choose the best AI mode
-                based on your task.
-
+              <p
+                className={`text-sm max-w-lg leading-6 mb-8 ${
+                  dark ? "text-gray-400" : "text-gray-600"
+                }`}
+              >
+                Choose an AI mode and start chatting.
               </p>
 
-              <div className="
-
-                grid
-                md:grid-cols-3
-
-                gap-6
-
-                max-w-6xl
-                w-full
-
-              ">
-
-                {/* STUDY */}
-
-                <div className="
-
-                  p-7
-
-                  rounded-3xl
-
-                  bg-purple-500/10
-
-                  border
-                  border-purple-500/20
-
-                ">
-
-                  <h2 className="
-
-                    text-2xl
-                    font-bold
-
-                    text-purple-400
-
-                    mb-4
-
-                  ">
-
-                    📚 Study
-
-                  </h2>
-
-                  <p className="
-
-                    text-gray-400
-
-                    leading-8
-
-                  ">
-
-                    Best for aptitude,
-                    ML, AI,
-                    engineering subjects,
-                    interview prep,
-                    and explanations.
-
-                  </p>
-
-                </div>
-
-                {/* CODING */}
-
-                <div className="
-
-                  p-7
-
-                  rounded-3xl
-
-                  bg-pink-500/10
-
-                  border
-                  border-pink-500/20
-
-                ">
-
-                  <h2 className="
-
-                    text-2xl
-                    font-bold
-
-                    text-pink-400
-
-                    mb-4
-
-                  ">
-
-                    💻 Coding
-
-                  </h2>
-
-                  <p className="
-
-                    text-gray-400
-
-                    leading-8
-
-                  ">
-
-                    Best for DSA,
-                    debugging,
-                    React,
-                    FastAPI,
-                    AI/ML coding,
-                    and projects.
-
-                  </p>
-
-                </div>
-
-                {/* PRODUCTIVITY */}
-
-                <div className="
-
-                  p-7
-
-                  rounded-3xl
-
-                  bg-cyan-500/10
-
-                  border
-                  border-cyan-500/20
-
-                ">
-
-                  <h2 className="
-
-                    text-2xl
-                    font-bold
-
-                    text-cyan-400
-
-                    mb-4
-
-                  ">
-
-                    🚀 Productivity
-
-                  </h2>
-
-                  <p className="
-
-                    text-gray-400
-
-                    leading-8
-
-                  ">
-
-                    Best for planning,
-                    schedules,
-                    productivity,
-                    roadmaps,
-                    and career guidance.
-
-                  </p>
-
-                </div>
-
+              <div className="grid md:grid-cols-3 gap-3 w-full max-w-3xl">
+                {[
+                  {
+                    title: "📚 Study",
+                    desc: "Aptitude, ML, AI and interview preparation.",
+                  },
+                  {
+                    title: "💻 Coding",
+                    desc: "React, DSA, FastAPI and debugging support.",
+                  },
+                  {
+                    title: "🚀 Productivity",
+                    desc: "Roadmaps, planning and career guidance.",
+                  },
+                ].map((item, idx) => (
+                  <div
+                    key={idx}
+                    className={`p-4 rounded-xl border transition-all ${
+                      dark
+                        ? "bg-[#171717] border-gray-800"
+                        : "bg-white border-gray-200"
+                    }`}
+                  >
+                    <h2
+                      className={`text-sm font-semibold mb-2 ${
+                        dark ? "text-white" : "text-black"
+                      }`}
+                    >
+                      {item.title}
+                    </h2>
+
+                    <p
+                      className={`text-xs leading-5 ${
+                        dark ? "text-gray-400" : "text-gray-600"
+                      }`}
+                    >
+                      {item.desc}
+                    </p>
+                  </div>
+                ))}
               </div>
-
             </div>
-
           )}
 
-          {/* MESSAGES */}
-
-          {activeChat?.messages?.map(
-
-            (msg, index) => (
-
+          {activeChat?.messages?.map((msg, index) => (
+            <div
+              key={index}
+              className={`flex ${
+                msg.role === "user"
+                  ? "justify-end"
+                  : "justify-start"
+              }`}
+            >
               <div
-
-                key={index}
-
-                className={`
-
-                  flex
-
-                  ${msg.role === "user"
-
-                    ? "justify-end"
-
-                    : "justify-start"}
-
-                `}
-
-              >
-
-                <div className={`
-
-                  max-w-[78%]
-
-                  rounded-3xl
-
-                  px-6
-                  py-5
-
-                  overflow-hidden
-
-                  shadow-xl
-
-                  ${msg.role === "user"
-
+                className={`w-fit max-w-[72%] rounded-2xl px-4 py-3 overflow-hidden ${
+                  msg.role === "user"
                     ? "bg-gradient-to-r from-purple-600 to-pink-500 text-white"
-
                     : dark
+                    ? "bg-[#181818] border border-gray-800 text-white"
+                    : "bg-white border border-gray-200 text-black"
+                }`}
+              >
+                {msg.file && (
+                  <div className="inline-flex items-center gap-2 px-2 py-1 rounded-md bg-black/10 mb-3 text-[11px]">
+                    📄 {msg.file}
+                  </div>
+                )}
 
-                    ? "bg-[#1f1f1f] text-white border border-gray-800"
+                <ReactMarkdown
+                  remarkPlugins={[remarkGfm]}
+                  components={{
+                    h1: ({ children }) => (
+                      <h1 className="text-lg font-semibold mt-4 mb-2">
+                        {children}
+                      </h1>
+                    ),
 
-                    : "bg-gray-100 text-black border border-gray-300"}
+                    h2: ({ children }) => (
+                      <h2 className="text-base font-semibold mt-4 mb-2">
+                        {children}
+                      </h2>
+                    ),
 
-                `}>
+                    h3: ({ children }) => (
+                      <h3 className="text-sm font-semibold mt-3 mb-2">
+                        {children}
+                      </h3>
+                    ),
 
-                  {/* FILE */}
+                    p: ({ children }) => (
+                      <p className="text-[13px] leading-6 mb-3 whitespace-pre-wrap">
+                        {children}
+                      </p>
+                    ),
 
-                  {msg.file && (
+                    ul: ({ children }) => (
+                      <ul className="list-disc pl-5 mb-3 space-y-1">
+                        {children}
+                      </ul>
+                    ),
 
-                    <div className="
+                    ol: ({ children }) => (
+                      <ol className="list-decimal pl-5 mb-3 space-y-1">
+                        {children}
+                      </ol>
+                    ),
 
-                      inline-flex
+                    li: ({ children }) => (
+                      <li className="text-[13px] leading-6">{children}</li>
+                    ),
 
-                      items-center
-                      gap-2
+                    strong: ({ children }) => (
+                      <strong className="font-semibold text-white">
+                        {children}
+                      </strong>
+                    ),
 
-                      px-4
-                      py-2
+                    blockquote: ({ children }) => (
+                      <blockquote
+                        className={`border-l-4 pl-4 italic my-4 ${
+                          dark
+                            ? "border-gray-700 text-gray-400"
+                            : "border-gray-300 text-gray-600"
+                        }`}
+                      >
+                        {children}
+                      </blockquote>
+                    ),
 
-                      rounded-xl
-
-                      bg-purple-500/20
-
-                      mb-5
-
-                    ">
-
-                      📄 {msg.file}
-
-                    </div>
-
-                  )}
-
-                  {/* MARKDOWN */}
-
-                  <ReactMarkdown
-
-                    remarkPlugins={[remarkGfm]}
-
-                    components={{
-
-                      h1: ({ children }) => (
-
-                        <h1 className="
-
-                          text-4xl
-                          font-bold
-
-                          mt-8
-                          mb-6
-
-                          text-purple-400
-
-                        ">
-
+                    table: ({ children }) => (
+                      <div className="overflow-x-auto my-4">
+                        <table
+                          className={`min-w-full text-xs border ${
+                            dark
+                              ? "border-gray-700"
+                              : "border-gray-300"
+                          }`}
+                        >
                           {children}
-
-                        </h1>
-
-                      ),
-
-                      h2: ({ children }) => (
-
-                        <h2 className="
-
-                          text-3xl
-                          font-bold
-
-                          mt-7
-                          mb-5
-
-                          text-pink-400
-
-                        ">
-
-                          {children}
-
-                        </h2>
-
-                      ),
-
-                      h3: ({ children }) => (
-
-                        <h3 className="
-
-                          text-2xl
-                          font-semibold
-
-                          mt-6
-                          mb-4
-
-                          text-cyan-400
-
-                        ">
-
-                          {children}
-
-                        </h3>
-
-                      ),
-
-                      p: ({ children }) => (
-
-                        <p className="
-
-                          leading-8
-
-                          text-[16px]
-
-                          mb-5
-
-                        ">
-
-                          {children}
-
-                        </p>
-
-                      ),
-
-                      li: ({ children }) => (
-
-                        <li className="
-
-                          ml-6
-                          mb-3
-
-                          list-disc
-
-                          leading-8
-
-                        ">
-
-                          {children}
-
-                        </li>
-
-                      ),
-
-                      strong: ({ children }) => (
-
-                        <strong className="
-
-                          text-purple-300
-                          font-bold
-
-                        ">
-
-                          {children}
-
-                        </strong>
-
-                      ),
-
-                      table: ({ children }) => (
-
-                        <div className="overflow-x-auto my-6">
-
-                          <table className="
-
-                            min-w-full
-
-                            border
-                            border-gray-700
-
-                          ">
-
-                            {children}
-
-                          </table>
-
-                        </div>
-
-                      ),
-
-                      th: ({ children }) => (
-
-                        <th className="
-
-                          border
-                          border-gray-700
-
-                          px-4
-                          py-3
-
-                          bg-purple-500/20
-
-                        ">
-
-                          {children}
-
-                        </th>
-
-                      ),
-
-                      td: ({ children }) => (
-
-                        <td className="
-
-                          border
-                          border-gray-700
-
-                          px-4
-                          py-3
-
-                        ">
-
-                          {children}
-
-                        </td>
-
-                      ),
-
-                      code({
-
-                        inline,
-                        className,
-                        children,
-                        ...props
-
-                      }) {
-
-                        const match =
-
-                          /language-(\w+)/.exec(
-
-                            className || ""
-
-                          );
-
-                        const codeString =
-
-                          String(children).replace(
-
-                            /\n$/,
-
-                            ""
-
-                          );
-
-                        return !inline && match ? (
-
-                          <div className="
-
-                            my-7
-
-                            rounded-2xl
-
-                            overflow-hidden
-
-                            border
-                            border-purple-500/20
-
-                          ">
-
-                            {/* HEADER */}
-
-                            <div className="
-
-                              flex
-                              items-center
-                              justify-between
-
-                              px-5
-                              py-3
-
-                              bg-[#1e1e1e]
-
-                            ">
-
-                              <span className="
-
-                                text-sm
-                                uppercase
-
-                                text-gray-400
-
-                              ">
-
+                        </table>
+                      </div>
+                    ),
+
+                    thead: ({ children }) => (
+                      <thead
+                        className={
+                          dark ? "bg-[#232323]" : "bg-gray-100"
+                        }
+                      >
+                        {children}
+                      </thead>
+                    ),
+
+                    th: ({ children }) => (
+                      <th
+                        className={`px-3 py-2 text-left border ${
+                          dark
+                            ? "border-gray-700"
+                            : "border-gray-300"
+                        }`}
+                      >
+                        {children}
+                      </th>
+                    ),
+
+                    td: ({ children }) => (
+                      <td
+                        className={`px-3 py-2 border ${
+                          dark
+                            ? "border-gray-700"
+                            : "border-gray-300"
+                        }`}
+                      >
+                        {children}
+                      </td>
+                    ),
+
+                    code({ inline, className, children, ...props }) {
+                      const match = /language-(\w+)/.exec(
+                        className || ""
+                      );
+
+                      const codeString = String(children).replace(
+                        /\n$/,
+                        ""
+                      );
+
+                      // FIXED: proper code rendering
+                      if (!inline && match) {
+                        return (
+                          <div className="my-4 rounded-xl overflow-hidden border border-gray-800">
+                            <div className="flex items-center justify-between px-3 py-2 bg-[#1e1e1e] border-b border-gray-700">
+                              <span className="text-[10px] uppercase text-gray-400 tracking-wide">
                                 {match[1]}
-
                               </span>
 
                               <button
-
+                                type="button"
                                 onClick={() =>
-
-                                  copyToClipboard(
-
-                                    codeString
-
-                                  )
-
+                                  copyToClipboard(codeString)
                                 }
-
-                                className="
-
-                                  flex
-                                  items-center
-                                  gap-2
-
-                                  text-sm
-
-                                  text-gray-300
-
-                                  hover:text-white
-
-                                  transition
-
-                                "
-
+                                className="flex items-center gap-1 text-[11px] text-gray-300 hover:text-white transition"
                               >
-
                                 {copiedCode === codeString ? (
-
                                   <>
-
-                                    <Check size={16} />
+                                    <Check size={12} />
                                     Copied
-
                                   </>
-
                                 ) : (
-
                                   <>
-
-                                    <Copy size={16} />
+                                    <Copy size={12} />
                                     Copy
-
                                   </>
-
                                 )}
-
                               </button>
-
                             </div>
 
-                            {/* CODE */}
-
                             <SyntaxHighlighter
-
-                              style={oneDark}
-
                               language={match[1]}
-
+                              style={oneDark}
                               PreTag="div"
-
                               wrapLongLines={true}
-
                               customStyle={{
-
                                 margin: 0,
-
-                                padding: "24px",
-
-                                background:
-                                  "#111827",
-
-                                fontSize: "15px"
-
+                                padding: "14px",
+                                background: "#111827",
+                                fontSize: "12px",
+                                lineHeight: "1.6",
                               }}
-
                               {...props}
-
                             >
-
                               {codeString}
-
                             </SyntaxHighlighter>
-
                           </div>
-
-                        ) : (
-
-                          <code
-
-                            className="
-
-                              px-2
-                              py-1
-
-                              rounded-md
-
-                              bg-black/40
-
-                              text-pink-300
-
-                              text-sm
-
-                            "
-
-                            {...props}
-
-                          >
-
-                            {children}
-
-                          </code>
-
                         );
-
                       }
 
-                    }}
-
-                  >
-
-                    {msg.content}
-
-                  </ReactMarkdown>
-
-                </div>
-
+                      return (
+                        <code
+                          className="px-1.5 py-0.5 rounded bg-black/10 text-pink-400 text-[11px]"
+                          {...props}
+                        >
+                          {children}
+                        </code>
+                      );
+                    },
+                  }}
+                >
+                  {msg.content || ""}
+                </ReactMarkdown>
               </div>
-
-            )
-
-          )}
-
-          {/* THINKING */}
+            </div>
+          ))}
 
           {loading && (
-
             <div className="flex justify-start">
-
-              <div className={`
-
-                px-6
-                py-4
-
-                rounded-3xl
-
-                flex
-                items-center
-                gap-4
-
-                ${dark
-
-                  ? "bg-[#1f1f1f] text-white"
-
-                  : "bg-gray-200 text-black"}
-
-              `}>
-
-                <div className="flex gap-2">
-
-                  <div className="
-
-                    w-3
-                    h-3
-
-                    rounded-full
-
-                    bg-purple-500
-
-                    animate-bounce
-
-                  " />
+              <div
+                className={`px-3 py-2 rounded-xl flex items-center gap-2 ${
+                  dark
+                    ? "bg-[#181818] text-white"
+                    : "bg-gray-100 text-black"
+                }`}
+              >
+                <div className="flex gap-1">
+                  <div className="w-2 h-2 rounded-full bg-purple-500 animate-bounce" />
 
                   <div
-
-                    className="
-
-                      w-3
-                      h-3
-
-                      rounded-full
-
-                      bg-pink-500
-
-                      animate-bounce
-
-                    "
-
-                    style={{
-
-                      animationDelay:
-                        "0.2s"
-
-                    }}
-
+                    className="w-2 h-2 rounded-full bg-pink-500 animate-bounce"
+                    style={{ animationDelay: "0.2s" }}
                   />
 
                   <div
-
-                    className="
-
-                      w-3
-                      h-3
-
-                      rounded-full
-
-                      bg-cyan-400
-
-                      animate-bounce
-
-                    "
-
-                    style={{
-
-                      animationDelay:
-                        "0.4s"
-
-                    }}
-
+                    className="w-2 h-2 rounded-full bg-cyan-400 animate-bounce"
+                    style={{ animationDelay: "0.4s" }}
                   />
-
                 </div>
 
-                <p>
-
-                  Simha AI is thinking...
-
+                <p className="text-[11px]">
+                  {uploading ? "Uploading file..." : "Thinking..."}
                 </p>
-
               </div>
-
             </div>
-
           )}
 
           <div ref={messagesEndRef} />
-
         </div>
-
       </div>
 
-      {/* INPUT */}
-
-      <div className="
-
-        absolute
-        bottom-0
-        left-0
-        right-0
-
-        p-6
-
-      ">
-
-        <div className={`
-
-          max-w-6xl
-          mx-auto
-
-          flex
-          items-center
-
-          gap-4
-
-          p-4
-
-          rounded-3xl
-
-          border
-
-          backdrop-blur-lg
-
-          ${dark
-
-            ? "bg-[#1f1f1f]/90 border-gray-800"
-
-            : "bg-white/90 border-gray-300"}
-
-        `}>
-
-          {/* AGENT */}
-
-          <select
-
-            value={selectedAgent}
-
-            onChange={(e) =>
-
-              setSelectedAgent(
-                e.target.value
-              )
-
-            }
-
-            className={`
-
-              px-4
-              py-3
-
-              rounded-2xl
-
-              outline-none
-
-              ${dark
-
-                ? "bg-[#2b2b2b] text-white"
-
-                : "bg-gray-100 text-black"}
-
-            `}
-          >
-
-            <option value="study">
-              Study
-            </option>
-
-            <option value="coding">
-              Coding
-            </option>
-
-            <option value="productivity">
-              Productivity
-            </option>
-
-          </select>
-
-          {/* INPUT */}
-
-          <input
-
-            type="text"
-
-            value={input}
-
-            onChange={(e) =>
-
-              setInput(
-                e.target.value
-              )
-
-            }
-
-            onKeyDown={(e) => {
-
-              if (
-                e.key === "Enter"
-              ) {
-
-                sendMessage();
-
-              }
-
-            }}
-
-            placeholder="Ask anything..."
-
-            className="
-
-              flex-1
-
-              bg-transparent
-
-              outline-none
-
-              text-lg
-
-            "
-
-          />
-
-          {/* FILE */}
-
-          <label className="cursor-pointer">
-
-            <input
-
-              type="file"
-
-              hidden
-
-              onChange={(e) =>
-
-                handleFileUpload(
-
-                  e.target.files[0]
-
-                )
-
-              }
-
+      {/* INPUT AREA */}
+      <div className="absolute bottom-0 left-0 right-0 p-3 backdrop-blur-sm">
+        <div
+          className={`max-w-5xl mx-auto rounded-2xl border px-3 py-3 ${
+            dark
+              ? "bg-[#181818] border-gray-800"
+              : "bg-white border-gray-300"
+          }`}
+        >
+          <div className="flex items-center gap-2">
+            <select
+              value={selectedAgent}
+              onChange={(e) => setSelectedAgent(e.target.value)}
+              disabled={loading || uploading}
+              className={`px-3 py-2 rounded-xl text-xs outline-none ${
+                dark
+                  ? "bg-[#252525] text-white"
+                  : "bg-gray-100 text-black"
+              }`}
+            >
+              <option value="study">Study</option>
+              <option value="coding">Coding</option>
+              <option value="productivity">Productivity</option>
+            </select>
+
+            <textarea
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={handleKeyDown}
+              rows={1}
+              placeholder="Ask anything..."
+              disabled={loading || uploading}
+              className={`flex-1 bg-transparent outline-none resize-none text-sm max-h-32 ${
+                dark
+                  ? "text-white placeholder:text-gray-500"
+                  : "text-black placeholder:text-gray-400"
+              }`}
             />
 
-            <Paperclip
+            <label className="cursor-pointer flex items-center justify-center">
+              <input
+                ref={fileInputRef}
+                type="file"
+                hidden
+                accept=".pdf,.txt,.doc,.docx"
+                onChange={handleFileChange}
+                disabled={loading || uploading}
+              />
 
-              size={22}
+              <Paperclip
+                size={17}
+                className={`transition ${
+                  dark
+                    ? "text-gray-400 hover:text-white"
+                    : "text-gray-500 hover:text-black"
+                }`}
+              />
+            </label>
 
-              className="
+            <button
+              type="button"
+              onClick={handleSend}
+              disabled={
+                loading ||
+                uploading ||
+                (!input.trim() && !selectedFile)
+              }
+              className="px-4 py-2 rounded-xl bg-gradient-to-r from-purple-600 to-pink-500 text-white text-sm font-medium hover:opacity-90 transition disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {loading || uploading ? "..." : "Send"}
+            </button>
+          </div>
 
-                text-gray-400
+          {selectedFile && (
+            <div
+              className={`mt-3 flex items-center justify-between rounded-lg px-3 py-2 text-xs ${
+                dark
+                  ? "bg-[#222] text-gray-300"
+                  : "bg-gray-100 text-gray-700"
+              }`}
+            >
+              <span className="truncate">
+                📄 {selectedFile.name}
+              </span>
 
-                hover:text-purple-500
+              <button
+                type="button"
+                onClick={() => {
+                  setSelectedFile(null);
 
-                transition
-
-              "
-
-            />
-
-          </label>
-
-          {/* SEND */}
-
-          <button
-
-            onClick={sendMessage}
-
-            disabled={uploading}
-
-            className="
-
-              px-7
-              py-3
-
-              rounded-2xl
-
-              bg-gradient-to-r
-              from-purple-600
-              to-pink-500
-
-              hover:opacity-90
-
-              transition
-
-              text-white
-              font-semibold
-
-            "
-
-          >
-
-            {uploading
-
-              ? "Uploading..."
-
-              : "Send"}
-
-          </button>
-
+                  if (fileInputRef.current) {
+                    fileInputRef.current.value = "";
+                  }
+                }}
+                className="ml-3"
+              >
+                <X size={14} />
+              </button>
+            </div>
+          )}
         </div>
-
       </div>
-
     </div>
-
   );
-
 }
 
 export default ChatArea;
+

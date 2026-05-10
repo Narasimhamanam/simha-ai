@@ -1,429 +1,528 @@
 import {
-
   MessageSquare,
   History,
   FileText,
   Settings,
   Plus,
-  Trash2
-
+  Trash2,
 } from "lucide-react";
 
 import API from "../services/api";
 
 function Sidebar({
-
   theme,
-
   chats,
   setChats,
-
   activeChatId,
   setActiveChatId,
-
   createNewChat,
-
-  // eslint-disable-next-line no-unused-vars
   currentPage,
   setCurrentPage,
-
   profile,
-  
-  handleLogout
-
+  handleLogout,
 }) {
-
   const dark = theme === "dark";
 
   // DELETE CHAT
 
   const deleteChat = async (chatId) => {
-
     try {
-
-      await API.delete(
-
-        `/delete-chat/${chatId}`
-
-      );
+      await API.delete(`/delete-chat/${chatId}`);
 
       const updatedChats = chats.filter(
-
         (chat) => chat.id !== chatId
-
       );
 
       setChats(updatedChats);
 
       if (updatedChats.length > 0) {
-
         setActiveChatId(updatedChats[0].id);
-
       }
-
     } catch (error) {
-
       console.log(error);
-
     }
-
   };
 
   return (
+    <div
+      className={`
 
-    <div className={`
+        w-[220px]
+        h-screen
 
-      w-[280px]
-      h-screen
-      border-r
+        border-r
 
-      ${dark
+        ${
+          dark
+            ? "bg-black border-gray-800 text-white"
+            : "bg-white border-gray-200 text-black"
+        }
 
-        ? "bg-[#111111] border-gray-800"
+        flex
+        flex-col
 
-        : "bg-white border-gray-200"}
+        overflow-hidden
 
-      flex
-      flex-col
-      justify-between
-      p-5
+      `}
+    >
+      {/* TOP */}
 
-    `}>
+      <div className="p-4">
+        {/* LOGO */}
 
-      <div>
+        <h1
+          className="
 
-        <h1 className="
+            text-xl
+            font-bold
 
-          text-4xl
-          font-bold
-          text-purple-500
-          mb-10
+            leading-snug
 
-        ">
-          Simha Multi Agent ✨
+            text-white
+
+            mb-6
+
+          "
+        >
+          Simha Multi Agent
         </h1>
 
+        {/* NEW CHAT */}
+
         <button
-
           onClick={createNewChat}
-
           className="
 
             w-full
-            bg-gradient-to-r
-            from-purple-600
-            to-pink-500
-
-            hover:opacity-90
-
-            p-4
-            rounded-2xl
-
-            font-semibold
 
             flex
             items-center
             justify-center
             gap-2
 
+            py-2.5
+
+            rounded-xl
+
+            bg-gradient-to-r
+            from-purple-600
+            to-pink-500
+
+            hover:opacity-90
+
             transition
-            mb-8
+
+            text-white
+            text-sm
+            font-medium
+
+            mb-6
 
           "
         >
-
-          <Plus size={20} />
-
+          <Plus size={18} />
           New Chat
-
         </button>
 
-        <div className="space-y-5 mb-8">
+        {/* NAVIGATION */}
+
+        <div className="space-y-1.5">
+          {/* HISTORY */}
 
           <div
             onClick={() =>
               setCurrentPage("history")
             }
-            className="
+            className={`
 
               flex
               items-center
-              gap-3
+              gap-2.5
 
-              cursor-pointer hover:opacity-80
+              px-3
+              py-2
 
-            "
+              rounded-lg
+
+              cursor-pointer
+
+              transition-all
+
+              text-sm
+
+              ${
+                currentPage === "history"
+                  ? dark
+                    ? "bg-[#181818]"
+                    : "bg-gray-100"
+                  : dark
+                  ? "hover:bg-[#151515]"
+                  : "hover:bg-gray-100"
+              }
+
+            `}
           >
+            <History size={16} />
 
-            <History size={20} />
-
-            Chat History
-
+            <span>Chat History</span>
           </div>
+
+          {/* AI CHATS */}
 
           <div
             onClick={() =>
               setCurrentPage("chat")
             }
-            className="
+            className={`
 
               flex
               items-center
-              gap-3
+              gap-2.5
 
-              cursor-pointer hover:opacity-80
+              px-3
+              py-2
 
-            "
+              rounded-lg
+
+              cursor-pointer
+
+              transition-all
+
+              text-sm
+
+              ${
+                currentPage === "chat"
+                  ? dark
+                    ? "bg-[#181818]"
+                    : "bg-gray-100"
+                  : dark
+                  ? "hover:bg-[#151515]"
+                  : "hover:bg-gray-100"
+              }
+
+            `}
           >
+            <MessageSquare size={16} />
 
-            <MessageSquare size={20} />
-
-            AI Chats
-
+            <span>AI Chats</span>
           </div>
+
+          {/* DOCUMENTS */}
 
           <div
             onClick={() =>
               setCurrentPage("documents")
             }
-            className="
+            className={`
 
               flex
               items-center
-              gap-3
+              gap-2.5
+
+              px-3
+              py-2
+
+              rounded-lg
 
               cursor-pointer
 
-            "
+              transition-all
+
+              text-sm
+
+              ${
+                currentPage === "documents"
+                  ? dark
+                    ? "bg-[#181818]"
+                    : "bg-gray-100"
+                  : dark
+                  ? "hover:bg-[#151515]"
+                  : "hover:bg-gray-100"
+              }
+
+            `}
           >
+            <FileText size={16} />
 
-            <FileText size={20} />
-
-            Documents
-
+            <span>Documents</span>
           </div>
+
+          {/* SETTINGS */}
 
           <div
             onClick={() =>
               setCurrentPage("settings")
             }
+            className={`
+
+              flex
+              items-center
+              gap-2.5
+
+              px-3
+              py-2
+
+              rounded-lg
+
+              cursor-pointer
+
+              transition-all
+
+              text-sm
+
+              ${
+                currentPage === "settings"
+                  ? dark
+                    ? "bg-[#181818]"
+                    : "bg-gray-100"
+                  : dark
+                  ? "hover:bg-[#151515]"
+                  : "hover:bg-gray-100"
+              }
+
+            `}
+          >
+            <Settings size={16} />
+
+            <span>Settings</span>
+          </div>
+        </div>
+      </div>
+
+      {/* CHATS */}
+
+      <div
+        className="
+
+          flex-1
+
+          overflow-y-auto
+
+          px-3
+
+          scrollbar-thin
+          scrollbar-thumb-gray-700
+
+        "
+      >
+        <p
+          className="
+
+            text-[10px]
+            uppercase
+
+            text-gray-500
+
+            tracking-wider
+
+            mb-2
+
+          "
+        >
+          Recent Chats
+        </p>
+
+        <div className="space-y-1.5 pb-4">
+          {chats.map((chat) => (
+            <div
+              key={chat.id}
+              onClick={() => {
+                setActiveChatId(chat.id);
+                setCurrentPage("chat");
+              }}
+              className={`
+
+                flex
+                items-center
+                justify-between
+
+                px-3
+                py-2
+
+                rounded-lg
+
+                cursor-pointer
+
+                transition-all
+
+                group
+
+                ${
+                  activeChatId === chat.id
+                    ? "bg-gradient-to-r from-purple-600 to-pink-500 text-white"
+                    : dark
+                    ? "bg-[#121212] hover:bg-[#1a1a1a]"
+                    : "bg-gray-100 hover:bg-gray-200"
+                }
+
+              `}
+            >
+              <p
+                className="
+
+                  text-sm
+
+                  truncate
+
+                  max-w-[130px]
+
+                "
+              >
+                {chat.title}
+              </p>
+
+              <Trash2
+                size={14}
+                className="
+
+                  text-red-400
+
+                  opacity-70
+
+                  hover:opacity-100
+
+                  transition
+
+                  flex-shrink-0
+
+                "
+                onClick={(e) => {
+                  e.stopPropagation();
+
+                  deleteChat(chat.id);
+                }}
+              />
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* PROFILE */}
+
+      <div
+        className="
+
+          p-3
+
+          border-t
+
+          border-gray-800
+
+        "
+      >
+        <div
+          className={`
+
+            ${
+              dark
+                ? "bg-[#111111]"
+                : "bg-gray-100"
+            }
+
+            border
+
+            ${
+              dark
+                ? "border-gray-800"
+                : "border-gray-200"
+            }
+
+            rounded-xl
+
+            p-3
+
+          `}
+        >
+          <div
             className="
 
               flex
               items-center
+
               gap-3
 
-              cursor-pointer
+              mb-3
 
             "
           >
+            <img
+              src={profile?.avatar}
+              alt="profile"
+              className="
 
-            <Settings size={20} />
+                w-10
+                h-10
 
-            Settings
+                rounded-full
 
-          </div>
+                object-cover
 
-        </div>
+                border
+                border-purple-500
 
-        <div>
+              "
+            />
 
-          <p className="
+            <div className="overflow-hidden">
+              <h3
+                className="
 
-            text-xs
-            text-gray-400
-            uppercase
-            mb-3
+                  text-sm
+                  font-semibold
 
-          ">
-            Recent Chats
-          </p>
+                  truncate
 
-          <div className="space-y-2">
-
-            {chats.map((chat) => (
-
-              <div
-
-                key={chat.id}
-
-                onClick={() => {
-
-                  setActiveChatId(chat.id);
-
-                  setCurrentPage("chat");
-
-                }}
-
-                className={`
-
-                  p-3
-                  rounded-xl
-
-                  cursor-pointer
-
-                  flex
-                  items-center
-                  justify-between
-
-                  transition
-
-                  ${activeChatId === chat.id
-
-                    ? "bg-purple-600"
-
-                    : dark
-
-                    ? "bg-[#1a1a1a] hover:bg-[#232323]"
-
-                    : "bg-gray-100"}
-
-                `}
+                "
               >
+                {profile?.nickname}
+              </h3>
 
-                <p className="truncate">
+              <p
+                className="
 
-                  {chat.title}
+                  text-[11px]
+                  text-gray-400
 
-                </p>
+                  truncate
 
-                <Trash2
+                  max-w-[140px]
 
-                  size={16}
-
-                  className="text-red-400"
-
-                  onClick={(e) => {
-
-                    e.stopPropagation();
-
-                    deleteChat(chat.id);
-
-                  }}
-                />
-
-              </div>
-
-            ))}
-
+                "
+              >
+                {profile?.email}
+              </p>
+            </div>
           </div>
 
-        </div>
+          <button
+            onClick={handleLogout}
+            className="
 
+              w-full
+
+              py-2
+
+              rounded-lg
+
+              bg-gradient-to-r
+              from-red-500
+              to-pink-500
+
+              hover:opacity-90
+
+              transition
+
+              text-white
+              text-sm
+              font-medium
+
+            "
+          >
+            Logout
+          </button>
+        </div>
       </div>
-
-      {/* Profile Card */}
-
-      <div className={`
-
-            rounded-2xl
-            border
-
-            ${dark
-
-                ? "bg-[#151515] border-gray-800"
-
-                : "bg-white border-gray-200"}
-
-            p-4
-
-            `}>
-
-            <div className="
-
-                flex
-                items-center
-                gap-3
-
-            ">
-
-                <img
-
-                src={profile?.avatar}
-
-                alt="profile"
-
-                className="
-
-                    w-12
-                    h-12
-
-                    rounded-full
-                    object-cover
-
-                    border-2
-                    border-purple-500
-
-                "
-                />
-
-                <div className="flex-1 overflow-hidden">
-
-                <p className="
-
-                    font-semibold
-                    truncate
-
-                ">
-
-                    {profile?.nickname}
-
-                </p>
-
-                <p className="
-
-                    text-xs
-                    text-gray-400
-
-                    truncate
-
-                ">
-
-                    {profile?.email}
-
-                </p>
-
-                </div>
-
-            </div>
-
-            <button
-
-                onClick={handleLogout}
-
-                className="
-
-                mt-4
-                w-full
-
-                py-2.5
-
-                rounded-xl
-
-                bg-gradient-to-r
-                from-red-500
-                to-pink-500
-
-                hover:opacity-90
-
-                transition
-
-                text-sm
-                font-medium
-
-                text-white
-
-                "
-            >
-
-                Logout
-
-            </button>
-
-            </div>
-
-
-        </div>
+    </div>
   );
 }
 
