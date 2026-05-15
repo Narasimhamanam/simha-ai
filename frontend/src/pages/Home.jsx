@@ -7,6 +7,7 @@ import SettingsPage from "../components/SettingsPage";
 import EmailComposer from "../components/EmailComposer";
 import CalendarComposer from "../components/CalendarComposer";
 import UrlSummarizer from "../components/UrlSummarizer";
+import ConnectionStatus from "../components/ConnectionStatus";
 import { signInWithPopup, signOut, onAuthStateChanged } from "firebase/auth";
 import { auth, provider } from "../firebase";
 import API from "../services/api";
@@ -126,6 +127,9 @@ function Home() {
   // ── MAIN UI ──
   return (
     <div className="h-screen h-[100dvh] flex overflow-hidden text-sm bg-white dark:bg-[#0a0a0a] text-gray-900 dark:text-gray-100">
+      {/* CONNECTION STATUS BANNER */}
+      <ConnectionStatus theme={theme} />
+
       {/* SIDEBAR */}
       <Sidebar
         theme={theme}
