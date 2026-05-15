@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import Sidebar from "../components/Sidebar";
 import Header from "../components/Header";
 import ChatArea from "../components/ChatArea";
@@ -13,14 +13,20 @@ import { auth, provider } from "../firebase";
 import API from "../services/api";
 import { startKeepAlive, stopKeepAlive } from "../services/keepAlive";
 
+const BACKEND_URL =
+  import.meta.env.VITE_BACKEND_URL ||
+  "https://simha-ai-production.up.railway.app";
+
+// Pre-warm backend silently (fire and forget)
+const prewarm = () => fetch(`${BACKEND_URL}/ping`).catch(() => {});
+
 function Home() {
   const [theme, setTheme] = useState("dark");
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [appLoading, setAppLoading] = useState(false); // true while fetching chats after login
+  const [appError, setAppError] = useState("");        // error message during init
 
-  useEffect(() => {
-    document.documentElement.classList.add("dark");
-  }, []);
-
+  useEffect(() => { document.documentElement.classList.add("dark"); }, []);
   useEffect(() => {
     if (theme === "dark") document.documentElement.classList.add("dark");
     else document.documentElement.classList.remove("dark");
@@ -34,54 +40,92 @@ function Home() {
   }, []);
 
   const isDevGuest = (import.meta.env.VITE_DEV_GUEST || "").toString().toLowerCase() === "true";
-
   const [user, setUser] = useState(isDevGuest ? { email: "guest@local", displayName: "Guest", photoURL: null } : null);
   const [profile, setProfile] = useState(null);
   const [currentPage, setCurrentPage] = useState("chat");
   const guestChatId = "local-guest-chat";
   const [chats, setChats] = useState(isDevGuest ? [{ id: guestChatId, title: "New Chat", messages: [] }] : []);
   const [activeChatId, setActiveChatId] = useState(isDevGuest ? guestChatId : null);
+  const retryCountRef = useRef(0);
 
-  const fetchChats = useCallback(async (email) => {
+  // ── Fetch chats with retry ──────────────────────────────────────────────
+  const fetchChats = useCallback(async (email, attempt = 1) => {
+    setAppLoading(true);
+    setAppError("");
+
     try {
-      const res = await API.get(`/get-chats/${email}`);
+      const res = await API.get(`/get-chats/${encodeURIComponent(email)}`, { timeout: 20000 });
+
       if (res.data.length > 0) {
         setChats(res.data);
         setActiveChatId(res.data[0].id);
       } else {
-        const createRes = await API.post("/create-chat", { user_email: email, title: "New Chat" });
+        // New user — create first chat
+        const createRes = await API.post("/create-chat", {
+          user_email: email,
+          title: "New Chat",
+        }, { timeout: 15000 });
         const newChat = { id: createRes.data.chat_id, title: "New Chat", messages: [] };
         setChats([newChat]);
         setActiveChatId(newChat.id);
       }
-    } catch (error) { console.log(error); }
+
+      retryCountRef.current = 0;
+      setAppError("");
+    } catch (error) {
+      console.error("fetchChats error:", error);
+
+      if (attempt <= 3) {
+        // Retry with backoff: 3s, 6s, 10s
+        const delay = attempt * 3000;
+        setAppError(`Connecting to server... (attempt ${attempt}/3)`);
+        setTimeout(() => fetchChats(email, attempt + 1), delay);
+        return;
+      }
+
+      // All retries failed — show actionable error
+      setAppError("Could not connect to the server. Tap 'Retry' to try again.");
+    } finally {
+      if (attempt <= 3) setAppLoading(false);
+    }
   }, []);
 
+  const retryInit = () => {
+    if (user) fetchChats(user.email);
+  };
+
+  // ── Create new chat ─────────────────────────────────────────────────────
   const createNewChat = async () => {
     try {
-      const res = await API.post("/create-chat", { user_email: user.email, title: "New Chat" });
+      const res = await API.post("/create-chat", { user_email: user.email, title: "New Chat" }, { timeout: 15000 });
       const newChat = { id: res.data.chat_id, title: "New Chat", messages: [] };
       setChats((prev) => [newChat, ...prev]);
       setActiveChatId(newChat.id);
       setCurrentPage("chat");
-      setIsSidebarOpen(false); // close sidebar on mobile after creating chat
-    } catch (error) { console.log(error); }
+      setIsSidebarOpen(false);
+    } catch (error) {
+      console.error("createNewChat error:", error);
+    }
   };
 
+  // ── Auth ────────────────────────────────────────────────────────────────
   useEffect(() => {
     if (isDevGuest) return;
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       setUser(currentUser);
       if (!currentUser) {
         stopKeepAlive();
+        setChats([]);
+        setActiveChatId(null);
         return;
       }
-      startKeepAlive(); // keep Railway warm while user is logged in
+      startKeepAlive();
       await fetchChats(currentUser.email);
     });
     return () => unsubscribe();
   }, [isDevGuest, fetchChats]);
 
+  // ── Profile ─────────────────────────────────────────────────────────────
   useEffect(() => {
     if (!user) return;
     const saved = localStorage.getItem(`simha_profile_${user.email}`);
@@ -90,14 +134,23 @@ function Home() {
 
   const handleGoogleLogin = async () => {
     try { await signInWithPopup(auth, provider); }
-    catch (error) { console.log(error); }
+    catch (error) { console.error(error); }
   };
 
-  const handleLogout = async () => { await signOut(auth); };
+  const handleLogout = async () => {
+    await signOut(auth);
+    setChats([]);
+    setActiveChatId(null);
+    setProfile(null);
+  };
+
   const activeChat = chats.find((c) => c.id === activeChatId);
 
-  // ── LOGIN SCREEN ──
+  // ── LOGIN SCREEN ────────────────────────────────────────────────────────
   if (!user) {
+    // Pre-warm backend as soon as login page shows
+    prewarm();
+
     return (
       <div className="min-h-screen min-h-[100dvh] flex items-center justify-center bg-[#0a0a0a] px-4">
         <div className="w-full max-w-sm bg-[#141414] border border-gray-800 p-8 rounded-2xl shadow-2xl text-center">
@@ -124,13 +177,59 @@ function Home() {
     );
   }
 
-  // ── MAIN UI ──
+  // ── APP LOADING / ERROR SCREEN ──────────────────────────────────────────
+  if (appLoading && chats.length === 0) {
+    return (
+      <div className="min-h-screen min-h-[100dvh] flex items-center justify-center bg-[#0a0a0a] px-4">
+        <div className="text-center">
+          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-600 to-pink-500 flex items-center justify-center mx-auto mb-5">
+            <span className="text-white text-xl font-bold">S</span>
+          </div>
+          <div className="flex items-center justify-center gap-2 mb-3">
+            <div className="w-2 h-2 rounded-full bg-purple-500 animate-bounce" style={{ animationDelay: "0s" }} />
+            <div className="w-2 h-2 rounded-full bg-pink-500 animate-bounce" style={{ animationDelay: "0.15s" }} />
+            <div className="w-2 h-2 rounded-full bg-cyan-400 animate-bounce" style={{ animationDelay: "0.3s" }} />
+          </div>
+          <p className="text-sm text-gray-400">
+            {appError || "Loading your workspace..."}
+          </p>
+          <p className="text-xs text-gray-600 mt-1.5">Waking up the AI server — this takes up to 30s on first load</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (appError && chats.length === 0) {
+    return (
+      <div className="min-h-screen min-h-[100dvh] flex items-center justify-center bg-[#0a0a0a] px-4">
+        <div className="text-center max-w-xs">
+          <div className="w-12 h-12 rounded-full bg-red-500/20 flex items-center justify-center mx-auto mb-4">
+            <span className="text-red-400 text-xl">⚠</span>
+          </div>
+          <h2 className="text-white font-semibold mb-2">Connection Failed</h2>
+          <p className="text-gray-400 text-sm mb-6">{appError}</p>
+          <button
+            onClick={retryInit}
+            className="px-6 py-3 rounded-xl bg-gradient-to-r from-purple-600 to-pink-500 text-white text-sm font-semibold hover:opacity-90 active:scale-95 transition touch-manipulation w-full"
+          >
+            🔄 Retry Connection
+          </button>
+          <button
+            onClick={handleLogout}
+            className="mt-3 text-xs text-gray-600 hover:text-gray-400 transition"
+          >
+            Sign out
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // ── MAIN UI ─────────────────────────────────────────────────────────────
   return (
     <div className="h-screen h-[100dvh] flex overflow-hidden text-sm bg-white dark:bg-[#0a0a0a] text-gray-900 dark:text-gray-100">
-      {/* CONNECTION STATUS BANNER */}
       <ConnectionStatus theme={theme} />
 
-      {/* SIDEBAR */}
       <Sidebar
         theme={theme}
         chats={chats}
@@ -146,22 +245,16 @@ function Home() {
         setIsSidebarOpen={setIsSidebarOpen}
       />
 
-      {/* EMAIL COMPOSER MODAL */}
       {currentPage === "email" && (
         <EmailComposer theme={theme} profile={profile} onClose={() => setCurrentPage("chat")} />
       )}
-
-      {/* CALENDAR COMPOSER MODAL */}
       {currentPage === "calendar" && (
         <CalendarComposer theme={theme} profile={profile} onClose={() => setCurrentPage("chat")} />
       )}
-
-      {/* URL SUMMARIZER MODAL */}
       {currentPage === "url" && (
         <UrlSummarizer theme={theme} onClose={() => setCurrentPage("chat")} />
       )}
 
-      {/* MAIN CONTENT */}
       <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
         <Header
           theme={theme}
