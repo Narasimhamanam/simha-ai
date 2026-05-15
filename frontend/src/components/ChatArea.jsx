@@ -194,26 +194,26 @@ function ChatArea({ theme, chats, setChats, activeChat, activeChatId, user }) {
   return (
     <div className="flex-1 flex flex-col overflow-hidden relative text-sm">
       {/* MESSAGES */}
-      <div className="flex-1 overflow-y-auto px-4 pt-6 pb-36">
-        <div className="max-w-3xl mx-auto w-full space-y-6">
+      <div className="flex-1 overflow-y-auto px-3 sm:px-4 pt-4 sm:pt-6 pb-36">
+        <div className="max-w-3xl mx-auto w-full space-y-5">
           {/* EMPTY STATE */}
           {(!activeChat?.messages || activeChat.messages.length === 0) && (
-            <div className="min-h-[60vh] flex flex-col items-center justify-center text-center px-4">
-              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-600 to-pink-500 flex items-center justify-center mb-6 shadow-lg shadow-purple-500/20">
-                <span className="text-white text-2xl font-bold">S</span>
+            <div className="min-h-[55vh] flex flex-col items-center justify-center text-center px-2">
+              <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-br from-purple-600 to-pink-500 flex items-center justify-center mb-4 sm:mb-6 shadow-lg shadow-purple-500/20">
+                <span className="text-white text-xl sm:text-2xl font-bold">S</span>
               </div>
-              <h2 className={`text-2xl font-semibold mb-2 ${dark ? "text-white" : "text-gray-900"}`}>
+              <h2 className={`text-xl sm:text-2xl font-semibold mb-2 ${dark ? "text-white" : "text-gray-900"}`}>
                 What can I help with?
               </h2>
-              <p className={`text-sm mb-10 max-w-md leading-6 ${dark ? "text-gray-400" : "text-gray-500"}`}>
-                Select a mode and start chatting. Simha AI adapts to your task automatically.
+              <p className={`text-xs sm:text-sm mb-6 sm:mb-10 max-w-xs sm:max-w-md leading-6 ${dark ? "text-gray-400" : "text-gray-500"}`}>
+                Select a mode and start chatting.
               </p>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 w-full max-w-2xl">
+              <div className="grid grid-cols-3 gap-2 sm:gap-3 w-full max-w-2xl">
                 {AGENTS.map((agent) => (
                   <button
                     key={agent.value}
                     onClick={() => setSelectedAgent(agent.value)}
-                    className={`p-4 rounded-2xl border text-left transition-all duration-200 ${
+                    className={`p-3 sm:p-4 rounded-2xl border text-center sm:text-left transition-all duration-200 touch-manipulation ${
                       selectedAgent === agent.value
                         ? `bg-gradient-to-br ${agent.color} border-transparent text-white shadow-lg`
                         : dark
@@ -221,8 +221,8 @@ function ChatArea({ theme, chats, setChats, activeChat, activeChatId, user }) {
                         : "bg-white border-gray-200 text-gray-700 hover:border-gray-400"
                     }`}
                   >
-                    <div className="text-xl mb-2">{agent.label.split(" ")[0]}</div>
-                    <div className="font-semibold text-sm">{agent.label.split(" ").slice(1).join(" ")}</div>
+                    <div className="text-lg sm:text-xl mb-1 sm:mb-2">{agent.label.split(" ")[0]}</div>
+                    <div className="font-semibold text-[11px] sm:text-sm">{agent.label.split(" ").slice(1).join(" ")}</div>
                   </button>
                 ))}
               </div>
@@ -233,7 +233,7 @@ function ChatArea({ theme, chats, setChats, activeChat, activeChatId, user }) {
           {activeChat?.messages?.map((msg, index) => (
             <div
               key={index}
-              className={`flex w-full ${msg.role === "user" ? "justify-end" : "justify-start"}`}
+              className={`flex w-full ${msg.role === "user" ? "justify-end" : "justify-start"} mb-4`}
             >
               {/* Avatar for assistant */}
               {msg.role === "assistant" && (
@@ -243,7 +243,7 @@ function ChatArea({ theme, chats, setChats, activeChat, activeChatId, user }) {
               )}
 
               <div
-                className={`max-w-[80%] ${
+                className={`max-w-[88%] sm:max-w-[80%] ${
                   msg.role === "user"
                     ? `px-4 py-3 rounded-2xl rounded-tr-sm ${
                         dark ? "bg-[#2a2a2a] text-white" : "bg-[#f0f0f0] text-gray-900"
@@ -366,7 +366,7 @@ function ChatArea({ theme, chats, setChats, activeChat, activeChatId, user }) {
       </div>
 
       {/* INPUT AREA */}
-      <div className={`absolute bottom-0 left-0 right-0 px-4 pb-4 pt-2 ${dark ? "bg-gradient-to-t from-[#0a0a0a] via-[#0a0a0a]/95 to-transparent" : "bg-gradient-to-t from-white via-white/95 to-transparent"}`}>
+      <div className={`absolute bottom-0 left-0 right-0 px-2 sm:px-4 pb-3 sm:pb-4 pt-2 ${dark ? "bg-gradient-to-t from-[#0a0a0a] via-[#0a0a0a]/95 to-transparent" : "bg-gradient-to-t from-white via-white/95 to-transparent"}`}>
         <div className={`max-w-3xl mx-auto rounded-2xl border shadow-xl transition-all ${
           dark ? "bg-[#141414] border-gray-800 shadow-black/40" : "bg-white border-gray-200 shadow-gray-200/60"
         }`}>
@@ -408,10 +408,10 @@ function ChatArea({ theme, chats, setChats, activeChat, activeChatId, user }) {
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
               rows={1}
-              placeholder={`Ask ${selectedAgentObj?.label.split(" ").slice(1).join(" ") || "anything"}...`}
+              placeholder="Ask anything..."
               disabled={loading || uploading}
-              style={{ resize: "none", minHeight: "36px" }}
-              className={`flex-1 bg-transparent outline-none text-sm leading-6 max-h-40 py-1.5 ${
+              style={{ resize: "none", minHeight: "36px", fontSize: "16px" }}
+              className={`flex-1 bg-transparent outline-none leading-6 max-h-32 py-1.5 ${
                 dark ? "text-white placeholder:text-gray-600" : "text-gray-900 placeholder:text-gray-400"
               }`}
             />
@@ -427,13 +427,13 @@ function ChatArea({ theme, chats, setChats, activeChat, activeChatId, user }) {
               type="button"
               onClick={handleSend}
               disabled={loading || uploading || (!input.trim() && !selectedFile)}
-              className={`p-2 rounded-xl transition shrink-0 ${
+              className={`p-2.5 rounded-xl transition shrink-0 touch-manipulation active:scale-95 ${
                 !input.trim() && !selectedFile
                   ? dark ? "bg-[#1f1f1f] text-gray-600 cursor-not-allowed" : "bg-gray-100 text-gray-300 cursor-not-allowed"
                   : "bg-gradient-to-r from-purple-600 to-pink-500 text-white hover:opacity-90 shadow-lg shadow-purple-500/20"
               }`}
             >
-              <Send size={16} />
+              <Send size={15} />
             </button>
           </div>
         </div>
