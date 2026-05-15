@@ -9,6 +9,7 @@ from bson import ObjectId
 from database import get_chat_collection
 
 from agents.router import route_query
+from agents.email_agent import generate_email_draft
 from memory.chat_memory import conversation_memory
 
 import asyncio
@@ -76,13 +77,28 @@ class ChatRequest(BaseModel):
 
 @app.get("/")
 async def home():
+    return {"message": "Simha AI Backend Running"}
 
-    return {
+# -----------------------------------
+# GENERATE EMAIL DRAFT
+# -----------------------------------
 
-        "message":
-        "Simha AI Backend Running"
+class EmailDraftRequest(BaseModel):
+    prompt: str
+    sender_name: str | None = ""
 
-    }
+@app.post("/generate-email")
+async def generate_email(request: EmailDraftRequest):
+    if not request.prompt or not request.prompt.strip():
+        raise HTTPException(status_code=400, detail="Prompt is required.")
+    try:
+        draft = generate_email_draft(
+            prompt=request.prompt.strip(),
+            sender_name=request.sender_name or ""
+        )
+        return draft
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str({"error": "Email generation failed", "details": str(exc)}))
 
 # -----------------------------------
 # NORMAL CHAT

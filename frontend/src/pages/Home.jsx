@@ -4,6 +4,7 @@ import Header from "../components/Header";
 import ChatArea from "../components/ChatArea";
 import ChatHistoryPage from "../components/ChatHistoryPage";
 import SettingsPage from "../components/SettingsPage";
+import EmailComposer from "../components/EmailComposer";
 import { signInWithPopup, signOut, onAuthStateChanged } from "firebase/auth";
 import { auth, provider } from "../firebase";
 import API from "../services/api";
@@ -133,6 +134,15 @@ function Home() {
         isSidebarOpen={isSidebarOpen}
         setIsSidebarOpen={setIsSidebarOpen}
       />
+
+      {/* EMAIL COMPOSER MODAL */}
+      {currentPage === "email" && (
+        <EmailComposer
+          theme={theme}
+          profile={profile}
+          onClose={() => setCurrentPage("chat")}
+        />
+      )}
 
       {/* MAIN CONTENT */}
       <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
