@@ -14,7 +14,7 @@ client = Groq(
 
 )
 
-def generate_response(prompt):
+def generate_response(prompt, stream=False):
 
     completion = client.chat.completions.create(
 
@@ -34,8 +34,17 @@ def generate_response(prompt):
 
         temperature=0.2,
 
-        max_tokens=2048
+        max_tokens=2048,
+
+        stream=stream
 
     )
+
+    if stream:
+        def generator():
+            for chunk in completion:
+                if chunk.choices[0].delta.content is not None:
+                    yield chunk.choices[0].delta.content
+        return generator()
 
     return completion.choices[0].message.content

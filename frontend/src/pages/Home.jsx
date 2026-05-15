@@ -6,73 +6,79 @@ import ChatArea from "../components/ChatArea";
 import ChatHistoryPage from "../components/ChatHistoryPage";
 import SettingsPage from "../components/SettingsPage";
 
-import {
-  signInWithPopup,
-  signOut,
-  onAuthStateChanged,
-} from "firebase/auth";
+import { signInWithPopup, signOut, onAuthStateChanged } from "firebase/auth";
 
-import {
-  auth,
-  provider,
-} from "../firebase";
+import { auth, provider } from "../firebase";
 
 import API from "../services/api";
 
 function Home() {
-  const [theme, setTheme] =
-    useState("dark");
+  const [theme, setTheme] = useState("dark");
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-  const [user, setUser] =
-    useState(null);
+  // Sync theme with Tailwind's dark class
+  useEffect(() => {
+    if (theme === "dark") {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
+  }, [theme]);
 
-  const [profile, setProfile] =
-    useState(null);
+  const isDevGuest =
+    (import.meta.env.VITE_DEV_GUEST || "").toString().toLowerCase() === "true";
 
-  const [currentPage, setCurrentPage] =
-    useState("chat");
+  const [user, setUser] = useState(
+    isDevGuest
+      ? {
+          email: "guest@local",
+          displayName: "Guest",
+          photoURL: null,
+        }
+      : null,
+  );
+
+  const [profile, setProfile] = useState(null);
+
+  const [currentPage, setCurrentPage] = useState("chat");
 
   // CHATS
+  const guestChatId = "local-guest-chat";
 
-  const [chats, setChats] =
-    useState([]);
+  const [chats, setChats] = useState(
+    isDevGuest
+      ? [
+          {
+            id: guestChatId,
+            title: "New Chat",
+            messages: [],
+          },
+        ]
+      : [],
+  );
 
-  const [activeChatId, setActiveChatId] =
-    useState(null);
+  const [activeChatId, setActiveChatId] = useState(
+    isDevGuest ? guestChatId : null,
+  );
 
   // FETCH CHATS
-
-  const fetchChats = async (
-    email
-  ) => {
+  // (Used only for real Firebase users; in dev-guest mode we avoid Mongo completely.)
+  const fetchChats = async (email) => {
     try {
-      const res =
-        await API.get(
-          `/get-chats/${email}`
-        );
+      const res = await API.get(`/get-chats/${email}`);
 
-      if (
-        res.data.length > 0
-      ) {
+      if (res.data.length > 0) {
         setChats(res.data);
 
-        setActiveChatId(
-          res.data[0].id
-        );
+        setActiveChatId(res.data[0].id);
       } else {
         // CREATE FIRST CHAT
 
-        const createRes =
-          await API.post(
-            "/create-chat",
-            {
-              user_email:
-                email,
+        const createRes = await API.post("/create-chat", {
+          user_email: email,
 
-              title:
-                "New Chat",
-            }
-          );
+          title: "New Chat",
+        });
 
         const newChat = {
           id: createRes.data.chat_id,
@@ -82,13 +88,9 @@ function Home() {
           messages: [],
         };
 
-        setChats([
-          newChat,
-        ]);
+        setChats([newChat]);
 
-        setActiveChatId(
-          newChat.id
-        );
+        setActiveChatId(newChat.id);
       }
     } catch (error) {
       console.log(error);
@@ -97,209 +99,105 @@ function Home() {
 
   // CREATE CHAT
 
-  const createNewChat =
-    async () => {
-      try {
-        const res =
-          await API.post(
-            "/create-chat",
-            {
-              user_email:
-                user.email,
+  const createNewChat = async () => {
+    try {
+      const res = await API.post("/create-chat", {
+        user_email: user.email,
 
-              title:
-                "New Chat",
-            }
-          );
+        title: "New Chat",
+      });
 
-        const newChat = {
-          id:
-            res.data.chat_id,
+      const newChat = {
+        id: res.data.chat_id,
 
-          title:
-            "New Chat",
+        title: "New Chat",
 
-          messages: [],
-        };
+        messages: [],
+      };
 
-        setChats((prev) => [
-          newChat,
-          ...prev,
-        ]);
+      setChats((prev) => [newChat, ...prev]);
 
-        setActiveChatId(
-          newChat.id
-        );
+      setActiveChatId(newChat.id);
 
-        setCurrentPage(
-          "chat"
-        );
-      } catch (error) {
-        console.log(error);
-      }
-    };
+      setCurrentPage("chat");
+    } catch (error) {
+      console.log(error);
+    }
+  };
 
-  // AUTH
-
+  // AUTH (Firebase) - only non-guest
   useEffect(() => {
-    const unsubscribe =
-      onAuthStateChanged(
-        auth,
-        async (
-          currentUser
-        ) => {
-          setUser(
-            currentUser
-          );
+    if (isDevGuest) return;
 
-          if (
-            !currentUser
-          )
-            return;
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      setUser(currentUser);
 
-          await fetchChats(
-            currentUser.email
-          );
-        }
-      );
+      if (!currentUser) return;
 
-    return () =>
-      unsubscribe();
-  }, []);
+      await fetchChats(currentUser.email);
+    });
+
+    return () => unsubscribe();
+  }, [isDevGuest]);
+
+  // DEV GUEST chat is initialized in state (no effect)
 
   // PROFILE
 
   useEffect(() => {
     if (!user) return;
 
-    const savedProfile =
-      localStorage.getItem(
-        `simha_profile_${user.email}`
-      );
+    const savedProfile = localStorage.getItem(`simha_profile_${user.email}`);
 
-    const profileToSet =
-      savedProfile
-        ? JSON.parse(
-            savedProfile
-          )
-        : {
-            nickname:
-              user.displayName,
+    const profileToSet = savedProfile
+      ? JSON.parse(savedProfile)
+      : {
+          nickname: user.displayName,
 
-            email:
-              user.email,
+          email: user.email,
 
-            avatar:
-              user.photoURL,
-          };
+          avatar: user.photoURL,
+        };
 
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    setProfile(
-      profileToSet
-    );
+    setProfile(profileToSet);
   }, [user]);
 
   // LOGIN
 
-  const handleGoogleLogin =
-    async () => {
-      try {
-        await signInWithPopup(
-          auth,
-          provider
-        );
-      } catch (error) {
-        console.log(error);
-      }
-    };
+  const handleGoogleLogin = async () => {
+    try {
+      await signInWithPopup(auth, provider);
+    } catch (error) {
+      console.log(error);
+    }
+  };
 
   // LOGOUT
 
-  const handleLogout =
-    async () => {
-      await signOut(auth);
-    };
+  const handleLogout = async () => {
+    await signOut(auth);
+  };
 
   // ACTIVE CHAT
 
-  const activeChat =
-    chats.find(
-      (chat) =>
-        chat.id ===
-        activeChatId
-    );
+  const activeChat = chats.find((chat) => chat.id === activeChatId);
 
   // LOGIN SCREEN
 
   if (!user) {
     return (
-      <div
-        className="
-
-          min-h-screen
-
-          flex
-          items-center
-          justify-center
-
-          bg-[#0f0f0f]
-
-          text-white
-
-        "
-      >
-        <div
-          className="
-
-            bg-[#171717]
-
-            border
-            border-gray-800
-
-            p-8
-
-            rounded-2xl
-
-            shadow-2xl
-
-            text-center
-
-            w-[360px]
-
-          "
-        >
-          <h1
-            className="
-
-              text-3xl
-              font-bold
-
-              text-white
-
-              mb-3
-
-            "
-          >
-            Simha AI
-          </h1>
-
-          <p
-            className="
-
-              text-sm
-              text-gray-400
-
-              mb-8
-
-            "
-          >
-            Your intelligent AI assistant
-          </p>
+      <div className="min-h-screen flex items-center justify-center bg-[#f5f5f7] dark:bg-[#0a0a0a] text-gray-900 dark:text-white">
+        <div className="bg-white dark:bg-[#171717] border border-gray-200 dark:border-gray-800 p-8 rounded-2xl shadow-xl dark:shadow-2xl text-center w-[360px]">
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-3">
+              Simha AI
+            </h1>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-8">
+              Your intelligent AI assistant
+            </p>
 
           <button
-            onClick={
-              handleGoogleLogin
-            }
+            onClick={handleGoogleLogin}
             className="
 
               w-full
@@ -330,124 +228,69 @@ function Home() {
   // MAIN UI
 
   return (
-    <div
-      className={`
+    <div className="min-h-screen flex overflow-hidden text-sm bg-white dark:bg-[#0a0a0a] text-gray-900 dark:text-gray-100">
+      {/* MOBILE OVERLAY */}
+      {isSidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-40 md:hidden"
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
 
-        min-h-screen
-
-        flex
-
-        overflow-hidden
-
-        text-sm
-
-        ${
-          theme === "dark"
-            ? "bg-[#0f0f0f] text-white"
-            : "bg-[#f5f5f7] text-black"
-        }
-
-      `}
-    >
       {/* SIDEBAR */}
-
       <Sidebar
         theme={theme}
         chats={chats}
         setChats={setChats}
-        activeChatId={
-          activeChatId
-        }
-        setActiveChatId={
-          setActiveChatId
-        }
-        setCurrentPage={
-          setCurrentPage
-        }
-        currentPage={
-          currentPage
-        }
-        createNewChat={
-          createNewChat
-        }
+        activeChatId={activeChatId}
+        setActiveChatId={setActiveChatId}
+        setCurrentPage={setCurrentPage}
+        currentPage={currentPage}
+        createNewChat={createNewChat}
         profile={profile}
-        handleLogout={
-          handleLogout
-        }
+        handleLogout={handleLogout}
+        isSidebarOpen={isSidebarOpen}
+        setIsSidebarOpen={setIsSidebarOpen}
       />
 
       {/* MAIN CONTENT */}
 
-      <div
-        className="
-
-          flex-1
-
-          flex
-          flex-col
-
-          h-screen
-
-          overflow-hidden
-
-        "
-      >
+      <div className="flex-1 flex flex-col h-screen overflow-hidden relative">
         {/* HEADER */}
 
-        <Header
-          theme={theme}
-          setTheme={
-            setTheme
-          }
-          profile={profile}
-        />
+        <Header theme={theme} setTheme={setTheme} profile={profile} setIsSidebarOpen={setIsSidebarOpen} />
 
         {/* CHAT */}
 
-        {currentPage ===
-          "chat" && (
+        {currentPage === "chat" && (
           <ChatArea
             theme={theme}
             chats={chats}
-            setChats={
-              setChats
-            }
-            activeChat={
-              activeChat
-            }
-            activeChatId={
-              activeChatId
-            }
+            setChats={setChats}
+            activeChat={activeChat}
+            activeChatId={activeChatId}
             user={user}
           />
         )}
 
         {/* HISTORY */}
 
-        {currentPage ===
-          "history" && (
+        {currentPage === "history" && (
           <ChatHistoryPage
             theme={theme}
             chats={chats}
-            setActiveChatId={
-              setActiveChatId
-            }
-            setCurrentPage={
-              setCurrentPage
-            }
+            setActiveChatId={setActiveChatId}
+            setCurrentPage={setCurrentPage}
           />
         )}
 
         {/* SETTINGS */}
 
-        {currentPage ===
-          "settings" && (
+        {currentPage === "settings" && (
           <SettingsPage
             theme={theme}
             profile={profile}
-            setProfile={
-              setProfile
-            }
+            setProfile={setProfile}
           />
         )}
       </div>

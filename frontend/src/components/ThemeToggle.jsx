@@ -1,15 +1,9 @@
 function ThemeToggle({ theme, setTheme }) {
-
   const dark = theme === "dark";
 
   return (
-
     <button
-      onClick={() =>
-        setTheme(
-          dark ? "light" : "dark"
-        )
-      }
+      onClick={() => setTheme(dark ? "light" : "dark")}
       className="
         px-5
         py-2.5

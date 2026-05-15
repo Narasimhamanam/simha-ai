@@ -2,7 +2,7 @@ from agents.study_agent import study_agent
 from agents.coding_agent import coding_agent
 from agents.productivity_agent import productivity_agent
 
-def route_query(query, history):
+def route_query(query, history, stream=False):
 
     query_lower = query.lower()
 
@@ -18,7 +18,8 @@ def route_query(query, history):
         return coding_agent(
 
             cleaned_query,
-            history
+            history,
+            stream=stream
 
         )
 
@@ -34,7 +35,8 @@ def route_query(query, history):
         return productivity_agent(
 
             cleaned_query,
-            history
+            history,
+            stream=stream
 
         )
 
@@ -50,6 +52,7 @@ def route_query(query, history):
         return study_agent(
 
             cleaned_query,
-            history
+            history,
+            stream=stream
 
         )

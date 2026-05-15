@@ -20,6 +20,8 @@ function Sidebar({
   setCurrentPage,
   profile,
   handleLogout,
+  isSidebarOpen,
+  setIsSidebarOpen,
 }) {
   const dark = theme === "dark";
 
@@ -29,9 +31,7 @@ function Sidebar({
     try {
       await API.delete(`/delete-chat/${chatId}`);
 
-      const updatedChats = chats.filter(
-        (chat) => chat.id !== chatId
-      );
+      const updatedChats = chats.filter((chat) => chat.id !== chatId);
 
       setChats(updatedChats);
 
@@ -46,23 +46,10 @@ function Sidebar({
   return (
     <div
       className={`
-
-        w-[220px]
-        h-screen
-
-        border-r
-
-        ${
-          dark
-            ? "bg-black border-gray-800 text-white"
-            : "bg-white border-gray-200 text-black"
-        }
-
-        flex
-        flex-col
-
-        overflow-hidden
-
+        w-[260px] h-screen border-r flex flex-col shrink-0 transition-transform duration-300 z-50 
+        ${dark ? "bg-[#0a0a0a] border-gray-800 text-white" : "bg-[#f9f9f9] border-gray-200 text-black"}
+        fixed md:relative
+        ${isSidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"}
       `}
     >
       {/* TOP */}
@@ -130,9 +117,7 @@ function Sidebar({
           {/* HISTORY */}
 
           <div
-            onClick={() =>
-              setCurrentPage("history")
-            }
+            onClick={() => setCurrentPage("history")}
             className={`
 
               flex
@@ -156,8 +141,8 @@ function Sidebar({
                     ? "bg-[#181818]"
                     : "bg-gray-100"
                   : dark
-                  ? "hover:bg-[#151515]"
-                  : "hover:bg-gray-100"
+                    ? "hover:bg-[#151515]"
+                    : "hover:bg-gray-100"
               }
 
             `}
@@ -170,9 +155,7 @@ function Sidebar({
           {/* AI CHATS */}
 
           <div
-            onClick={() =>
-              setCurrentPage("chat")
-            }
+            onClick={() => setCurrentPage("chat")}
             className={`
 
               flex
@@ -196,8 +179,8 @@ function Sidebar({
                     ? "bg-[#181818]"
                     : "bg-gray-100"
                   : dark
-                  ? "hover:bg-[#151515]"
-                  : "hover:bg-gray-100"
+                    ? "hover:bg-[#151515]"
+                    : "hover:bg-gray-100"
               }
 
             `}
@@ -210,9 +193,7 @@ function Sidebar({
           {/* DOCUMENTS */}
 
           <div
-            onClick={() =>
-              setCurrentPage("documents")
-            }
+            onClick={() => setCurrentPage("documents")}
             className={`
 
               flex
@@ -236,8 +217,8 @@ function Sidebar({
                     ? "bg-[#181818]"
                     : "bg-gray-100"
                   : dark
-                  ? "hover:bg-[#151515]"
-                  : "hover:bg-gray-100"
+                    ? "hover:bg-[#151515]"
+                    : "hover:bg-gray-100"
               }
 
             `}
@@ -250,9 +231,7 @@ function Sidebar({
           {/* SETTINGS */}
 
           <div
-            onClick={() =>
-              setCurrentPage("settings")
-            }
+            onClick={() => setCurrentPage("settings")}
             className={`
 
               flex
@@ -276,8 +255,8 @@ function Sidebar({
                     ? "bg-[#181818]"
                     : "bg-gray-100"
                   : dark
-                  ? "hover:bg-[#151515]"
-                  : "hover:bg-gray-100"
+                    ? "hover:bg-[#151515]"
+                    : "hover:bg-gray-100"
               }
 
             `}
@@ -351,8 +330,8 @@ function Sidebar({
                   activeChatId === chat.id
                     ? "bg-gradient-to-r from-purple-600 to-pink-500 text-white"
                     : dark
-                    ? "bg-[#121212] hover:bg-[#1a1a1a]"
-                    : "bg-gray-100 hover:bg-gray-200"
+                      ? "bg-[#121212] hover:bg-[#1a1a1a]"
+                      : "bg-gray-100 hover:bg-gray-200"
                 }
 
               `}
@@ -413,19 +392,11 @@ function Sidebar({
         <div
           className={`
 
-            ${
-              dark
-                ? "bg-[#111111]"
-                : "bg-gray-100"
-            }
+            ${dark ? "bg-[#111111]" : "bg-gray-100"}
 
             border
 
-            ${
-              dark
-                ? "border-gray-800"
-                : "border-gray-200"
-            }
+            ${dark ? "border-gray-800" : "border-gray-200"}
 
             rounded-xl
 

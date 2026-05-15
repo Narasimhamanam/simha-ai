@@ -1,27 +1,19 @@
 from langchain_chroma import Chroma
 
-from langchain_huggingface import (
-    HuggingFaceEmbeddings
-)
+from langchain_huggingface import HuggingFaceEmbeddings
 
 from llm import generate_response
 
-embedding_model = HuggingFaceEmbeddings(
-
-    model_name=
-    "sentence-transformers/all-MiniLM-L6-v2"
-
-)
-
 def ask_pdf(question):
 
+    # Lazy init to avoid heavy downloads at import-time (Render-friendly)
+    embedding_model = HuggingFaceEmbeddings(
+        model_name="sentence-transformers/all-MiniLM-L6-v2"
+    )
+
     vector_db = Chroma(
-
         persist_directory="chroma_db",
-
-        embedding_function=
-        embedding_model
-
+        embedding_function=embedding_model
     )
 
     docs = vector_db.similarity_search(

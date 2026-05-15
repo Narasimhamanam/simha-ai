@@ -2,7 +2,7 @@ from llm import generate_response
 from agents.system_prompt import SYSTEM_PROMPT
 
 
-def study_agent(query, history):
+def study_agent(query, history, stream=False):
     formatted_history = "\n".join(
         f"User: {chat.get('user', '')}\nAssistant: {chat.get('assistant', '')}"
         for chat in history[-5:]
@@ -82,4 +82,4 @@ Generate a properly formatted markdown response.
 ASSISTANT:
 """
 
-    return generate_response(prompt)
+    return generate_response(prompt, stream=stream)

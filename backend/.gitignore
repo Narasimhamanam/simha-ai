@@ -1,4 +1,8 @@
 __pycache__
 .env
-uploads
-chromadb
+uploads/
+chroma_db/
+chromadb/
+*.pyc
+.DS_Store
+test_mongo.py

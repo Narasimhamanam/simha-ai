@@ -579,9 +579,7 @@
 
 // export default ChatArea;
 
-
-
-import React, { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { Paperclip, Copy, Check, X } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -589,13 +587,7 @@ import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { oneDark } from "react-syntax-highlighter/dist/esm/styles/prism";
 import API from "../services/api";
 
-function ChatArea({
-  theme,
-  setChats,
-  activeChat,
-  activeChatId,
-  user,
-}) {
+function ChatArea({ theme, setChats, activeChat, activeChatId, user }) {
   const dark = theme === "dark";
 
   const [input, setInput] = useState("");
@@ -607,6 +599,9 @@ function ChatArea({
 
   const messagesEndRef = useRef(null);
   const fileInputRef = useRef(null);
+
+  // Robustness: allow reading latest textarea value directly from the DOM
+  const textareaRef = useRef(null);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({
@@ -638,18 +633,16 @@ function ChatArea({
           const currentMessages = chat.messages || [];
 
           const nextMessages =
-            typeof updater === "function"
-              ? updater(currentMessages)
-              : updater;
+            typeof updater === "function" ? updater(currentMessages) : updater;
 
           return {
             ...chat,
             messages: nextMessages,
           };
-        })
+        }),
       );
     },
-    [activeChatId, setChats]
+    [activeChatId, setChats],
   );
 
   const handleFileChange = (e) => {
@@ -681,7 +674,8 @@ function ChatArea({
 
       throw new Error(
         error?.response?.data?.detail ||
-          "Unable to upload file. Please try again."
+          "Unable to upload file. Please try again.",
+        { cause: error },
       );
     } finally {
       setUploading(false);
@@ -689,17 +683,18 @@ function ChatArea({
   };
 
   const handleSend = async () => {
-    if (
-      loading ||
-      uploading ||
-      !activeChatId ||
-      (!input.trim() && !selectedFile)
-    ) {
+    if (loading || uploading || !activeChatId) {
       return;
     }
 
-    const currentInput = input.trim();
+    const domValue = textareaRef.current?.value ?? "";
+    const currentInput = (input ?? "").trim() || domValue.trim();
+
     const currentFile = selectedFile;
+
+    if (!currentInput && !currentFile) {
+      return;
+    }
 
     const userMessage = {
       role: "user",
@@ -708,10 +703,7 @@ function ChatArea({
       file: currentFile?.name || null,
     };
 
-    updateActiveChatMessages((messages) => [
-      ...messages,
-      userMessage,
-    ]);
+    updateActiveChatMessages((messages) => [...messages, userMessage]);
 
     // clear input instantly for smooth UX
     setInput("");
@@ -746,21 +738,48 @@ function ChatArea({
           : {}),
       };
 
-      const response = await API.post("/chat", payload);
+      const tempAssistantMsg = { role: "assistant", content: "" };
+      updateActiveChatMessages((messages) => [...messages, tempAssistantMsg]);
 
-      const assistantMessage = {
-        role: "assistant",
-        content:
-          response?.data?.response ||
-          response?.data?.answer ||
-          response?.data?.message ||
-          "No response received.",
-      };
+      // Determine base URL depending on environment
+      const baseURL = import.meta.env.VITE_BACKEND_URL || "http://127.0.0.1:8000";
 
-      updateActiveChatMessages((messages) => [
-        ...messages,
-        assistantMessage,
-      ]);
+      const response = await fetch(`${baseURL}/stream-chat`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        throw new Error("Stream request failed");
+      }
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder("utf-8");
+      let fullResponse = "";
+      
+      setLoading(false); // Stop thinking animation once stream starts
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        fullResponse += decoder.decode(value, { stream: true });
+
+        setChats((prevChats) =>
+          prevChats.map((chat) => {
+            if (chat.id !== activeChatId) return chat;
+            const newMessages = [...(chat.messages || [])];
+            if (newMessages.length > 0 && newMessages[newMessages.length - 1].role === "assistant") {
+              newMessages[newMessages.length - 1] = {
+                ...newMessages[newMessages.length - 1],
+                content: fullResponse,
+              };
+            }
+            return { ...chat, messages: newMessages };
+          })
+        );
+      }
     } catch (error) {
       console.error("Send message failed:", error);
 
@@ -772,10 +791,7 @@ function ChatArea({
           "Something went wrong while processing your request.",
       };
 
-      updateActiveChatMessages((messages) => [
-        ...messages,
-        errorMessage,
-      ]);
+      updateActiveChatMessages((messages) => [...messages, errorMessage]);
     } finally {
       setLoading(false);
     }
@@ -793,8 +809,7 @@ function ChatArea({
       {/* CHAT AREA */}
       <div className="flex-1 overflow-y-auto px-3 pt-3 pb-32">
         <div className="space-y-3 max-w-5xl mx-auto w-full">
-          {(!activeChat?.messages ||
-            activeChat.messages.length === 0) && (
+          {!activeChatId && (
             <div className="min-h-[70vh] flex flex-col items-center justify-center text-center px-4">
               <h1
                 className={`text-2xl font-semibold mb-3 ${
@@ -859,19 +874,15 @@ function ChatArea({
           {activeChat?.messages?.map((msg, index) => (
             <div
               key={index}
-              className={`flex ${
-                msg.role === "user"
-                  ? "justify-end"
-                  : "justify-start"
+              className={`flex w-full mb-6 ${
+                msg.role === "user" ? "justify-end" : "justify-start"
               }`}
             >
               <div
-                className={`w-fit max-w-[72%] rounded-2xl px-4 py-3 overflow-hidden ${
+                className={`w-fit max-w-[85%] md:max-w-[75%] px-5 py-3 ${
                   msg.role === "user"
-                    ? "bg-gradient-to-r from-purple-600 to-pink-500 text-white"
-                    : dark
-                    ? "bg-[#181818] border border-gray-800 text-white"
-                    : "bg-white border border-gray-200 text-black"
+                    ? `rounded-3xl ${dark ? "bg-[#2f2f2f] text-white" : "bg-[#f4f4f4] text-black"}`
+                    : "rounded-xl text-black dark:text-white"
                 }`}
               >
                 {msg.file && (
@@ -942,12 +953,12 @@ function ChatArea({
                     ),
 
                     table: ({ children }) => (
-                      <div className="overflow-x-auto my-4">
+                      <div className="overflow-x-auto my-4 rounded-lg border border-gray-200 dark:border-gray-800">
                         <table
-                          className={`min-w-full text-xs border ${
+                          className={`min-w-full text-sm ${
                             dark
-                              ? "border-gray-700"
-                              : "border-gray-300"
+                              ? "border-gray-800"
+                              : "border-gray-200"
                           }`}
                         >
                           {children}
@@ -958,7 +969,7 @@ function ChatArea({
                     thead: ({ children }) => (
                       <thead
                         className={
-                          dark ? "bg-[#232323]" : "bg-gray-100"
+                          dark ? "bg-gray-800/50" : "bg-gray-50"
                         }
                       >
                         {children}
@@ -967,10 +978,10 @@ function ChatArea({
 
                     th: ({ children }) => (
                       <th
-                        className={`px-3 py-2 text-left border ${
+                        className={`px-4 py-3 text-left font-semibold border-b ${
                           dark
-                            ? "border-gray-700"
-                            : "border-gray-300"
+                            ? "border-gray-800 text-gray-200"
+                            : "border-gray-200 text-gray-800"
                         }`}
                       >
                         {children}
@@ -979,10 +990,10 @@ function ChatArea({
 
                     td: ({ children }) => (
                       <td
-                        className={`px-3 py-2 border ${
+                        className={`px-4 py-3 border-b ${
                           dark
-                            ? "border-gray-700"
-                            : "border-gray-300"
+                            ? "border-gray-800 text-gray-300"
+                            : "border-gray-200 text-gray-700"
                         }`}
                       >
                         {children}
@@ -990,14 +1001,9 @@ function ChatArea({
                     ),
 
                     code({ inline, className, children, ...props }) {
-                      const match = /language-(\w+)/.exec(
-                        className || ""
-                      );
+                      const match = /language-(\w+)/.exec(className || "");
 
-                      const codeString = String(children).replace(
-                        /\n$/,
-                        ""
-                      );
+                      const codeString = String(children).replace(/\n$/, "");
 
                       // FIXED: proper code rendering
                       if (!inline && match) {
@@ -1010,9 +1016,7 @@ function ChatArea({
 
                               <button
                                 type="button"
-                                onClick={() =>
-                                  copyToClipboard(codeString)
-                                }
+                                onClick={() => copyToClipboard(codeString)}
                                 className="flex items-center gap-1 text-[11px] text-gray-300 hover:text-white transition"
                               >
                                 {copiedCode === codeString ? (
@@ -1070,9 +1074,7 @@ function ChatArea({
             <div className="flex justify-start">
               <div
                 className={`px-3 py-2 rounded-xl flex items-center gap-2 ${
-                  dark
-                    ? "bg-[#181818] text-white"
-                    : "bg-gray-100 text-black"
+                  dark ? "bg-[#181818] text-white" : "bg-gray-100 text-black"
                 }`}
               >
                 <div className="flex gap-1">
@@ -1104,9 +1106,7 @@ function ChatArea({
       <div className="absolute bottom-0 left-0 right-0 p-3 backdrop-blur-sm">
         <div
           className={`max-w-5xl mx-auto rounded-2xl border px-3 py-3 ${
-            dark
-              ? "bg-[#181818] border-gray-800"
-              : "bg-white border-gray-300"
+            dark ? "bg-[#181818] border-gray-800" : "bg-white border-gray-300"
           }`}
         >
           <div className="flex items-center gap-2">
@@ -1115,9 +1115,7 @@ function ChatArea({
               onChange={(e) => setSelectedAgent(e.target.value)}
               disabled={loading || uploading}
               className={`px-3 py-2 rounded-xl text-xs outline-none ${
-                dark
-                  ? "bg-[#252525] text-white"
-                  : "bg-gray-100 text-black"
+                dark ? "bg-[#252525] text-white" : "bg-gray-100 text-black"
               }`}
             >
               <option value="study">Study</option>
@@ -1126,6 +1124,7 @@ function ChatArea({
             </select>
 
             <textarea
+              ref={textareaRef}
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
@@ -1163,11 +1162,9 @@ function ChatArea({
               type="button"
               onClick={handleSend}
               disabled={
-                loading ||
-                uploading ||
-                (!input.trim() && !selectedFile)
+                loading || uploading || (!input.trim() && !selectedFile)
               }
-              className="px-4 py-2 rounded-xl bg-gradient-to-r from-purple-600 to-pink-500 text-white text-sm font-medium hover:opacity-90 transition disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-4 py-2 rounded-xl bg-black text-white text-sm font-medium border border-black hover:opacity-90 transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading || uploading ? "..." : "Send"}
             </button>
@@ -1176,14 +1173,10 @@ function ChatArea({
           {selectedFile && (
             <div
               className={`mt-3 flex items-center justify-between rounded-lg px-3 py-2 text-xs ${
-                dark
-                  ? "bg-[#222] text-gray-300"
-                  : "bg-gray-100 text-gray-700"
+                dark ? "bg-[#222] text-gray-300" : "bg-gray-100 text-gray-700"
               }`}
             >
-              <span className="truncate">
-                📄 {selectedFile.name}
-              </span>
+              <span className="truncate">📄 {selectedFile.name}</span>
 
               <button
                 type="button"
@@ -1207,4 +1200,3 @@ function ChatArea({
 }
 
 export default ChatArea;
-
