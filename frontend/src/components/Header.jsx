@@ -1,34 +1,60 @@
 import { Menu } from "lucide-react";
 import ThemeToggle from "./ThemeToggle";
 
-function Header({ theme, setTheme, profile, setIsSidebarOpen }) {
+function getGreeting() {
+  const hour = new Date().getHours();
+  if (hour < 12) return "Good morning";
+  if (hour < 17) return "Good afternoon";
+  return "Good evening";
+}
+
+function Header({ theme, setTheme, profile, setIsSidebarOpen, activeChat }) {
+  const dark = theme === "dark";
+  const greeting = getGreeting();
+  const firstName = profile?.nickname?.split(" ")[0] || "";
+  const chatTitle = activeChat?.title && activeChat.title !== "New Chat" ? activeChat.title : null;
+
   return (
-    <div className="flex justify-between items-center px-4 md:px-6 pt-4 pb-3 border-b border-gray-200 dark:border-gray-800 bg-white/50 dark:bg-[#0a0a0a]/50 backdrop-blur-md sticky top-0 z-10">
+    <div className={`flex items-center justify-between px-4 md:px-5 py-3 border-b sticky top-0 z-10 backdrop-blur-md ${
+      dark ? "bg-[#0a0a0a]/80 border-gray-900" : "bg-white/80 border-gray-100"
+    }`}>
       {/* LEFT */}
-      <div className="flex items-center gap-3">
-        <button 
+      <div className="flex items-center gap-3 min-w-0">
+        {/* Mobile menu toggle */}
+        <button
           onClick={() => setIsSidebarOpen(true)}
-          className="p-2 md:hidden rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-300"
+          className={`p-1.5 rounded-lg md:hidden transition ${
+            dark ? "text-gray-400 hover:bg-white/5 hover:text-white" : "text-gray-500 hover:bg-gray-100 hover:text-gray-900"
+          }`}
         >
-          <Menu size={20} />
+          <Menu size={18} />
         </button>
-        <div>
-          <h1 className="text-xl md:text-2xl font-semibold text-gray-900 dark:text-white leading-tight tracking-tight">
-            Good Morning,
-            <span className="text-purple-600 dark:text-purple-400">
-              {" "}
-              {profile?.nickname?.split(" ")[0]}
-            </span>
-          </h1>
-          <p className="mt-0.5 text-gray-500 dark:text-gray-400 text-[13px]">
-            How can I help you today?
-          </p>
+
+        <div className="min-w-0">
+          {chatTitle ? (
+            <>
+              <h1 className={`text-sm font-semibold truncate max-w-xs ${dark ? "text-white" : "text-gray-900"}`}>
+                {chatTitle}
+              </h1>
+              <p className={`text-[11px] ${dark ? "text-gray-600" : "text-gray-400"}`}>
+                {greeting}{firstName ? `, ${firstName}` : ""}
+              </p>
+            </>
+          ) : (
+            <>
+              <h1 className={`text-sm font-semibold ${dark ? "text-white" : "text-gray-900"}`}>
+                {greeting}{firstName ? `, ${firstName}` : ""} 👋
+              </h1>
+              <p className={`text-[11px] ${dark ? "text-gray-600" : "text-gray-400"}`}>
+                How can I help you today?
+              </p>
+            </>
+          )}
         </div>
       </div>
 
       {/* RIGHT */}
-
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2">
         <ThemeToggle theme={theme} setTheme={setTheme} />
       </div>
     </div>

@@ -1,593 +1,26 @@
-// import React, { useEffect, useRef, useState } from "react";
-// import { Paperclip, Copy, Check } from "lucide-react";
-// import ReactMarkdown from "react-markdown";
-// import remarkGfm from "remark-gfm";
-// import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
-// import { oneDark } from "react-syntax-highlighter/dist/esm/styles/prism";
-// import API from "../services/api";
-
-// function ChatArea({
-//   theme,
-//   setChats,
-//   activeChat,
-//   activeChatId,
-//   user,
-// }) {
-//   const dark = theme === "dark";
-
-//   const [input, setInput] = useState("");
-//   const [selectedAgent, setSelectedAgent] = useState("study");
-//   const [loading, setLoading] = useState(false);
-//   const [selectedFile, setSelectedFile] = useState(null);
-//   const [uploading, setUploading] = useState(false);
-//   const [copiedCode, setCopiedCode] = useState("");
-
-//   const messagesEndRef = useRef(null);
-//   const fileInputRef = useRef(null);
-
-//   useEffect(() => {
-//     messagesEndRef.current?.scrollIntoView({
-//       behavior: "smooth",
-//     });
-//   }, [activeChat, loading]);
-
-//   const copyToClipboard = async (code) => {
-//     try {
-//       await navigator.clipboard.writeText(code);
-//       setCopiedCode(code);
-//       setTimeout(() => setCopiedCode(""), 2000);
-//     } catch (error) {
-//       console.error("Copy failed:", error);
-//     }
-//   };
-
-//   const updateActiveChatMessages = (updater) => {
-//     setChats((prevChats) =>
-//       prevChats.map((chat) => {
-//         if (chat.id !== activeChatId) return chat;
-
-//         const currentMessages = chat.messages || [];
-//         const nextMessages =
-//           typeof updater === "function"
-//             ? updater(currentMessages)
-//             : updater;
-
-//         return {
-//           ...chat,
-//           messages: nextMessages,
-//         };
-//       })
-//     );
-//   };
-
-//   const handleFileChange = (e) => {
-//     const file = e.target.files?.[0] || null;
-//     setSelectedFile(file);
-//   };
-
-//   const uploadFileIfNeeded = async () => {
-//     if (!selectedFile) return null;
-
-//     const formData = new FormData();
-//     formData.append("file", selectedFile);
-
-//     setUploading(true);
-//     try {
-//       const response = await API.post("/upload-pdf", formData, {
-//         headers: {
-//           "Content-Type": "multipart/form-data",
-//         },
-//       });
-
-//       return response.data;
-//     } catch (error) {
-//       console.error("File upload failed:", error);
-//       throw new Error(
-//         error?.response?.data?.detail || "File upload failed"
-//       );
-//     } finally {
-//       setUploading(false);
-//     }
-//   };
-
-//   const handleSend = async () => {
-//     if ((!input.trim() && !selectedFile) || loading || uploading || !activeChatId) {
-//       return;
-//     }
-
-//     const userMessage = {
-//       role: "user",
-//       content: input.trim() || `Analyze this file: ${selectedFile?.name}`,
-//       file: selectedFile?.name || null,
-//     };
-
-//     const currentInput = input.trim();
-//     const currentFile = selectedFile;
-
-//     updateActiveChatMessages((messages) => [...messages, userMessage]);
-
-//     setInput("");
-//     setSelectedFile(null);
-//     if (fileInputRef.current) {
-//       fileInputRef.current.value = "";
-//     }
-
-//     setLoading(true);
-
-//     try {
-//       let uploadedFileData = null;
-
-//       if (currentFile) {
-//         uploadedFileData = await uploadFileIfNeeded();
-//       }
-
-//       const payload = {
-//         chat_id: activeChatId,
-//         user_id: user?.id || user?._id || "guest",
-//         agent: selectedAgent,
-//         query: currentInput || `Analyze the uploaded file: ${currentFile?.name}`,
-//         file_name: currentFile?.name || null,
-//         ...(uploadedFileData ? { file_data: uploadedFileData } : {}),
-//       };
-
-//       const response = await API.post("/chat", payload);
-
-//       const assistantMessage = {
-//         role: "assistant",
-//         content:
-//           response?.data?.response ||
-//           response?.data?.answer ||
-//           "No response received.",
-//       };
-
-//       updateActiveChatMessages((messages) => [...messages, assistantMessage]);
-//     } catch (error) {
-//       console.error("Send message failed:", error);
-
-//       const errorMessage = {
-//         role: "assistant",
-//         content:
-//           error?.response?.data?.detail ||
-//           error?.message ||
-//           "Something went wrong while processing your request.",
-//       };
-
-//       updateActiveChatMessages((messages) => [...messages, errorMessage]);
-//     } finally {
-//       setLoading(false);
-//     }
-//   };
-
-//   const handleKeyDown = (e) => {
-//     if (e.key === "Enter" && !e.shiftKey) {
-//       e.preventDefault();
-//       handleSend();
-//     }
-//   };
-
-//   return (
-//     <div className="flex-1 flex flex-col overflow-hidden relative text-sm">
-//       <div className="flex-1 overflow-y-auto px-4 pt-3 pb-32">
-//         <div className="space-y-3">
-//           {activeChat?.messages?.length === 0 && (
-//             <div className="min-h-[65vh] flex flex-col items-center justify-center text-center">
-//               <h1
-//                 className={`text-3xl font-bold mb-3 ${
-//                   dark ? "text-white" : "text-black"
-//                 }`}
-//               >
-//                 Simha AI
-//               </h1>
-
-//               <p
-//                 className={`text-sm max-w-xl leading-5 mb-8 ${
-//                   dark ? "text-gray-400" : "text-gray-600"
-//                 }`}
-//               >
-//                 Choose the best AI mode based on your task.
-//               </p>
-
-//               <div className="grid md:grid-cols-3 gap-4 max-w-4xl w-full">
-//                 <div
-//                   className={`p-4 rounded-xl border ${
-//                     dark
-//                       ? "bg-[#171717] border-gray-800"
-//                       : "bg-white border-gray-200"
-//                   }`}
-//                 >
-//                   <h2
-//                     className={`text-sm font-semibold mb-2 ${
-//                       dark ? "text-white" : "text-black"
-//                     }`}
-//                   >
-//                     📚 Study
-//                   </h2>
-//                   <p
-//                     className={`text-[13px] leading-5 ${
-//                       dark ? "text-gray-400" : "text-gray-600"
-//                     }`}
-//                   >
-//                     Aptitude, ML, AI, engineering subjects and interview prep.
-//                   </p>
-//                 </div>
-
-//                 <div
-//                   className={`p-4 rounded-xl border ${
-//                     dark
-//                       ? "bg-[#171717] border-gray-800"
-//                       : "bg-white border-gray-200"
-//                   }`}
-//                 >
-//                   <h2
-//                     className={`text-sm font-semibold mb-2 ${
-//                       dark ? "text-white" : "text-black"
-//                     }`}
-//                   >
-//                     💻 Coding
-//                   </h2>
-//                   <p
-//                     className={`text-[13px] leading-5 ${
-//                       dark ? "text-gray-400" : "text-gray-600"
-//                     }`}
-//                   >
-//                     DSA, React, debugging, FastAPI and projects.
-//                   </p>
-//                 </div>
-
-//                 <div
-//                   className={`p-4 rounded-xl border ${
-//                     dark
-//                       ? "bg-[#171717] border-gray-800"
-//                       : "bg-white border-gray-200"
-//                   }`}
-//                 >
-//                   <h2
-//                     className={`text-sm font-semibold mb-2 ${
-//                       dark ? "text-white" : "text-black"
-//                     }`}
-//                   >
-//                     🚀 Productivity
-//                   </h2>
-//                   <p
-//                     className={`text-[13px] leading-5 ${
-//                       dark ? "text-gray-400" : "text-gray-600"
-//                     }`}
-//                   >
-//                     Planning, schedules, roadmaps and career guidance.
-//                   </p>
-//                 </div>
-//               </div>
-//             </div>
-//           )}
-
-//           {activeChat?.messages?.map((msg, index) => (
-//             <div
-//               key={index}
-//               className={`flex ${
-//                 msg.role === "user" ? "justify-end" : "justify-start"
-//               }`}
-//             >
-//               <div
-//                 className={`max-w-[620px] w-fit rounded-xl px-3.5 py-2.5 overflow-hidden shadow-sm ${
-//                   msg.role === "user"
-//                     ? "bg-gradient-to-r from-purple-600 to-pink-500 text-white"
-//                     : dark
-//                     ? "bg-[#181818] text-white border border-gray-800"
-//                     : "bg-white text-black border border-gray-300"
-//                 }`}
-//               >
-//                 {msg.file && (
-//                   <div className="inline-flex items-center gap-2 px-2 py-1 rounded-md bg-black/10 mb-2 text-[11px]">
-//                     📄 {msg.file}
-//                   </div>
-//                 )}
-
-//                 <ReactMarkdown
-//                   remarkPlugins={[remarkGfm]}
-//                   components={{
-//                     h1: ({ children }) => (
-//                       <h1
-//                         className={`text-base font-semibold mt-4 mb-2 ${
-//                           dark ? "text-white" : "text-black"
-//                         }`}
-//                       >
-//                         {children}
-//                       </h1>
-//                     ),
-//                     h2: ({ children }) => (
-//                       <h2
-//                         className={`text-[15px] font-semibold mt-4 mb-2 ${
-//                           dark ? "text-white" : "text-black"
-//                         }`}
-//                       >
-//                         {children}
-//                       </h2>
-//                     ),
-//                     h3: ({ children }) => (
-//                       <h3
-//                         className={`text-[14px] font-medium mt-3 mb-2 ${
-//                           dark ? "text-white" : "text-black"
-//                         }`}
-//                       >
-//                         {children}
-//                       </h3>
-//                     ),
-//                     p: ({ children }) => (
-//                       <p
-//                         className={`leading-5 text-[13px] mb-2 font-normal ${
-//                           dark ? "text-gray-200" : "text-gray-800"
-//                         }`}
-//                       >
-//                         {children}
-//                       </p>
-//                     ),
-//                     ul: ({ children }) => (
-//                       <ul className="mb-2 list-disc pl-4">{children}</ul>
-//                     ),
-//                     ol: ({ children }) => (
-//                       <ol className="mb-2 list-decimal pl-4">{children}</ol>
-//                     ),
-//                     li: ({ children }) => (
-//                       <li
-//                         className={`mb-1 leading-5 text-[13px] ${
-//                           dark ? "text-gray-200" : "text-gray-800"
-//                         }`}
-//                       >
-//                         {children}
-//                       </li>
-//                     ),
-//                     strong: ({ children }) => (
-//                       <strong
-//                         className={`font-semibold ${
-//                           dark ? "text-white" : "text-black"
-//                         }`}
-//                       >
-//                         {children}
-//                       </strong>
-//                     ),
-//                     blockquote: ({ children }) => (
-//                       <blockquote
-//                         className={`border-l-2 pl-3 italic my-3 ${
-//                           dark
-//                             ? "border-gray-700 text-gray-400"
-//                             : "border-gray-300 text-gray-600"
-//                         }`}
-//                       >
-//                         {children}
-//                       </blockquote>
-//                     ),
-//                     table: ({ children }) => (
-//                       <div className="my-3 overflow-x-auto">
-//                         <table
-//                           className={`min-w-full border text-[12px] ${
-//                             dark ? "border-gray-700" : "border-gray-300"
-//                           }`}
-//                         >
-//                           {children}
-//                         </table>
-//                       </div>
-//                     ),
-//                     thead: ({ children }) => (
-//                       <thead
-//                         className={
-//                           dark ? "bg-[#232323]" : "bg-gray-100"
-//                         }
-//                       >
-//                         {children}
-//                       </thead>
-//                     ),
-//                     th: ({ children }) => (
-//                       <th
-//                         className={`px-3 py-2 border text-left font-semibold ${
-//                           dark
-//                             ? "border-gray-700 text-white"
-//                             : "border-gray-300 text-black"
-//                         }`}
-//                       >
-//                         {children}
-//                       </th>
-//                     ),
-//                     td: ({ children }) => (
-//                       <td
-//                         className={`px-3 py-2 border align-top ${
-//                           dark
-//                             ? "border-gray-700 text-gray-200"
-//                             : "border-gray-300 text-gray-800"
-//                         }`}
-//                       >
-//                         {children}
-//                       </td>
-//                     ),
-//                     code({ node, inline, className, children, ...props }) {
-//                       const match = /language-(\w+)/.exec(className || "");
-//                       const codeString = String(children).replace(/\n$/, "");
-
-//                       if (!inline && match) {
-//                         return (
-//                           <div className="my-3 rounded-lg overflow-hidden border border-gray-800">
-//                             <div className="flex items-center justify-between px-3 py-2 bg-[#1e1e1e] border-b border-gray-700">
-//                               <span className="text-[10px] uppercase text-gray-400">
-//                                 {match[1]}
-//                               </span>
-
-//                               <button
-//                                 onClick={() => copyToClipboard(codeString)}
-//                                 className="flex items-center gap-1 text-[11px] text-gray-300 hover:text-white transition"
-//                                 type="button"
-//                               >
-//                                 {copiedCode === codeString ? (
-//                                   <>
-//                                     <Check size={12} />
-//                                     Copied
-//                                   </>
-//                                 ) : (
-//                                   <>
-//                                     <Copy size={12} />
-//                                     Copy
-//                                   </>
-//                                 )}
-//                               </button>
-//                             </div>
-
-//                             <SyntaxHighlighter
-//                               style={oneDark}
-//                               language={match[1]}
-//                               PreTag="div"
-//                               wrapLongLines={true}
-//                               customStyle={{
-//                                 margin: 0,
-//                                 padding: "10px",
-//                                 background: "#111827",
-//                                 fontSize: "11px",
-//                                 lineHeight: "1.5",
-//                               }}
-//                               {...props}
-//                             >
-//                               {codeString}
-//                             </SyntaxHighlighter>
-//                           </div>
-//                         );
-//                       }
-
-//                       return (
-//                         <code
-//                           className="px-1.5 py-0.5 rounded bg-black/10 text-pink-400 text-[11px]"
-//                           {...props}
-//                         >
-//                           {children}
-//                         </code>
-//                       );
-//                     },
-//                   }}
-//                 >
-//                   {msg.content || ""}
-//                 </ReactMarkdown>
-//               </div>
-//             </div>
-//           ))}
-
-//           {loading && (
-//             <div className="flex justify-start">
-//               <div
-//                 className={`px-3 py-2 rounded-xl flex items-center gap-2 ${
-//                   dark
-//                     ? "bg-[#181818] text-white"
-//                     : "bg-gray-100 text-black"
-//                 }`}
-//               >
-//                 <div className="flex gap-1">
-//                   <div className="w-2 h-2 rounded-full bg-purple-500 animate-bounce" />
-//                   <div
-//                     className="w-2 h-2 rounded-full bg-pink-500 animate-bounce"
-//                     style={{ animationDelay: "0.2s" }}
-//                   />
-//                   <div
-//                     className="w-2 h-2 rounded-full bg-cyan-400 animate-bounce"
-//                     style={{ animationDelay: "0.4s" }}
-//                   />
-//                 </div>
-//                 <p className="text-[11px]">
-//                   {uploading ? "Uploading file..." : "Thinking..."}
-//                 </p>
-//               </div>
-//             </div>
-//           )}
-
-//           <div ref={messagesEndRef} />
-//         </div>
-//       </div>
-
-//       <div className="absolute bottom-0 left-0 right-0 p-4">
-//         <div
-//           className={`max-w-4xl mx-auto flex items-center gap-2 p-2.5 rounded-xl border ${
-//             dark
-//               ? "bg-[#181818] border-gray-800"
-//               : "bg-white border-gray-300"
-//           }`}
-//         >
-//           <select
-//             value={selectedAgent}
-//             onChange={(e) => setSelectedAgent(e.target.value)}
-//             disabled={loading || uploading}
-//             className={`px-2.5 py-2 rounded-lg outline-none text-sm ${
-//               dark
-//                 ? "bg-[#252525] text-white"
-//                 : "bg-gray-100 text-black"
-//             }`}
-//           >
-//             <option value="study">Study</option>
-//             <option value="coding">Coding</option>
-//             <option value="productivity">Productivity</option>
-//           </select>
-
-//           <input
-//             type="text"
-//             value={input}
-//             onChange={(e) => setInput(e.target.value)}
-//             onKeyDown={handleKeyDown}
-//             placeholder="Ask anything..."
-//             disabled={loading || uploading}
-//             className={`flex-1 bg-transparent outline-none text-sm ${
-//               dark
-//                 ? "text-white placeholder:text-gray-500"
-//                 : "text-black placeholder:text-gray-400"
-//             }`}
-//           />
-
-//           <label className="cursor-pointer">
-//             <input
-//               ref={fileInputRef}
-//               type="file"
-//               hidden
-//               accept=".pdf,.txt,.doc,.docx"
-//               onChange={handleFileChange}
-//               disabled={loading || uploading}
-//             />
-//             <Paperclip
-//               size={17}
-//               className={`transition ${
-//                 dark
-//                   ? "text-gray-400 hover:text-white"
-//                   : "text-gray-500 hover:text-black"
-//               }`}
-//             />
-//           </label>
-
-//           <button
-//             onClick={handleSend}
-//             disabled={loading || uploading || (!input.trim() && !selectedFile)}
-//             className="px-4 py-2 rounded-lg bg-gradient-to-r from-purple-600 to-pink-500 text-white text-sm font-medium hover:opacity-90 transition disabled:opacity-50 disabled:cursor-not-allowed"
-//             type="button"
-//           >
-//             {loading || uploading ? "..." : "Send"}
-//           </button>
-//         </div>
-
-//         {selectedFile && (
-//           <div
-//             className={`max-w-4xl mx-auto mt-2 px-2 text-xs ${
-//               dark ? "text-gray-400" : "text-gray-600"
-//             }`}
-//           >
-//             Selected file: <span className="font-medium">{selectedFile.name}</span>
-//           </div>
-//         )}
-//       </div>
-//     </div>
-//   );
-// }
-
-// export default ChatArea;
-
 import { useEffect, useRef, useState, useCallback } from "react";
-import { Paperclip, Copy, Check, X } from "lucide-react";
+import { Paperclip, Copy, Check, X, Send } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { oneDark } from "react-syntax-highlighter/dist/esm/styles/prism";
 import API from "../services/api";
 
-function ChatArea({ theme, setChats, activeChat, activeChatId, user }) {
+// Generate a short chat title from the user's first query
+function generateChatTitle(query) {
+  const cleaned = query.trim().replace(/[^\w\s]/gi, "").trim();
+  const words = cleaned.split(/\s+/).filter(Boolean);
+  const title = words.slice(0, 5).join(" ");
+  return title.charAt(0).toUpperCase() + title.slice(1) || "New Chat";
+}
+
+const AGENTS = [
+  { value: "study", label: "📚 Study", color: "from-blue-500 to-indigo-500" },
+  { value: "coding", label: "💻 Coding", color: "from-emerald-500 to-teal-500" },
+  { value: "productivity", label: "🚀 Productivity", color: "from-purple-500 to-pink-500" },
+];
+
+function ChatArea({ theme, chats, setChats, activeChat, activeChatId, user }) {
   const dark = theme === "dark";
 
   const [input, setInput] = useState("");
@@ -599,24 +32,25 @@ function ChatArea({ theme, setChats, activeChat, activeChatId, user }) {
 
   const messagesEndRef = useRef(null);
   const fileInputRef = useRef(null);
-
-  // Robustness: allow reading latest textarea value directly from the DOM
   const textareaRef = useRef(null);
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({
-      behavior: "smooth",
-    });
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [activeChat?.messages, loading]);
+
+  // Auto-resize textarea
+  useEffect(() => {
+    const ta = textareaRef.current;
+    if (!ta) return;
+    ta.style.height = "auto";
+    ta.style.height = Math.min(ta.scrollHeight, 160) + "px";
+  }, [input]);
 
   const copyToClipboard = async (code) => {
     try {
       await navigator.clipboard.writeText(code);
       setCopiedCode(code);
-
-      setTimeout(() => {
-        setCopiedCode("");
-      }, 2000);
+      setTimeout(() => setCopiedCode(""), 2000);
     } catch (error) {
       console.error("Copy failed:", error);
     }
@@ -626,23 +60,14 @@ function ChatArea({ theme, setChats, activeChat, activeChatId, user }) {
     (updater) => {
       setChats((prevChats) =>
         prevChats.map((chat) => {
-          if (chat.id !== activeChatId) {
-            return chat;
-          }
-
+          if (chat.id !== activeChatId) return chat;
           const currentMessages = chat.messages || [];
-
-          const nextMessages =
-            typeof updater === "function" ? updater(currentMessages) : updater;
-
-          return {
-            ...chat,
-            messages: nextMessages,
-          };
-        }),
+          const nextMessages = typeof updater === "function" ? updater(currentMessages) : updater;
+          return { ...chat, messages: nextMessages };
+        })
       );
     },
-    [activeChatId, setChats],
+    [activeChatId, setChats]
   );
 
   const handleFileChange = (e) => {
@@ -650,131 +75,94 @@ function ChatArea({ theme, setChats, activeChat, activeChatId, user }) {
     setSelectedFile(file);
   };
 
-  // FIXED: now receives file directly instead of using stale state
   const uploadFileIfNeeded = async (file) => {
-    if (!file) {
-      return null;
-    }
-
+    if (!file) return null;
     const formData = new FormData();
     formData.append("file", file);
-
     setUploading(true);
-
     try {
       const response = await API.post("/upload-pdf", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
+        headers: { "Content-Type": "multipart/form-data" },
       });
-
       return response.data;
     } catch (error) {
-      console.error("File upload failed:", error);
-
-      throw new Error(
-        error?.response?.data?.detail ||
-          "Unable to upload file. Please try again.",
-        { cause: error },
-      );
+      throw new Error(error?.response?.data?.detail || "Upload failed.");
     } finally {
       setUploading(false);
     }
   };
 
   const handleSend = async () => {
-    if (loading || uploading || !activeChatId) {
-      return;
-    }
-
-    const domValue = textareaRef.current?.value ?? "";
-    const currentInput = (input ?? "").trim() || domValue.trim();
-
+    if (loading || uploading || !activeChatId) return;
+    const currentInput = (input ?? "").trim();
     const currentFile = selectedFile;
+    if (!currentInput && !currentFile) return;
 
-    if (!currentInput && !currentFile) {
-      return;
-    }
+    const isFirstMessage = (activeChat?.messages || []).length === 0;
 
     const userMessage = {
       role: "user",
-      content:
-        currentInput || `Analyze this file: ${currentFile?.name || "File"}`,
+      content: currentInput || `Analyze this file: ${currentFile?.name || "File"}`,
       file: currentFile?.name || null,
     };
 
     updateActiveChatMessages((messages) => [...messages, userMessage]);
 
-    // clear input instantly for smooth UX
-    setInput("");
-    setSelectedFile(null);
-
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
+    // Auto-rename chat on first message
+    if (isFirstMessage && currentInput) {
+      const newTitle = generateChatTitle(currentInput);
+      setChats((prevChats) =>
+        prevChats.map((c) => (c.id === activeChatId ? { ...c, title: newTitle } : c))
+      );
+      // Persist to backend
+      API.patch(`/rename-chat/${activeChatId}`, { title: newTitle }).catch(() => {});
     }
 
+    setInput("");
+    setSelectedFile(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
     setLoading(true);
 
     try {
       let uploadedFileData = null;
-
-      // FIXED: uses currentFile instead of cleared state
-      if (currentFile) {
-        uploadedFileData = await uploadFileIfNeeded(currentFile);
-      }
+      if (currentFile) uploadedFileData = await uploadFileIfNeeded(currentFile);
 
       const payload = {
         chat_id: activeChatId,
-        user_id: user?.id || user?._id || "guest",
+        user_id: user?.uid || user?.id || "guest",
         agent: selectedAgent,
-        query:
-          currentInput ||
-          `Analyze uploaded file: ${currentFile?.name || "File"}`,
+        query: currentInput || `Analyze uploaded file: ${currentFile?.name || "File"}`,
         file_name: currentFile?.name || null,
-        ...(uploadedFileData
-          ? {
-              file_data: uploadedFileData,
-            }
-          : {}),
+        ...(uploadedFileData ? { file_data: uploadedFileData } : {}),
       };
 
       const tempAssistantMsg = { role: "assistant", content: "" };
       updateActiveChatMessages((messages) => [...messages, tempAssistantMsg]);
 
-      // Determine base URL depending on environment
       const baseURL = import.meta.env.VITE_BACKEND_URL || "http://127.0.0.1:8000";
-
       const response = await fetch(`${baseURL}/stream-chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
 
-      if (!response.ok) {
-        throw new Error("Stream request failed");
-      }
+      if (!response.ok) throw new Error("Stream request failed");
 
       const reader = response.body.getReader();
       const decoder = new TextDecoder("utf-8");
       let fullResponse = "";
-      
-      setLoading(false); // Stop thinking animation once stream starts
+      setLoading(false);
 
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
-
         fullResponse += decoder.decode(value, { stream: true });
-
         setChats((prevChats) =>
           prevChats.map((chat) => {
             if (chat.id !== activeChatId) return chat;
             const newMessages = [...(chat.messages || [])];
             if (newMessages.length > 0 && newMessages[newMessages.length - 1].role === "assistant") {
-              newMessages[newMessages.length - 1] = {
-                ...newMessages[newMessages.length - 1],
-                content: fullResponse,
-              };
+              newMessages[newMessages.length - 1] = { ...newMessages[newMessages.length - 1], content: fullResponse };
             }
             return { ...chat, messages: newMessages };
           })
@@ -782,16 +170,13 @@ function ChatArea({ theme, setChats, activeChat, activeChatId, user }) {
       }
     } catch (error) {
       console.error("Send message failed:", error);
-
-      const errorMessage = {
-        role: "assistant",
-        content:
-          error?.response?.data?.detail ||
-          error?.message ||
-          "Something went wrong while processing your request.",
-      };
-
-      updateActiveChatMessages((messages) => [...messages, errorMessage]);
+      updateActiveChatMessages((messages) => [
+        ...messages,
+        {
+          role: "assistant",
+          content: error?.message || "Something went wrong. Please try again.",
+        },
+      ]);
     } finally {
       setLoading(false);
     }
@@ -804,89 +189,72 @@ function ChatArea({ theme, setChats, activeChat, activeChatId, user }) {
     }
   };
 
+  const selectedAgentObj = AGENTS.find((a) => a.value === selectedAgent);
+
   return (
     <div className="flex-1 flex flex-col overflow-hidden relative text-sm">
-      {/* CHAT AREA */}
-      <div className="flex-1 overflow-y-auto px-3 pt-3 pb-32">
-        <div className="space-y-3 max-w-5xl mx-auto w-full">
-          {!activeChatId && (
-            <div className="min-h-[70vh] flex flex-col items-center justify-center text-center px-4">
-              <h1
-                className={`text-2xl font-semibold mb-3 ${
-                  dark ? "text-white" : "text-black"
-                }`}
-              >
-                Simha AI
-              </h1>
-
-              <p
-                className={`text-sm max-w-lg leading-6 mb-8 ${
-                  dark ? "text-gray-400" : "text-gray-600"
-                }`}
-              >
-                Choose an AI mode and start chatting.
+      {/* MESSAGES */}
+      <div className="flex-1 overflow-y-auto px-4 pt-6 pb-36">
+        <div className="max-w-3xl mx-auto w-full space-y-6">
+          {/* EMPTY STATE */}
+          {(!activeChat?.messages || activeChat.messages.length === 0) && (
+            <div className="min-h-[60vh] flex flex-col items-center justify-center text-center px-4">
+              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-600 to-pink-500 flex items-center justify-center mb-6 shadow-lg shadow-purple-500/20">
+                <span className="text-white text-2xl font-bold">S</span>
+              </div>
+              <h2 className={`text-2xl font-semibold mb-2 ${dark ? "text-white" : "text-gray-900"}`}>
+                What can I help with?
+              </h2>
+              <p className={`text-sm mb-10 max-w-md leading-6 ${dark ? "text-gray-400" : "text-gray-500"}`}>
+                Select a mode and start chatting. Simha AI adapts to your task automatically.
               </p>
-
-              <div className="grid md:grid-cols-3 gap-3 w-full max-w-3xl">
-                {[
-                  {
-                    title: "📚 Study",
-                    desc: "Aptitude, ML, AI and interview preparation.",
-                  },
-                  {
-                    title: "💻 Coding",
-                    desc: "React, DSA, FastAPI and debugging support.",
-                  },
-                  {
-                    title: "🚀 Productivity",
-                    desc: "Roadmaps, planning and career guidance.",
-                  },
-                ].map((item, idx) => (
-                  <div
-                    key={idx}
-                    className={`p-4 rounded-xl border transition-all ${
-                      dark
-                        ? "bg-[#171717] border-gray-800"
-                        : "bg-white border-gray-200"
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 w-full max-w-2xl">
+                {AGENTS.map((agent) => (
+                  <button
+                    key={agent.value}
+                    onClick={() => setSelectedAgent(agent.value)}
+                    className={`p-4 rounded-2xl border text-left transition-all duration-200 ${
+                      selectedAgent === agent.value
+                        ? `bg-gradient-to-br ${agent.color} border-transparent text-white shadow-lg`
+                        : dark
+                        ? "bg-[#141414] border-gray-800 text-gray-300 hover:border-gray-600"
+                        : "bg-white border-gray-200 text-gray-700 hover:border-gray-400"
                     }`}
                   >
-                    <h2
-                      className={`text-sm font-semibold mb-2 ${
-                        dark ? "text-white" : "text-black"
-                      }`}
-                    >
-                      {item.title}
-                    </h2>
-
-                    <p
-                      className={`text-xs leading-5 ${
-                        dark ? "text-gray-400" : "text-gray-600"
-                      }`}
-                    >
-                      {item.desc}
-                    </p>
-                  </div>
+                    <div className="text-xl mb-2">{agent.label.split(" ")[0]}</div>
+                    <div className="font-semibold text-sm">{agent.label.split(" ").slice(1).join(" ")}</div>
+                  </button>
                 ))}
               </div>
             </div>
           )}
 
+          {/* MESSAGES */}
           {activeChat?.messages?.map((msg, index) => (
             <div
               key={index}
-              className={`flex w-full mb-6 ${
-                msg.role === "user" ? "justify-end" : "justify-start"
-              }`}
+              className={`flex w-full ${msg.role === "user" ? "justify-end" : "justify-start"}`}
             >
+              {/* Avatar for assistant */}
+              {msg.role === "assistant" && (
+                <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-purple-600 to-pink-500 flex items-center justify-center flex-shrink-0 mr-3 mt-0.5">
+                  <span className="text-white text-xs font-bold">S</span>
+                </div>
+              )}
+
               <div
-                className={`w-fit max-w-[85%] md:max-w-[75%] px-5 py-3 ${
+                className={`max-w-[80%] ${
                   msg.role === "user"
-                    ? `rounded-3xl ${dark ? "bg-[#2f2f2f] text-white" : "bg-[#f4f4f4] text-black"}`
-                    : "rounded-xl text-black dark:text-white"
+                    ? `px-4 py-3 rounded-2xl rounded-tr-sm ${
+                        dark ? "bg-[#2a2a2a] text-white" : "bg-[#f0f0f0] text-gray-900"
+                      }`
+                    : `${dark ? "text-gray-100" : "text-gray-800"}`
                 }`}
               >
                 {msg.file && (
-                  <div className="inline-flex items-center gap-2 px-2 py-1 rounded-md bg-black/10 mb-3 text-[11px]">
+                  <div className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg mb-2 text-[11px] ${
+                    dark ? "bg-white/10 text-gray-300" : "bg-black/5 text-gray-600"
+                  }`}>
                     📄 {msg.file}
                   </div>
                 )}
@@ -894,157 +262,61 @@ function ChatArea({ theme, setChats, activeChat, activeChatId, user }) {
                 <ReactMarkdown
                   remarkPlugins={[remarkGfm]}
                   components={{
-                    h1: ({ children }) => (
-                      <h1 className="text-lg font-semibold mt-4 mb-2">
-                        {children}
-                      </h1>
-                    ),
-
-                    h2: ({ children }) => (
-                      <h2 className="text-base font-semibold mt-4 mb-2">
-                        {children}
-                      </h2>
-                    ),
-
-                    h3: ({ children }) => (
-                      <h3 className="text-sm font-semibold mt-3 mb-2">
-                        {children}
-                      </h3>
-                    ),
-
-                    p: ({ children }) => (
-                      <p className="text-[13px] leading-6 mb-3 whitespace-pre-wrap">
-                        {children}
-                      </p>
-                    ),
-
-                    ul: ({ children }) => (
-                      <ul className="list-disc pl-5 mb-3 space-y-1">
-                        {children}
-                      </ul>
-                    ),
-
-                    ol: ({ children }) => (
-                      <ol className="list-decimal pl-5 mb-3 space-y-1">
-                        {children}
-                      </ol>
-                    ),
-
-                    li: ({ children }) => (
-                      <li className="text-[13px] leading-6">{children}</li>
-                    ),
-
-                    strong: ({ children }) => (
-                      <strong className="font-semibold text-white">
-                        {children}
-                      </strong>
-                    ),
-
+                    h1: ({ children }) => <h1 className="text-xl font-bold mt-5 mb-3">{children}</h1>,
+                    h2: ({ children }) => <h2 className="text-base font-semibold mt-4 mb-2">{children}</h2>,
+                    h3: ({ children }) => <h3 className="text-sm font-semibold mt-3 mb-1.5">{children}</h3>,
+                    p: ({ children }) => <p className="text-[13.5px] leading-7 mb-3">{children}</p>,
+                    ul: ({ children }) => <ul className="list-disc pl-5 mb-3 space-y-1">{children}</ul>,
+                    ol: ({ children }) => <ol className="list-decimal pl-5 mb-3 space-y-1">{children}</ol>,
+                    li: ({ children }) => <li className="text-[13.5px] leading-7">{children}</li>,
+                    strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
                     blockquote: ({ children }) => (
-                      <blockquote
-                        className={`border-l-4 pl-4 italic my-4 ${
-                          dark
-                            ? "border-gray-700 text-gray-400"
-                            : "border-gray-300 text-gray-600"
-                        }`}
-                      >
+                      <blockquote className={`border-l-4 pl-4 italic my-4 ${dark ? "border-purple-700 text-gray-400" : "border-purple-400 text-gray-600"}`}>
                         {children}
                       </blockquote>
                     ),
-
                     table: ({ children }) => (
-                      <div className="overflow-x-auto my-4 rounded-lg border border-gray-200 dark:border-gray-800">
-                        <table
-                          className={`min-w-full text-sm ${
-                            dark
-                              ? "border-gray-800"
-                              : "border-gray-200"
-                          }`}
-                        >
-                          {children}
-                        </table>
+                      <div className="overflow-x-auto my-4 rounded-xl border border-gray-800">
+                        <table className="min-w-full text-sm">{children}</table>
                       </div>
                     ),
-
-                    thead: ({ children }) => (
-                      <thead
-                        className={
-                          dark ? "bg-gray-800/50" : "bg-gray-50"
-                        }
-                      >
-                        {children}
-                      </thead>
-                    ),
-
+                    thead: ({ children }) => <thead className={dark ? "bg-gray-800/60" : "bg-gray-50"}>{children}</thead>,
                     th: ({ children }) => (
-                      <th
-                        className={`px-4 py-3 text-left font-semibold border-b ${
-                          dark
-                            ? "border-gray-800 text-gray-200"
-                            : "border-gray-200 text-gray-800"
-                        }`}
-                      >
+                      <th className={`px-4 py-3 text-left font-semibold text-xs uppercase tracking-wide border-b ${dark ? "border-gray-800 text-gray-300" : "border-gray-200 text-gray-600"}`}>
                         {children}
                       </th>
                     ),
-
                     td: ({ children }) => (
-                      <td
-                        className={`px-4 py-3 border-b ${
-                          dark
-                            ? "border-gray-800 text-gray-300"
-                            : "border-gray-200 text-gray-700"
-                        }`}
-                      >
+                      <td className={`px-4 py-3 border-b text-[13px] ${dark ? "border-gray-800 text-gray-300" : "border-gray-100 text-gray-700"}`}>
                         {children}
                       </td>
                     ),
-
                     code({ inline, className, children, ...props }) {
                       const match = /language-(\w+)/.exec(className || "");
-
                       const codeString = String(children).replace(/\n$/, "");
-
-                      // FIXED: proper code rendering
                       if (!inline && match) {
                         return (
-                          <div className="my-4 rounded-xl overflow-hidden border border-gray-800">
-                            <div className="flex items-center justify-between px-3 py-2 bg-[#1e1e1e] border-b border-gray-700">
-                              <span className="text-[10px] uppercase text-gray-400 tracking-wide">
-                                {match[1]}
-                              </span>
-
+                          <div className="my-4 rounded-xl overflow-hidden border border-gray-800 shadow-lg">
+                            <div className="flex items-center justify-between px-4 py-2 bg-[#1a1a2e] border-b border-gray-800">
+                              <span className="text-[10px] uppercase text-gray-400 tracking-widest font-mono">{match[1]}</span>
                               <button
                                 type="button"
                                 onClick={() => copyToClipboard(codeString)}
-                                className="flex items-center gap-1 text-[11px] text-gray-300 hover:text-white transition"
+                                className="flex items-center gap-1.5 text-[11px] text-gray-400 hover:text-white transition"
                               >
                                 {copiedCode === codeString ? (
-                                  <>
-                                    <Check size={12} />
-                                    Copied
-                                  </>
+                                  <><Check size={12} /><span>Copied!</span></>
                                 ) : (
-                                  <>
-                                    <Copy size={12} />
-                                    Copy
-                                  </>
+                                  <><Copy size={12} /><span>Copy</span></>
                                 )}
                               </button>
                             </div>
-
                             <SyntaxHighlighter
                               language={match[1]}
                               style={oneDark}
                               PreTag="div"
                               wrapLongLines={true}
-                              customStyle={{
-                                margin: 0,
-                                padding: "14px",
-                                background: "#111827",
-                                fontSize: "12px",
-                                lineHeight: "1.6",
-                              }}
+                              customStyle={{ margin: 0, padding: "16px", background: "#0d1117", fontSize: "12.5px", lineHeight: "1.7" }}
                               {...props}
                             >
                               {codeString}
@@ -1052,12 +324,8 @@ function ChatArea({ theme, setChats, activeChat, activeChatId, user }) {
                           </div>
                         );
                       }
-
                       return (
-                        <code
-                          className="px-1.5 py-0.5 rounded bg-black/10 text-pink-400 text-[11px]"
-                          {...props}
-                        >
+                        <code className={`px-1.5 py-0.5 rounded-md text-[12px] font-mono ${dark ? "bg-gray-800 text-pink-400" : "bg-gray-100 text-pink-600"}`} {...props}>
                           {children}
                         </code>
                       );
@@ -1070,30 +338,25 @@ function ChatArea({ theme, setChats, activeChat, activeChatId, user }) {
             </div>
           ))}
 
+          {/* THINKING INDICATOR */}
           {loading && (
-            <div className="flex justify-start">
-              <div
-                className={`px-3 py-2 rounded-xl flex items-center gap-2 ${
-                  dark ? "bg-[#181818] text-white" : "bg-gray-100 text-black"
-                }`}
-              >
+            <div className="flex items-start gap-3">
+              <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-purple-600 to-pink-500 flex items-center justify-center flex-shrink-0">
+                <span className="text-white text-xs font-bold">S</span>
+              </div>
+              <div className={`px-4 py-3 rounded-2xl rounded-tl-sm flex items-center gap-2 ${dark ? "bg-[#1a1a1a]" : "bg-gray-100"}`}>
                 <div className="flex gap-1">
-                  <div className="w-2 h-2 rounded-full bg-purple-500 animate-bounce" />
-
-                  <div
-                    className="w-2 h-2 rounded-full bg-pink-500 animate-bounce"
-                    style={{ animationDelay: "0.2s" }}
-                  />
-
-                  <div
-                    className="w-2 h-2 rounded-full bg-cyan-400 animate-bounce"
-                    style={{ animationDelay: "0.4s" }}
-                  />
+                  {[0, 1, 2].map((i) => (
+                    <div
+                      key={i}
+                      className="w-1.5 h-1.5 rounded-full bg-purple-500 animate-bounce"
+                      style={{ animationDelay: `${i * 0.15}s` }}
+                    />
+                  ))}
                 </div>
-
-                <p className="text-[11px]">
-                  {uploading ? "Uploading file..." : "Thinking..."}
-                </p>
+                <span className={`text-xs ${dark ? "text-gray-400" : "text-gray-500"}`}>
+                  {uploading ? "Uploading..." : "Thinking..."}
+                </span>
               </div>
             </div>
           )}
@@ -1103,97 +366,80 @@ function ChatArea({ theme, setChats, activeChat, activeChatId, user }) {
       </div>
 
       {/* INPUT AREA */}
-      <div className="absolute bottom-0 left-0 right-0 p-3 backdrop-blur-sm">
-        <div
-          className={`max-w-5xl mx-auto rounded-2xl border px-3 py-3 ${
-            dark ? "bg-[#181818] border-gray-800" : "bg-white border-gray-300"
-          }`}
-        >
-          <div className="flex items-center gap-2">
+      <div className={`absolute bottom-0 left-0 right-0 px-4 pb-4 pt-2 ${dark ? "bg-gradient-to-t from-[#0a0a0a] via-[#0a0a0a]/95 to-transparent" : "bg-gradient-to-t from-white via-white/95 to-transparent"}`}>
+        <div className={`max-w-3xl mx-auto rounded-2xl border shadow-xl transition-all ${
+          dark ? "bg-[#141414] border-gray-800 shadow-black/40" : "bg-white border-gray-200 shadow-gray-200/60"
+        }`}>
+          {/* File preview */}
+          {selectedFile && (
+            <div className={`flex items-center gap-2 px-4 pt-3 pb-1 text-xs ${dark ? "text-gray-400" : "text-gray-500"}`}>
+              <span className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg ${dark ? "bg-white/5" : "bg-gray-100"}`}>
+                📄 {selectedFile.name}
+              </span>
+              <button
+                type="button"
+                onClick={() => { setSelectedFile(null); if (fileInputRef.current) fileInputRef.current.value = ""; }}
+                className={`p-1 rounded ${dark ? "hover:bg-white/10" : "hover:bg-gray-100"} transition`}
+              >
+                <X size={12} />
+              </button>
+            </div>
+          )}
+
+          <div className="flex items-end gap-2 px-3 py-3">
+            {/* Agent selector */}
             <select
               value={selectedAgent}
               onChange={(e) => setSelectedAgent(e.target.value)}
               disabled={loading || uploading}
-              className={`px-3 py-2 rounded-xl text-xs outline-none ${
-                dark ? "bg-[#252525] text-white" : "bg-gray-100 text-black"
+              className={`shrink-0 px-2.5 py-2 rounded-xl text-xs font-medium outline-none cursor-pointer transition ${
+                dark ? "bg-[#1f1f1f] text-gray-300 border border-gray-700 hover:border-gray-600" : "bg-gray-100 text-gray-700 border border-gray-200"
               }`}
             >
-              <option value="study">Study</option>
-              <option value="coding">Coding</option>
-              <option value="productivity">Productivity</option>
+              {AGENTS.map((a) => (
+                <option key={a.value} value={a.value}>{a.label}</option>
+              ))}
             </select>
 
+            {/* Text input */}
             <textarea
               ref={textareaRef}
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
               rows={1}
-              placeholder="Ask anything..."
+              placeholder={`Ask ${selectedAgentObj?.label.split(" ").slice(1).join(" ") || "anything"}...`}
               disabled={loading || uploading}
-              className={`flex-1 bg-transparent outline-none resize-none text-sm max-h-32 ${
-                dark
-                  ? "text-white placeholder:text-gray-500"
-                  : "text-black placeholder:text-gray-400"
+              style={{ resize: "none", minHeight: "36px" }}
+              className={`flex-1 bg-transparent outline-none text-sm leading-6 max-h-40 py-1.5 ${
+                dark ? "text-white placeholder:text-gray-600" : "text-gray-900 placeholder:text-gray-400"
               }`}
             />
 
-            <label className="cursor-pointer flex items-center justify-center">
-              <input
-                ref={fileInputRef}
-                type="file"
-                hidden
-                accept=".pdf,.txt,.doc,.docx"
-                onChange={handleFileChange}
-                disabled={loading || uploading}
-              />
-
-              <Paperclip
-                size={17}
-                className={`transition ${
-                  dark
-                    ? "text-gray-400 hover:text-white"
-                    : "text-gray-500 hover:text-black"
-                }`}
-              />
+            {/* Attach */}
+            <label className="cursor-pointer flex items-center justify-center p-2 rounded-xl transition shrink-0 hover:bg-white/5">
+              <input ref={fileInputRef} type="file" hidden accept=".pdf,.txt,.doc,.docx" onChange={handleFileChange} disabled={loading || uploading} />
+              <Paperclip size={16} className={selectedFile ? "text-purple-400" : dark ? "text-gray-500" : "text-gray-400"} />
             </label>
 
+            {/* Send button */}
             <button
               type="button"
               onClick={handleSend}
-              disabled={
-                loading || uploading || (!input.trim() && !selectedFile)
-              }
-              className="px-4 py-2 rounded-xl bg-black text-white text-sm font-medium border border-black hover:opacity-90 transition disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {loading || uploading ? "..." : "Send"}
-            </button>
-          </div>
-
-          {selectedFile && (
-            <div
-              className={`mt-3 flex items-center justify-between rounded-lg px-3 py-2 text-xs ${
-                dark ? "bg-[#222] text-gray-300" : "bg-gray-100 text-gray-700"
+              disabled={loading || uploading || (!input.trim() && !selectedFile)}
+              className={`p-2 rounded-xl transition shrink-0 ${
+                !input.trim() && !selectedFile
+                  ? dark ? "bg-[#1f1f1f] text-gray-600 cursor-not-allowed" : "bg-gray-100 text-gray-300 cursor-not-allowed"
+                  : "bg-gradient-to-r from-purple-600 to-pink-500 text-white hover:opacity-90 shadow-lg shadow-purple-500/20"
               }`}
             >
-              <span className="truncate">📄 {selectedFile.name}</span>
-
-              <button
-                type="button"
-                onClick={() => {
-                  setSelectedFile(null);
-
-                  if (fileInputRef.current) {
-                    fileInputRef.current.value = "";
-                  }
-                }}
-                className="ml-3"
-              >
-                <X size={14} />
-              </button>
-            </div>
-          )}
+              <Send size={16} />
+            </button>
+          </div>
         </div>
+        <p className={`text-center text-[10px] mt-2 ${dark ? "text-gray-700" : "text-gray-400"}`}>
+          Simha AI can make mistakes. Verify important information.
+        </p>
       </div>
     </div>
   );

@@ -429,6 +429,27 @@ async def save_message(
     }
 
 # -----------------------------------
+# RENAME CHAT
+# -----------------------------------
+
+class RenameChatRequest(BaseModel):
+    title: str
+
+@app.patch("/rename-chat/{chat_id}")
+async def rename_chat(chat_id: str, request: RenameChatRequest):
+    collection = get_chat_collection()
+    if collection is None:
+        raise HTTPException(status_code=500, detail=str({"error": "MongoDB not configured."}))
+    try:
+        await collection.update_one(
+            {"_id": ObjectId(chat_id)},
+            {"$set": {"title": request.title}}
+        )
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str({"error": "MongoDB update failed", "details": str(exc)}))
+    return {"message": "Renamed"}
+
+# -----------------------------------
 # DELETE CHAT
 # -----------------------------------
 

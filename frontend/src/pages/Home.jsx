@@ -253,7 +253,7 @@ function Home() {
       <div className="flex-1 flex flex-col h-screen overflow-hidden relative">
         {/* HEADER */}
 
-        <Header theme={theme} setTheme={setTheme} profile={profile} setIsSidebarOpen={setIsSidebarOpen} />
+        <Header theme={theme} setTheme={setTheme} profile={profile} setIsSidebarOpen={setIsSidebarOpen} activeChat={activeChat} />
 
         {/* CHAT */}
 
