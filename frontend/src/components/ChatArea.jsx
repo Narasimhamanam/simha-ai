@@ -5,6 +5,7 @@ import remarkGfm from "remark-gfm";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { oneDark } from "react-syntax-highlighter/dist/esm/styles/prism";
 import API from "../services/api";
+import VoiceInput from "./VoiceInput";
 
 // Generate a short chat title from the user's first query
 function generateChatTitle(query) {
@@ -414,6 +415,13 @@ function ChatArea({ theme, chats, setChats, activeChat, activeChatId, user }) {
               className={`flex-1 bg-transparent outline-none leading-6 max-h-32 py-1.5 ${
                 dark ? "text-white placeholder:text-gray-600" : "text-gray-900 placeholder:text-gray-400"
               }`}
+            />
+
+            {/* Voice Input */}
+            <VoiceInput
+              theme={theme}
+              disabled={loading || uploading}
+              onTranscript={(text) => setInput((prev) => prev ? prev + " " + text : text)}
             />
 
             {/* Attach */}

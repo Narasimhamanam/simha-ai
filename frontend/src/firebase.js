@@ -23,3 +23,8 @@ gmailProvider.addScope("https://www.googleapis.com/auth/gmail.send");
 gmailProvider.addScope("https://www.googleapis.com/auth/gmail.readonly");
 // Force consent screen so user explicitly grants Gmail permission
 gmailProvider.setCustomParameters({ prompt: "consent" });
+
+// Calendar-scoped provider — used only for event creation
+export const calendarProvider = new GoogleAuthProvider();
+calendarProvider.addScope("https://www.googleapis.com/auth/calendar.events");
+calendarProvider.setCustomParameters({ prompt: "consent" });

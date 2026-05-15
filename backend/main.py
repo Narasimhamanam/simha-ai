@@ -10,6 +10,7 @@ from database import get_chat_collection
 
 from agents.router import route_query
 from agents.email_agent import generate_email_draft
+from agents.automation_agent import summarize_url, generate_calendar_event
 from memory.chat_memory import conversation_memory
 
 import asyncio
@@ -99,6 +100,44 @@ async def generate_email(request: EmailDraftRequest):
         return draft
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str({"error": "Email generation failed", "details": str(exc)}))
+
+# -----------------------------------
+# SUMMARIZE URL
+# -----------------------------------
+
+class SummarizeUrlRequest(BaseModel):
+    url: str
+
+@app.post("/summarize-url")
+async def summarize_url_endpoint(request: SummarizeUrlRequest):
+    if not request.url or not request.url.startswith("http"):
+        raise HTTPException(status_code=400, detail="A valid URL starting with http/https is required.")
+    try:
+        result = await summarize_url(request.url)
+        return result
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str({"error": "URL summarization failed", "details": str(exc)}))
+
+# -----------------------------------
+# GENERATE CALENDAR EVENT
+# -----------------------------------
+
+class CalendarEventRequest(BaseModel):
+    prompt: str
+    sender_name: str | None = ""
+
+@app.post("/generate-calendar-event")
+async def generate_calendar_event_endpoint(request: CalendarEventRequest):
+    if not request.prompt or not request.prompt.strip():
+        raise HTTPException(status_code=400, detail="Prompt is required.")
+    try:
+        event = generate_calendar_event(
+            prompt=request.prompt.strip(),
+            sender_name=request.sender_name or ""
+        )
+        return event
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str({"error": "Calendar event generation failed", "details": str(exc)}))
 
 # -----------------------------------
 # NORMAL CHAT

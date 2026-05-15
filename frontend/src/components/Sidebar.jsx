@@ -1,9 +1,11 @@
-import { MessageSquare, History, FileText, Settings, Plus, Trash2, Sparkles, X, Mail } from "lucide-react";
+import { MessageSquare, History, FileText, Settings, Plus, Trash2, Sparkles, X, Mail, Globe, CalendarDays } from "lucide-react";
 import API from "../services/api";
 
 const NAV_ITEMS = [
   { id: "chat", icon: MessageSquare, label: "AI Chats" },
   { id: "email", icon: Mail, label: "Email Composer" },
+  { id: "calendar", icon: CalendarDays, label: "AI Scheduler" },
+  { id: "url", icon: Globe, label: "URL Summarizer" },
   { id: "history", icon: History, label: "History" },
   { id: "documents", icon: FileText, label: "Documents" },
   { id: "settings", icon: Settings, label: "Settings" },

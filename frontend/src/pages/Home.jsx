@@ -5,6 +5,8 @@ import ChatArea from "../components/ChatArea";
 import ChatHistoryPage from "../components/ChatHistoryPage";
 import SettingsPage from "../components/SettingsPage";
 import EmailComposer from "../components/EmailComposer";
+import CalendarComposer from "../components/CalendarComposer";
+import UrlSummarizer from "../components/UrlSummarizer";
 import { signInWithPopup, signOut, onAuthStateChanged } from "firebase/auth";
 import { auth, provider } from "../firebase";
 import API from "../services/api";
@@ -137,11 +139,17 @@ function Home() {
 
       {/* EMAIL COMPOSER MODAL */}
       {currentPage === "email" && (
-        <EmailComposer
-          theme={theme}
-          profile={profile}
-          onClose={() => setCurrentPage("chat")}
-        />
+        <EmailComposer theme={theme} profile={profile} onClose={() => setCurrentPage("chat")} />
+      )}
+
+      {/* CALENDAR COMPOSER MODAL */}
+      {currentPage === "calendar" && (
+        <CalendarComposer theme={theme} profile={profile} onClose={() => setCurrentPage("chat")} />
+      )}
+
+      {/* URL SUMMARIZER MODAL */}
+      {currentPage === "url" && (
+        <UrlSummarizer theme={theme} onClose={() => setCurrentPage("chat")} />
       )}
 
       {/* MAIN CONTENT */}
