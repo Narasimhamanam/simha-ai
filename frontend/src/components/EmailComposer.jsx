@@ -13,30 +13,48 @@ function encodeEmailToBase64(to, cc, subject, body, fromName, attachments = []) 
   const boundary = "simha_ai_boundary_" + Date.now();
   const hasAttachments = attachments.length > 0;
 
-  let raw = [
+  // Build headers — filter null (cc when empty) but NOT the blank line separator
+  const headers = [
     `From: ${fromName}`,
     `To: ${to}`,
-    cc ? `Cc: ${cc}` : "",
+    cc ? `Cc: ${cc}` : null,
     `Subject: ${subject}`,
     `MIME-Version: 1.0`,
     hasAttachments
       ? `Content-Type: multipart/mixed; boundary="${boundary}"`
       : `Content-Type: text/plain; charset="UTF-8"`,
-    "",
   ]
     .filter(Boolean)
     .join("\r\n");
 
+  let raw;
+
   if (hasAttachments) {
-    raw += `\r\n--${boundary}\r\nContent-Type: text/plain; charset="UTF-8"\r\n\r\n${body}`;
+    // MIME multipart: blank line after headers, then boundary parts
+    raw =
+      headers +
+      "\r\n\r\n" +
+      `--${boundary}\r\n` +
+      `Content-Type: text/plain; charset="UTF-8"\r\n\r\n` +
+      body +
+      "\r\n";
+
     for (const att of attachments) {
-      raw += `\r\n--${boundary}\r\nContent-Type: ${att.type || "application/octet-stream"}; name="${att.name}"\r\nContent-Disposition: attachment; filename="${att.name}"\r\nContent-Transfer-Encoding: base64\r\n\r\n${att.data}`;
+      raw +=
+        `--${boundary}\r\n` +
+        `Content-Type: ${att.type || "application/octet-stream"}; name="${att.name}"\r\n` +
+        `Content-Disposition: attachment; filename="${att.name}"\r\n` +
+        `Content-Transfer-Encoding: base64\r\n\r\n` +
+        att.data +
+        "\r\n";
     }
-    raw += `\r\n--${boundary}--`;
+    raw += `--${boundary}--`;
   } else {
-    raw += `\r\n${body}`;
+    // Plain text: MUST have exactly one blank line (CRLF CRLF) between headers and body
+    raw = headers + "\r\n\r\n" + body;
   }
 
+  // URL-safe base64 encode (Gmail API requirement)
   return btoa(unescape(encodeURIComponent(raw)))
     .replace(/\+/g, "-")
     .replace(/\//g, "_")
