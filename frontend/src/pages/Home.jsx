@@ -10,6 +10,7 @@ import UrlSummarizer from "../components/UrlSummarizer";
 import { signInWithPopup, signOut, onAuthStateChanged } from "firebase/auth";
 import { auth, provider } from "../firebase";
 import API from "../services/api";
+import { startKeepAlive, stopKeepAlive } from "../services/keepAlive";
 
 function Home() {
   const [theme, setTheme] = useState("dark");
@@ -70,7 +71,11 @@ function Home() {
     if (isDevGuest) return;
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       setUser(currentUser);
-      if (!currentUser) return;
+      if (!currentUser) {
+        stopKeepAlive();
+        return;
+      }
+      startKeepAlive(); // keep Railway warm while user is logged in
       await fetchChats(currentUser.email);
     });
     return () => unsubscribe();

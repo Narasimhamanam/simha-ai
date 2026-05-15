@@ -141,13 +141,42 @@ function ChatArea({ theme, chats, setChats, activeChat, activeChatId, user }) {
       updateActiveChatMessages((messages) => [...messages, tempAssistantMsg]);
 
       const baseURL = import.meta.env.VITE_BACKEND_URL || "http://127.0.0.1:8000";
-      const response = await fetch(`${baseURL}/stream-chat`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
 
-      if (!response.ok) throw new Error("Stream request failed");
+      // Retry up to 2 times — handles Railway cold start (first request can take 15-30s)
+      let response = null;
+      let lastError = null;
+      for (let attempt = 1; attempt <= 2; attempt++) {
+        try {
+          response = await fetch(`${baseURL}/stream-chat`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+            signal: AbortSignal.timeout(60000), // 60s timeout per attempt
+          });
+          if (response.ok) break;
+          lastError = new Error(`Server returned ${response.status}`);
+        } catch (err) {
+          lastError = err;
+          if (attempt < 2) {
+            // Show warming up message on first failure
+            setChats((prevChats) =>
+              prevChats.map((chat) => {
+                if (chat.id !== activeChatId) return chat;
+                const msgs = [...(chat.messages || [])];
+                if (msgs.length > 0 && msgs[msgs.length - 1].role === "assistant") {
+                  msgs[msgs.length - 1] = { ...msgs[msgs.length - 1], content: "⏳ Server is waking up, please wait a moment..." };
+                }
+                return { ...chat, messages: msgs };
+              })
+            );
+            await new Promise((r) => setTimeout(r, 5000)); // wait 5s before retry
+          }
+        }
+      }
+
+      if (!response || !response.ok) {
+        throw lastError || new Error("Failed to connect to the server.");
+      }
 
       const reader = response.body.getReader();
       const decoder = new TextDecoder("utf-8");

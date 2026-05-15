@@ -80,6 +80,20 @@ class ChatRequest(BaseModel):
 async def home():
     return {"message": "Simha AI Backend Running"}
 
+# Keep-alive endpoint — pinged by frontend every 8 minutes to prevent Railway cold start
+@app.get("/ping")
+async def ping():
+    return {"status": "ok", "message": "Server is warm 🔥"}
+
+@app.get("/health")
+async def health():
+    db_ok = get_chat_collection() is not None
+    return {
+        "status": "healthy",
+        "database": "connected" if db_ok else "unavailable",
+        "version": "2.0"
+    }
+
 # -----------------------------------
 # GENERATE EMAIL DRAFT
 # -----------------------------------
@@ -215,7 +229,9 @@ async def api_chat(request: ChatRequest):
 
 @app.post("/stream-chat")
 async def stream_chat(request: ChatRequest):
-    user_id = request.user_id
+    user_id = request.user_id or "guest"
+    chat_id = request.chat_id
+
     message = None
     if request.query:
         agent = (request.agent or "study").lower()
@@ -228,19 +244,32 @@ async def stream_chat(request: ChatRequest):
     elif request.message:
         message = request.message
 
-    if not user_id:
-        user_id = "guest"
-        
     if not message:
         raise HTTPException(status_code=400, detail=str({"error": "Missing message/query in request."}))
 
-    # MEMORY INIT
-    if user_id not in conversation_memory:
-        conversation_memory[user_id] = []
+    # ── Build conversation history ──
+    # Try loading last 10 messages from MongoDB for persistent context across cold starts
+    history = []
+    if chat_id:
+        collection = get_chat_collection()
+        if collection is not None:
+            try:
+                doc = await collection.find_one({"_id": ObjectId(chat_id)})
+                if doc and doc.get("messages"):
+                    raw_msgs = doc["messages"][-20:]  # last 20 messages
+                    for i in range(0, len(raw_msgs) - 1, 2):
+                        u = raw_msgs[i]
+                        a = raw_msgs[i + 1] if i + 1 < len(raw_msgs) else None
+                        if u.get("role") == "user" and a and a.get("role") == "assistant":
+                            history.append({"user": u["content"], "assistant": a["content"]})
+            except Exception:
+                pass  # Fall back to in-memory history
 
-    history = conversation_memory[user_id]
+    # Fall back to in-memory history if MongoDB gave nothing
+    if not history and user_id in conversation_memory:
+        history = conversation_memory[user_id][-10:]
 
-    # GENERATE STREAMING RESPONSE
+    # ── Stream response ──
     async def generate():
         full_response = ""
         try:
@@ -250,36 +279,37 @@ async def stream_chat(request: ChatRequest):
                 yield chunk
                 await asyncio.sleep(0)
         finally:
-            # SAVE MEMORY AFTER STREAM ENDS
             if full_response:
-                conversation_memory[user_id].append({
-                    "user": message,
-                    "assistant": full_response
-                })
-                if request.chat_id:
+                # Update in-memory (capped at 20 turns to prevent RAM bloat)
+                if user_id not in conversation_memory:
+                    conversation_memory[user_id] = []
+                conversation_memory[user_id].append({"user": message, "assistant": full_response})
+                if len(conversation_memory[user_id]) > 20:
+                    conversation_memory[user_id] = conversation_memory[user_id][-20:]
+
+                # Persist to MongoDB
+                if chat_id:
                     collection = get_chat_collection()
                     if collection is not None:
                         try:
                             await collection.update_one(
-                                {"_id": ObjectId(request.chat_id)},
+                                {"_id": ObjectId(chat_id)},
                                 {
                                     "$push": {
                                         "messages": {
                                             "$each": [
-                                                {"role": "user", "content": message, "file": request.file_name},
+                                                {"role": "user", "content": request.query or message, "file": request.file_name},
                                                 {"role": "assistant", "content": full_response}
                                             ]
                                         }
-                                    }
+                                    },
+                                    "$set": {"updated_at": __import__("datetime").datetime.utcnow()}
                                 }
                             )
                         except Exception as e:
                             print("DB save error:", e)
 
-    return StreamingResponse(
-        generate(),
-        media_type="text/plain"
-    )
+    return StreamingResponse(generate(), media_type="text/plain")
 
 # Frontend/Render compatibility aliases for streaming
 @app.post("/streamchat")
