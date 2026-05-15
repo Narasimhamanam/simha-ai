@@ -49,46 +49,71 @@ function Home() {
   const [activeChatId, setActiveChatId] = useState(isDevGuest ? guestChatId : null);
   const retryCountRef = useRef(0);
 
-  // ── Fetch chats with retry ──────────────────────────────────────────────
-  const fetchChats = useCallback(async (email, attempt = 1) => {
-    setAppLoading(true);
-    setAppError("");
-
-    try {
-      const res = await API.get(`/get-chats/${encodeURIComponent(email)}`, { timeout: 20000 });
-
-      if (res.data.length > 0) {
-        setChats(res.data);
-        setActiveChatId(res.data[0].id);
-      } else {
-        // New user — create first chat
-        const createRes = await API.post("/create-chat", {
-          user_email: email,
-          title: "New Chat",
-        }, { timeout: 15000 });
-        const newChat = { id: createRes.data.chat_id, title: "New Chat", messages: [] };
-        setChats([newChat]);
-        setActiveChatId(newChat.id);
+  // ── Warm up backend before fetching ────────────────────────────────────
+  const warmUpBackend = async () => {
+    // Try pinging up to 6 times with 5s gaps = 30s total warm-up budget
+    for (let i = 0; i < 6; i++) {
+      try {
+        await API.get("/ping", { timeout: 8000 });
+        return true; // server is awake
+      } catch {
+        if (i < 5) await new Promise((r) => setTimeout(r, 5000));
       }
-
-      retryCountRef.current = 0;
-      setAppError("");
-    } catch (error) {
-      console.error("fetchChats error:", error);
-
-      if (attempt <= 3) {
-        // Retry with backoff: 3s, 6s, 10s
-        const delay = attempt * 3000;
-        setAppError(`Connecting to server... (attempt ${attempt}/3)`);
-        setTimeout(() => fetchChats(email, attempt + 1), delay);
-        return;
-      }
-
-      // All retries failed — show actionable error
-      setAppError("Could not connect to the server. Tap 'Retry' to try again.");
-    } finally {
-      if (attempt <= 3) setAppLoading(false);
     }
+    return false; // still not reachable after 30s
+  };
+
+  // ── Fetch chats with retry ──────────────────────────────────────────────
+  const fetchChats = useCallback(async (email) => {
+    setAppLoading(true);
+    setAppError("Starting up AI server... (first load may take 30s)");
+
+    // Step 1: wait for backend to be alive before loading chats
+    const alive = await warmUpBackend();
+    if (!alive) {
+      setAppLoading(false);
+      setAppError("Could not reach the server. Please check your connection and tap Retry.");
+      return;
+    }
+
+    setAppError("Loading your workspace...");
+
+    // Step 2: try to load chats — 5 retries
+    const DELAYS = [0, 4000, 7000, 10000, 15000]; // ms before each attempt
+    for (let attempt = 0; attempt < DELAYS.length; attempt++) {
+      if (attempt > 0) {
+        setAppError(`Connecting... (attempt ${attempt + 1}/${DELAYS.length})`);
+        await new Promise((r) => setTimeout(r, DELAYS[attempt]));
+      }
+      try {
+        const res = await API.get(`/get-chats/${encodeURIComponent(email)}`, { timeout: 20000 });
+
+        if (res.data.length > 0) {
+          setChats(res.data);
+          setActiveChatId(res.data[0].id);
+        } else {
+          // New user — create first chat
+          const createRes = await API.post("/create-chat", {
+            user_email: email,
+            title: "New Chat",
+          }, { timeout: 15000 });
+          const newChat = { id: createRes.data.chat_id, title: "New Chat", messages: [] };
+          setChats([newChat]);
+          setActiveChatId(newChat.id);
+        }
+
+        setAppError("");
+        setAppLoading(false);
+        return; // success
+      } catch (err) {
+        console.error(`fetchChats attempt ${attempt + 1} failed:`, err);
+        // continue to next attempt
+      }
+    }
+
+    // All attempts exhausted
+    setAppLoading(false);
+    setAppError("Could not connect after several attempts. Please tap Retry.");
   }, []);
 
   const retryInit = () => {
@@ -182,19 +207,38 @@ function Home() {
   if (appLoading && chats.length === 0) {
     return (
       <div className="min-h-screen min-h-[100dvh] flex items-center justify-center bg-[#0a0a0a] px-4">
-        <div className="text-center">
-          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-600 to-pink-500 flex items-center justify-center mx-auto mb-5">
-            <span className="text-white text-xl font-bold">S</span>
+        <div className="text-center w-full max-w-xs">
+          {/* Logo */}
+          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-600 to-pink-500 flex items-center justify-center mx-auto mb-6 shadow-lg shadow-purple-500/30">
+            <span className="text-white text-2xl font-bold">S</span>
           </div>
-          <div className="flex items-center justify-center gap-2 mb-3">
-            <div className="w-2 h-2 rounded-full bg-purple-500 animate-bounce" style={{ animationDelay: "0s" }} />
-            <div className="w-2 h-2 rounded-full bg-pink-500 animate-bounce" style={{ animationDelay: "0.15s" }} />
-            <div className="w-2 h-2 rounded-full bg-cyan-400 animate-bounce" style={{ animationDelay: "0.3s" }} />
+
+          {/* Animated dots */}
+          <div className="flex items-center justify-center gap-2 mb-4">
+            {[0, 1, 2].map((i) => (
+              <div
+                key={i}
+                className="w-2.5 h-2.5 rounded-full animate-bounce"
+                style={{
+                  animationDelay: `${i * 0.15}s`,
+                  background: ["#a855f7", "#ec4899", "#22d3ee"][i],
+                }}
+              />
+            ))}
           </div>
-          <p className="text-sm text-gray-400">
+
+          {/* Status message — updates in real-time */}
+          <p className="text-sm text-gray-300 font-medium mb-2">
             {appError || "Loading your workspace..."}
           </p>
-          <p className="text-xs text-gray-600 mt-1.5">Waking up the AI server — this takes up to 30s on first load</p>
+          <p className="text-xs text-gray-600">
+            ☕ First load can take up to 30s while the server wakes up
+          </p>
+
+          {/* Animated progress bar */}
+          <div className="mt-5 h-1 w-48 mx-auto rounded-full bg-gray-800 overflow-hidden">
+            <div className="h-full w-1/3 rounded-full bg-gradient-to-r from-purple-600 to-pink-500 animate-[loading-bar_2s_ease-in-out_infinite]" />
+          </div>
         </div>
       </div>
     );
