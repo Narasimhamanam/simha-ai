@@ -1,0 +1,11 @@
+__pycache__
+*.pyc
+*.pyo
+.env
+.env.*
+uploads/
+chroma_db/
+.git
+.gitignore
+test_mongo.py
+*.md
