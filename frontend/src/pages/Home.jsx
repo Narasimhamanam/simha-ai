@@ -8,6 +8,7 @@ import EmailComposer from "../components/EmailComposer";
 import CalendarComposer from "../components/CalendarComposer";
 import UrlSummarizer from "../components/UrlSummarizer";
 import ConnectionStatus from "../components/ConnectionStatus";
+import DocumentsPage from "../components/DocumentsPage";
 import { signInWithPopup, signOut, onAuthStateChanged } from "firebase/auth";
 import { auth, provider } from "../firebase";
 import API from "../services/api";
@@ -278,6 +279,14 @@ function Home() {
           <ChatHistoryPage
             theme={theme}
             chats={chats}
+            setActiveChatId={setActiveChatId}
+            setCurrentPage={setCurrentPage}
+          />
+        )}
+        {currentPage === "documents" && (
+          <DocumentsPage
+            theme={theme}
+            user={user}
             setActiveChatId={setActiveChatId}
             setCurrentPage={setCurrentPage}
           />

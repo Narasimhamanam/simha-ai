@@ -80,6 +80,9 @@ function ChatArea({ theme, chats, setChats, activeChat, activeChatId, user }) {
     if (!file) return null;
     const formData = new FormData();
     formData.append("file", file);
+    // Send user email and chat_id so backend can store document metadata
+    if (user?.email) formData.append("user_email", user.email);
+    if (activeChatId) formData.append("chat_id", activeChatId);
     setUploading(true);
     try {
       const response = await API.post("/upload-pdf", formData, {

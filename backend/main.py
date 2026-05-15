@@ -6,7 +6,7 @@ from pydantic import BaseModel
 
 from bson import ObjectId
 
-from database import get_chat_collection
+from database import get_chat_collection, get_documents_collection
 
 from agents.router import route_query
 from agents.email_agent import generate_email_draft
@@ -321,53 +321,95 @@ async def api_streamchat(request: ChatRequest):
     return await stream_chat(request)
 
 # -----------------------------------
-# UPLOAD PDF
+# UPLOAD PDF  (saves metadata to MongoDB documents collection)
 # -----------------------------------
 
 import os
+import datetime
 
 @app.post("/upload-pdf")
 async def upload_pdf(
-
-    file: UploadFile = File(...)
-
+    file: UploadFile = File(...),
+    user_email: str = "",
+    chat_id: str = "",
 ):
     os.makedirs("uploads", exist_ok=True)
     file_path = f"uploads/{file.filename}"
 
-    with open(
+    # Read file content for size tracking
+    content = await file.read()
+    file_size = len(content)
 
-        file_path,
-        "wb"
+    with open(file_path, "wb") as buffer:
+        buffer.write(content)
 
-    ) as buffer:
+    # Process for RAG
+    chunks = process_pdf(file_path)
+    create_vector_store(chunks)
 
-        shutil.copyfileobj(
-
-            file.file,
-            buffer
-
-        )
-
-    chunks = process_pdf(
-
-        file_path
-
-    )
-
-    create_vector_store(
-
-        chunks
-
-    )
+    # Save metadata to MongoDB documents collection
+    doc_id = None
+    docs_collection = get_documents_collection()
+    if docs_collection is not None and user_email:
+        doc_record = {
+            "user_email": user_email,
+            "file_name": file.filename,
+            "file_size": file_size,
+            "file_type": file.content_type or "application/octet-stream",
+            "chat_id": chat_id or None,
+            "pages": len(chunks),
+            "uploaded_at": datetime.datetime.utcnow(),
+        }
+        result = await docs_collection.insert_one(doc_record)
+        doc_id = str(result.inserted_id)
 
     return {
-
-        "message":
-
-        "PDF uploaded successfully"
-
+        "message": "PDF uploaded successfully",
+        "doc_id": doc_id,
+        "file_name": file.filename,
+        "pages": len(chunks),
     }
+
+# -----------------------------------
+# GET DOCUMENTS (for sidebar Documents page)
+# -----------------------------------
+
+@app.get("/get-documents/{user_email}")
+async def get_documents(user_email: str):
+    docs_collection = get_documents_collection()
+    if docs_collection is None:
+        return []
+    cursor = docs_collection.find(
+        {"user_email": user_email},
+        sort=[("uploaded_at", -1)]
+    )
+    docs = []
+    async for doc in cursor:
+        docs.append({
+            "id": str(doc["_id"]),
+            "file_name": doc.get("file_name", ""),
+            "file_size": doc.get("file_size", 0),
+            "file_type": doc.get("file_type", ""),
+            "chat_id": doc.get("chat_id"),
+            "pages": doc.get("pages", 0),
+            "uploaded_at": doc.get("uploaded_at", "").isoformat() if doc.get("uploaded_at") else "",
+        })
+    return docs
+
+# -----------------------------------
+# DELETE DOCUMENT
+# -----------------------------------
+
+@app.delete("/delete-document/{doc_id}")
+async def delete_document(doc_id: str):
+    docs_collection = get_documents_collection()
+    if docs_collection is None:
+        raise HTTPException(status_code=500, detail="DB not configured")
+    try:
+        await docs_collection.delete_one({"_id": ObjectId(doc_id)})
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
+    return {"message": "Document deleted"}
 
 # -----------------------------------
 # ASK PDF
