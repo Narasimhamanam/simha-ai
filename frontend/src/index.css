@@ -8,15 +8,59 @@
     width: 100%;
     margin: 0;
     padding: 0;
-    overflow: hidden; /* strictly prevents window bouncing/scrolling */
+    overflow: hidden;
+    @apply selection:bg-purple-500/30;
   }
 
   body {
-    @apply font-sans antialiased bg-white text-gray-900;
+    @apply font-sans antialiased bg-slate-50 text-slate-900 transition-colors duration-300;
     -webkit-tap-highlight-color: transparent;
     overscroll-behavior: none;
-    position: fixed; /* iOS safari bounce fix */
+    position: fixed;
   }
+
+  .dark body {
+    @apply bg-[#030303] text-slate-100;
+  }
+}
+
+@layer components {
+  .premium-card {
+    @apply bg-white dark:bg-[#0a0a0a] border border-slate-200 dark:border-white/5 shadow-xl shadow-slate-200/50 dark:shadow-none transition-all duration-300;
+  }
+
+  .glass-effect {
+    @apply bg-white/80 dark:bg-black/40 backdrop-blur-xl border border-white/20 dark:border-white/10;
+  }
+
+  .neon-border {
+    @apply relative overflow-hidden;
+  }
+
+  .neon-border::after {
+    content: '';
+    @apply absolute inset-0 border border-purple-500/20 dark:border-purple-500/40 rounded-[inherit] pointer-events-none;
+    box-shadow: inset 0 0 20px rgba(168, 85, 247, 0.05);
+  }
+}
+
+/* Animations */
+@keyframes float {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-15px) scale(1.02); }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { opacity: 0.5; filter: drop-shadow(0 0 20px rgba(168, 85, 247, 0.3)); }
+  50% { opacity: 0.8; filter: drop-shadow(0 0 40px rgba(168, 85, 247, 0.6)); }
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+.animate-lion-glow {
+  animation: pulse-glow 4s ease-in-out infinite;
 }
 
 /* Safe area for iPhone notch / home bar */
@@ -24,15 +68,20 @@
   padding-bottom: max(12px, env(safe-area-inset-bottom));
 }
 
-/* Smooth scrolling for chat */
 .scroll-smooth {
   scroll-behavior: smooth;
-  -webkit-overflow-scrolling: touch;
 }
 
-/* Prevent layout shift on mobile keyboard open */
-html {
-  height: -webkit-fill-available;
+::-webkit-scrollbar {
+  width: 5px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-slate-200 dark:bg-white/10 rounded-full hover:bg-slate-300 dark:hover:bg-white/20 transition-colors;
 }
 
 @keyframes loading-bar {

@@ -288,36 +288,35 @@ function ChatArea({ theme, chats, setChats, activeChat, activeChatId, user, cred
         <div className="max-w-2xl mx-auto w-full px-3 sm:px-4 pt-4">
 
           {/* EMPTY STATE — ChatGPT style */}
-          {!hasMessages && (
-            <div className="flex flex-col items-center justify-center min-h-[50vh] text-center px-4 pt-8">
-              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-600 to-pink-500 flex items-center justify-center mb-5 shadow-xl shadow-purple-500/20">
-                <span className="text-white text-2xl font-bold">S</span>
+          {!activeChat?.messages.length && (
+              <div className="flex-1 flex flex-col items-center justify-center p-6 text-center animate-in fade-in duration-700">
+                <div className="w-20 h-20 rounded-[28px] bg-gradient-to-br from-purple-600 to-pink-500 flex items-center justify-center mb-8 shadow-2xl shadow-purple-500/20">
+                  <span className="text-white text-3xl font-black">S</span>
+                </div>
+                <h2 className={`text-3xl font-black mb-3 tracking-tight ${dark ? "text-white" : "text-slate-900"}`}>
+                  How can I help you today?
+                </h2>
+                <p className={`text-sm max-w-sm mb-10 leading-relaxed font-medium ${dark ? "text-slate-500" : "text-slate-400"}`}>
+                  Simha AI is your intelligent partner for studying, coding, and professional productivity.
+                </p>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 w-full max-w-xl">
+                  {SUGGESTIONS.map((s, i) => (
+                    <button
+                      key={i}
+                      onClick={() => setInput(s)}
+                      className={`p-4 text-left rounded-2xl border transition-all duration-300 hover:scale-[1.02] ${
+                        dark 
+                          ? "bg-white/5 border-white/5 text-slate-300 hover:bg-white/10" 
+                          : "bg-white border-slate-100 text-slate-600 hover:border-purple-200 hover:shadow-lg shadow-slate-100/50"
+                      }`}
+                    >
+                      <p className="text-sm font-semibold">{s}</p>
+                    </button>
+                  ))}
+                </div>
               </div>
-              <h2 className={`text-xl font-semibold mb-1 ${dark ? "text-white" : "text-gray-900"}`}>
-                What can I help with?
-              </h2>
-              <p className={`text-sm mb-8 ${dark ? "text-gray-500" : "text-gray-400"}`}>
-                Select a mode, then ask anything
-              </p>
-
-              {/* Suggestion chips */}
-              <div className="grid grid-cols-2 gap-2 w-full max-w-sm">
-                {SUGGESTIONS.map((s) => (
-                  <button
-                    key={s}
-                    onClick={() => handleSend(s)}
-                    className={`text-left px-3 py-2.5 rounded-2xl text-xs leading-snug transition-all touch-manipulation ${
-                      dark
-                        ? "bg-[#1a1a1a] border border-gray-800 text-gray-300 hover:border-gray-600 hover:bg-[#222]"
-                        : "bg-gray-50 border border-gray-200 text-gray-700 hover:border-gray-300 hover:bg-gray-100"
-                    }`}
-                  >
-                    {s}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
+            )}
 
           <div className="h-4" />
           {/* MESSAGES */}
@@ -333,13 +332,13 @@ function ChatArea({ theme, chats, setChats, activeChat, activeChatId, user, cred
                 </div>
               )}
 
-              <div className={`max-w-[86%] sm:max-w-[80%] ${
-                msg.role === "user"
-                  ? `px-4 py-2.5 rounded-3xl rounded-tr-md text-[14px] leading-relaxed ${
-                      dark ? "bg-[#2a2a2a] text-white" : "bg-[#efefef] text-gray-900"
-                    }`
-                  : `text-[14px] leading-relaxed ${dark ? "text-gray-100" : "text-gray-800"}`
-              }`}>
+              <div className={`max-w-[85%] md:max-w-[75%] rounded-[24px] px-5 py-4 shadow-sm text-sm leading-relaxed ${
+                        msg.role === "user"
+                          ? "bg-gradient-to-br from-purple-600 to-indigo-600 text-white font-medium ml-4 shadow-lg shadow-purple-500/20"
+                          : dark
+                            ? "bg-white/5 text-slate-100 border border-white/5 mr-4"
+                            : "bg-white text-slate-800 border border-slate-100 shadow-lg shadow-slate-200/50 mr-4"
+                      }`}>
                 {/* Show image if this message has one */}
                 {msg.image && (
                   <img

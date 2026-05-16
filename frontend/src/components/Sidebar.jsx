@@ -204,10 +204,10 @@ function Sidebar({
                 <div
                   key={chat.id}
                   onClick={() => handleChatSelect(chat.id)}
-                  className={`group flex items-center justify-between px-3 py-2.5 rounded-xl cursor-pointer transition-all touch-manipulation ${
+                  className={`group flex items-center justify-between px-3 py-3 rounded-2xl cursor-pointer transition-all duration-300 touch-manipulation ${
                     isActive
-                      ? dark ? "bg-white/10 text-white" : "bg-gray-200 text-gray-900"
-                      : dark ? "text-gray-400 hover:text-gray-200 hover:bg-white/6" : "text-gray-500 hover:text-gray-800 hover:bg-gray-100"
+                      ? dark ? "bg-white/10 text-white shadow-lg" : "bg-white text-slate-900 shadow-sm border border-slate-100"
+                      : dark ? "text-slate-400 hover:text-white hover:bg-white/5" : "text-slate-500 hover:text-slate-900 hover:bg-slate-200/50"
                   }`}
                 >
                   <div className="flex items-center gap-2.5 min-w-0">
@@ -229,16 +229,16 @@ function Sidebar({
         </div>
 
         {/* ── PROFILE & UPGRADE ── */}
-        <div className={`p-3 border-t ${dark ? "border-gray-900" : "border-gray-200"}`}>
+        <div className={`p-4 border-t ${dark ? "border-white/5" : "border-slate-200"}`}>
           {!isPro && (
             <button
               onClick={handleUpgrade}
-              className="w-full flex items-center justify-center gap-2 py-2.5 mb-3 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 text-white text-[13px] font-bold shadow-md hover:opacity-90 active:scale-95 transition touch-manipulation"
+              className="w-full flex items-center justify-center gap-2 py-3 mb-4 rounded-2xl bg-gradient-to-r from-amber-400 via-amber-500 to-orange-500 text-white text-[13px] font-black shadow-xl shadow-amber-500/20 hover:scale-[1.02] active:scale-95 transition-all duration-300 touch-manipulation"
             >
-              <span>👑</span> Upgrade to PRO
+              <span>👑</span> UPGRADE TO PRO
             </button>
           )}
-          <div className={`flex items-center gap-3 p-2.5 rounded-xl ${dark ? "bg-white/4" : "bg-gray-100"}`}>
+          <div className={`flex items-center gap-3 p-3 rounded-2xl ${dark ? "bg-white/5" : "bg-white border border-slate-100 shadow-sm"}`}>
             {profile?.avatar ? (
               <img src={profile.avatar} alt="avatar" className="w-9 h-9 rounded-full object-cover ring-2 ring-purple-500/30 flex-shrink-0" />
             ) : (

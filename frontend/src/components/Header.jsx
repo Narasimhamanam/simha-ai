@@ -35,8 +35,10 @@ function Header({ theme, setTheme, profile, setIsSidebarOpen, activeChat, curren
   const pageEmoji = PAGE_EMOJIS[currentPage];
 
   return (
-    <div className={`flex items-center justify-between px-3 py-2.5 border-b sticky top-0 z-10 backdrop-blur-md ${
-      dark ? "bg-[#0a0a0a]/90 border-gray-900" : "bg-white/90 border-gray-100"
+    <header className={`sticky top-0 z-20 flex items-center justify-between px-4 py-3 h-16 transition-all duration-300 ${
+      dark 
+        ? "bg-[#030303]/80 backdrop-blur-xl border-b border-white/5" 
+        : "bg-white/80 backdrop-blur-xl border-b border-slate-200"
     }`}>
       {/* LEFT — Hamburger */}
       <button
@@ -73,22 +75,24 @@ function Header({ theme, setTheme, profile, setIsSidebarOpen, activeChat, curren
       <div className="flex items-center gap-1">
         {/* Credits Badge */}
         {(credits !== undefined && credits !== null) && !isPro && (
-          <div className={`mr-2 flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold shadow-sm ${
+          <div className={`mr-2 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-black shadow-lg transition-all duration-300 ${
             credits <= 0 
-              ? dark ? "bg-red-500/20 text-red-400" : "bg-red-100 text-red-600"
-              : dark ? "bg-purple-500/20 text-purple-400" : "bg-purple-100 text-purple-600"
+              ? dark ? "bg-red-500/10 text-red-400 border border-red-500/20" : "bg-red-50 text-red-600 border border-red-100"
+              : dark ? "bg-purple-500/10 text-purple-400 border border-purple-500/20" : "bg-purple-50 text-purple-600 border border-purple-100"
           }`}>
-            <span>⚡</span>
+            <span className="animate-pulse">⚡</span>
             {credits.toFixed(1)}
           </div>
         )}
         {/* Pro Badge */}
         {isPro && (
-          <div className={`mr-2 flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold shadow-sm ${
-            dark ? "bg-amber-500/20 text-amber-400" : "bg-amber-100 text-amber-600"
+          <div className={`mr-2 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-black shadow-lg transition-all duration-300 ${
+            dark 
+              ? "bg-amber-500/10 text-amber-400 border border-amber-500/20 shadow-amber-500/10" 
+              : "bg-amber-50 text-amber-600 border border-amber-100"
           }`}>
             <span>👑</span>
-            PRO
+            PRO MEMBER
           </div>
         )}
         <ThemeToggle theme={theme} setTheme={setTheme} />
