@@ -449,12 +449,12 @@ function Home() {
         )}
         
         {/* Hidden YouTube Player for Divine Music */}
-        {selectedAgent === "divine" && (
+        {selectedAgent === "divine" && isMusicPlaying && (
           <div className="hidden pointer-events-none opacity-0 invisible">
             <iframe
               width="1"
               height="1"
-              src={`https://www.youtube.com/embed/GnjPoRXYxaM?autoplay=${isMusicPlaying ? 1 : 0}&mute=0&loop=1&playlist=GnjPoRXYxaM&controls=0`}
+              src={`https://www.youtube.com/embed/GnjPoRXYxaM?autoplay=1&mute=0&loop=1&playlist=GnjPoRXYxaM&controls=0`}
               title="Divine Music"
               allow="autoplay"
             />
