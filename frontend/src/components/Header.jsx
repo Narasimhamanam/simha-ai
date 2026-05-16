@@ -42,13 +42,13 @@ function Header({ theme, setTheme, profile, setIsSidebarOpen, activeChat, curren
     }`}>
       {/* LEFT — Hamburger */}
       <button
-        onClick={() => setIsSidebarOpen(true)}
+        onClick={() => setIsSidebarOpen(!isSidebarOpen)}
         className={`p-3 rounded-2xl transition-all duration-300 group ${
           dark 
             ? "bg-white/5 text-amber-500 border border-amber-500/10 hover:bg-amber-500/10 hover:border-amber-500/30" 
             : "bg-white text-amber-900 border border-amber-200 hover:border-amber-400 shadow-sm"
         }`}
-        aria-label="Open Sidebar"
+        aria-label={isSidebarOpen ? "Close Sidebar" : "Open Sidebar"}
       >
         <div className="space-y-1.5 flex flex-col items-center">
           <div className="w-5 h-0.5 bg-current rounded-full transition-all group-hover:w-6"></div>

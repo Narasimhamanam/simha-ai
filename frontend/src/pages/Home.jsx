@@ -23,7 +23,7 @@ const prewarm = () => fetch(`${BACKEND_URL}/ping`).catch(() => {});
 
 function Home() {
   const [theme, setTheme] = useState("dark");
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(window.innerWidth >= 1024);
   const [appLoading, setAppLoading] = useState(false); // true while fetching chats after login
   const [appError, setAppError] = useState("");        // error message during init
 
@@ -33,9 +33,12 @@ function Home() {
     else document.documentElement.classList.remove("dark");
   }, [theme]);
 
-  // Close sidebar on desktop resize
+  // Default sidebar state based on screen size
   useEffect(() => {
-    const handler = () => { if (window.innerWidth >= 768) setIsSidebarOpen(false); };
+    const handler = () => {
+      if (window.innerWidth >= 1024) setIsSidebarOpen(true);
+      else setIsSidebarOpen(false);
+    };
     window.addEventListener("resize", handler);
     return () => window.removeEventListener("resize", handler);
   }, []);
@@ -313,8 +316,8 @@ function Home() {
       <div className="fixed inset-0 flex items-center justify-center bg-[#030303] px-4">
         <div className="text-center w-full max-w-xs">
           {/* Logo */}
-          <div className="w-16 h-16 rounded-[22px] bg-gradient-to-br from-purple-600 to-pink-500 flex items-center justify-center mx-auto mb-8 shadow-2xl shadow-purple-500/20">
-            <span className="text-white text-2xl font-black">S</span>
+          <div className="w-16 h-16 rounded-[22px] bg-gradient-to-br from-amber-600 to-amber-400 flex items-center justify-center mx-auto mb-8 shadow-2xl shadow-amber-500/20 overflow-hidden p-3">
+            <img src="/logo-lion.png" alt="S" className="w-full h-full object-contain logo-mask scale-125" />
           </div>
 
           {/* Animated dots */}
@@ -322,26 +325,23 @@ function Home() {
             {[0, 1, 2].map((i) => (
               <div
                 key={i}
-                className="w-2.5 h-2.5 rounded-full animate-bounce"
-                style={{
-                  animationDelay: `${i * 0.15}s`,
-                  background: ["#a855f7", "#ec4899", "#22d3ee"][i],
-                }}
+                className="w-2.5 h-2.5 rounded-full animate-bounce bg-amber-500"
+                style={{ animationDelay: `${i * 0.15}s` }}
               />
             ))}
           </div>
 
           {/* Status message — updates in real-time */}
-          <p className="text-sm text-gray-300 font-medium mb-2">
+          <p className="text-sm text-amber-500 font-black uppercase tracking-widest mb-2">
             {appError || "Loading your workspace..."}
           </p>
-          <p className="text-xs text-gray-600">
+          <p className="text-[10px] text-amber-500/40 uppercase tracking-widest">
             ☕ First load can take up to 60s while the server wakes up
           </p>
 
           {/* Animated progress bar */}
-          <div className="mt-5 h-1 w-48 mx-auto rounded-full bg-gray-800 overflow-hidden">
-            <div className="h-full w-1/3 rounded-full bg-gradient-to-r from-purple-600 to-pink-500 animate-pulse" />
+          <div className="mt-8 h-1 w-48 mx-auto rounded-full bg-white/5 overflow-hidden">
+            <div className="h-full w-1/3 rounded-full bg-gradient-to-r from-amber-600 to-amber-400 animate-pulse" />
           </div>
         </div>
       </div>
@@ -356,17 +356,17 @@ function Home() {
             <span className="text-red-400 text-2xl">⚠️</span>
           </div>
           <h2 className="text-white font-black text-xl mb-3 tracking-tight">Connection Failed</h2>
-          <p className="text-slate-500 text-sm mb-6 leading-relaxed">{appError}</p>
+          <p className="text-amber-100/40 text-sm mb-6 leading-relaxed">{appError}</p>
           {retryCountdown > 0 && (
-            <p className="text-purple-400 text-xs mb-5">
-              Auto-retrying in {retryCountdown}s...
+            <p className="text-amber-500 text-xs mb-5 font-bold tracking-widest">
+              AUTO-RETRYING IN {retryCountdown}S...
             </p>
           )}
           <button
             onClick={retryInit}
-            className="px-6 py-3.5 rounded-xl bg-gradient-to-r from-purple-600 to-pink-500 text-white text-sm font-semibold hover:opacity-90 active:scale-95 transition touch-manipulation w-full mb-3"
+            className="px-6 py-4 rounded-xl bg-gradient-to-r from-amber-600 to-amber-400 text-black text-sm font-black tracking-widest hover:opacity-90 active:scale-95 transition touch-manipulation w-full mb-4 shadow-xl shadow-amber-500/20"
           >
-            🔄 Retry Now
+            🔄 RETRY NOW
           </button>
           <button
             onClick={handleLogout}
@@ -400,13 +400,17 @@ function Home() {
         isPro={isPro}
       />
 
-      <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
+      <div className={`flex-1 flex flex-col min-w-0 h-full overflow-hidden transition-all duration-500 ${isSidebarOpen ? "md:ml-[260px]" : "md:ml-0"}`}>
         {/* Header always visible — hamburger menu works on ALL pages on mobile */}
         <Header
           theme={theme}
           setTheme={setTheme}
           profile={profile}
-          setIsSidebarOpen={setIsSidebarOpen}
+          setIsSidebarOpen={(val) => {
+            if (typeof val === 'function') setIsSidebarOpen(val);
+            else setIsSidebarOpen(val);
+          }}
+          isSidebarOpen={isSidebarOpen}
           activeChat={activeChat}
           currentPage={currentPage}
           createNewChat={createNewChat}

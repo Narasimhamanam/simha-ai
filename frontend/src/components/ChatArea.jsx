@@ -425,7 +425,7 @@ function ChatArea({ theme, chats, setChats, activeChat, activeChatId, user, cred
                       }
                       return (
                         <code
-                          className={`px-1.5 py-0.5 rounded-md text-[12.5px] font-mono ${dark ? "bg-gray-800 text-pink-400" : "bg-gray-100 text-pink-600"}`}
+                          className={`px-1.5 py-0.5 rounded-md text-[12.5px] font-mono ${dark ? "bg-gray-800 text-amber-400" : "bg-gray-100 text-amber-600"}`}
                           {...props}
                         >
                           {children}

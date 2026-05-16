@@ -104,7 +104,15 @@
 }
 
 .logo-mask {
+  /* This trick works perfectly with a Gold-on-White logo to make it Gold-on-Transparent in Dark mode */
+  filter: invert(1) hue-rotate(180deg) brightness(1.2) contrast(1.2);
   mix-blend-mode: screen;
+}
+
+[data-theme='light'] .logo-mask, .light .logo-mask {
+  /* In light mode, we use the original Gold-on-White and multiply it to make white transparent */
+  filter: none;
+  mix-blend-mode: multiply;
 }
 
 .glass-luxury {

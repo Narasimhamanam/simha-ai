@@ -114,13 +114,13 @@ function Sidebar({
       {/* ── SIDEBAR PANEL ── */}
       <div
         className={`
-          fixed md:relative top-0 left-0
-          h-full h-[100dvh] md:h-screen
+          fixed top-0 left-0
+          h-full h-[100dvh]
           w-[280px] md:w-[260px]
           flex flex-col shrink-0
           z-50
-          transition-transform duration-500 ease-in-out
-          ${isSidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"}
+          transition-all duration-500 ease-in-out
+          ${isSidebarOpen ? "translate-x-0 opacity-100" : "-translate-x-full opacity-0 pointer-events-none"}
           ${dark ? "bg-[#080502] border-r border-amber-500/10" : "bg-[#fffbeb] border-r border-amber-200"}
           shadow-2xl
         `}
