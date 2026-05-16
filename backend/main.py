@@ -110,75 +110,66 @@ async def fetch_user_credits(email: str):
     info = await get_user_credits(email)
     return info
 
-import stripe
+import razorpay
 import os
 from fastapi import Request
 
-STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY", "sk_test_dummy")
-STRIPE_WEBHOOK_SECRET = os.getenv("STRIPE_WEBHOOK_SECRET", "whsec_dummy")
-stripe.api_key = STRIPE_SECRET_KEY
+RAZORPAY_KEY_ID = os.getenv("RAZORPAY_KEY_ID", "rzp_test_dummy")
+RAZORPAY_KEY_SECRET = os.getenv("RAZORPAY_KEY_SECRET", "dummy_secret")
+
+if RAZORPAY_KEY_ID != "rzp_test_dummy":
+    razorpay_client = razorpay.Client(auth=(RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET))
 
 class CheckoutRequest(BaseModel):
     email: str
 
-@app.post("/create-checkout-session")
-async def create_checkout_session(request: CheckoutRequest, req: Request):
+@app.post("/create-razorpay-order")
+async def create_razorpay_order(request: CheckoutRequest):
     if not request.email:
         raise HTTPException(status_code=400, detail="Email is required")
         
-    origin = req.headers.get("origin", "http://localhost:5173")
-    
     try:
-        session = stripe.checkout.Session.create(
-            payment_method_types=['card'],
-            line_items=[{
-                'price_data': {
-                    'currency': 'usd',
-                    'product_data': {
-                        'name': 'Simha AI Pro',
-                        'description': 'Unlimited queries and tools usage for life.',
-                    },
-                    'unit_amount': 999, # $9.99
-                },
-                'quantity': 1,
-            }],
-            mode='payment',
-            success_url=f"{origin}/?payment=success",
-            cancel_url=f"{origin}/?payment=canceled",
-            client_reference_id=request.email,
-        )
-        return {"url": session.url}
+        # ₹499 in paise
+        order_amount = 49900 
+        order_currency = 'INR'
+        order_receipt = request.email[:40]
+        
+        if RAZORPAY_KEY_ID == "rzp_test_dummy":
+            return {"id": "order_dummy", "amount": order_amount, "currency": order_currency}
+            
+        razorpay_order = razorpay_client.order.create({
+            'amount': order_amount,
+            'currency': order_currency,
+            'receipt': order_receipt,
+            'payment_capture': 1
+        })
+        return razorpay_order
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.post("/stripe-webhook")
-async def stripe_webhook(request: Request):
-    payload = await request.body()
-    sig_header = request.headers.get("stripe-signature")
-    
-    # If secrets are dummy, bypass verification for testing/demo
-    if STRIPE_WEBHOOK_SECRET == "whsec_dummy":
-        import json
-        event = json.loads(payload)
-    else:
+class VerifyPaymentRequest(BaseModel):
+    email: str
+    razorpay_order_id: str
+    razorpay_payment_id: str
+    razorpay_signature: str
+
+@app.post("/verify-razorpay-payment")
+async def verify_razorpay_payment(request: VerifyPaymentRequest):
+    if RAZORPAY_KEY_ID != "rzp_test_dummy":
         try:
-            event = stripe.Webhook.construct_event(
-                payload, sig_header, STRIPE_WEBHOOK_SECRET
-            )
-        except ValueError as e:
-            raise HTTPException(status_code=400, detail="Invalid payload")
-        except stripe.error.SignatureVerificationError as e:
-            raise HTTPException(status_code=400, detail="Invalid signature")
+            razorpay_client.utility.verify_payment_signature({
+                'razorpay_order_id': request.razorpay_order_id,
+                'razorpay_payment_id': request.razorpay_payment_id,
+                'razorpay_signature': request.razorpay_signature
+            })
+        except razorpay.errors.SignatureVerificationError:
+            raise HTTPException(status_code=400, detail="Signature verification failed")
             
-    if event.get('type') == 'checkout.session.completed':
-        session = event['data']['object']
-        email = session.get("client_reference_id")
-        if email:
-            from database import get_users_collection
-            col = get_users_collection()
-            if col is not None:
-                await col.update_one({"email": email}, {"$set": {"is_pro": True}})
-                
+    from database import get_users_collection
+    col = get_users_collection()
+    if col is not None:
+        await col.update_one({"email": request.email}, {"$set": {"is_pro": True}})
+        
     return {"status": "success"}
 
 # -----------------------------------

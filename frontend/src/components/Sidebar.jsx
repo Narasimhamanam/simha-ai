@@ -30,12 +30,60 @@ function Sidebar({
     } catch (error) { console.log(error); }
   };
 
+  const loadRazorpayScript = () => {
+    return new Promise((resolve) => {
+      const script = document.createElement("script");
+      script.src = "https://checkout.razorpay.com/v1/checkout.js";
+      script.onload = () => resolve(true);
+      script.onerror = () => resolve(false);
+      document.body.appendChild(script);
+    });
+  };
+
   const handleUpgrade = async () => {
+    const isLoaded = await loadRazorpayScript();
+    if (!isLoaded) {
+      alert("Failed to load Razorpay SDK. Please check your internet connection.");
+      return;
+    }
+
     try {
-      const res = await API.post("/create-checkout-session", { email: profile?.email });
-      if (res.data.url) {
-        window.location.href = res.data.url;
-      }
+      const orderRes = await API.post("/create-razorpay-order", { email: profile?.email });
+      const order = orderRes.data;
+
+      const options = {
+        key: import.meta.env.VITE_RAZORPAY_KEY_ID || "rzp_test_dummy",
+        amount: order.amount,
+        currency: order.currency,
+        name: "Simha AI",
+        description: "Upgrade to PRO (Unlimited Access)",
+        order_id: order.id !== "order_dummy" ? order.id : undefined,
+        handler: async function (response) {
+          try {
+            await API.post("/verify-razorpay-payment", {
+              email: profile?.email,
+              razorpay_order_id: response.razorpay_order_id || "dummy_order",
+              razorpay_payment_id: response.razorpay_payment_id || "dummy_payment",
+              razorpay_signature: response.razorpay_signature || "dummy_signature",
+            });
+            alert("Payment Successful! You are now a PRO user.");
+            window.location.reload();
+          } catch (e) {
+            alert("Payment verification failed.");
+          }
+        },
+        prefill: {
+          name: profile?.nickname || "",
+          email: profile?.email || "",
+        },
+        theme: { color: "#a855f7" },
+      };
+
+      const rzp = new window.Razorpay(options);
+      rzp.on("payment.failed", function (response) {
+        alert("Payment failed: " + response.error.description);
+      });
+      rzp.open();
     } catch (error) {
       console.error("Upgrade error:", error);
       alert("Failed to initiate upgrade. Please try again later.");
