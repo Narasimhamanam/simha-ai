@@ -51,35 +51,55 @@ function Home() {
 
   // ── Warm up backend before fetching ────────────────────────────────────
   const warmUpBackend = async () => {
-    // Try pinging up to 6 times with 5s gaps = 30s total warm-up budget
-    for (let i = 0; i < 6; i++) {
+    // Try pinging up to 12 times with 5s gaps = 60s total warm-up budget
+    // Railway cold starts can take 40-60s for first user
+    for (let i = 0; i < 12; i++) {
       try {
-        await API.get("/ping", { timeout: 8000 });
+        await API.get("/ping", { timeout: 10000 });
         return true; // server is awake
       } catch {
-        if (i < 5) await new Promise((r) => setTimeout(r, 5000));
+        if (i < 11) {
+          const secondsLeft = (11 - i) * 5;
+          setAppError(`⏳ Waking up AI server... (${secondsLeft}s)`);
+          await new Promise((r) => setTimeout(r, 5000));
+        }
       }
     }
-    return false; // still not reachable after 30s
+    return false; // still not reachable after 60s
   };
 
   // ── Fetch chats with retry ──────────────────────────────────────────────
+  const [retryCountdown, setRetryCountdown] = useState(0);
+  const retryTimerRef = useRef(null);
+
   const fetchChats = useCallback(async (email) => {
     setAppLoading(true);
-    setAppError("Starting up AI server... (first load may take 30s)");
+    setAppError("Starting up AI server... (first load may take 60s)");
 
     // Step 1: wait for backend to be alive before loading chats
     const alive = await warmUpBackend();
     if (!alive) {
       setAppLoading(false);
-      setAppError("Could not reach the server. Please check your connection and tap Retry.");
+      setAppError("Could not reach the server. Please check your connection and try again.");
+      // Auto-retry after 30s countdown
+      let countdown = 30;
+      setRetryCountdown(countdown);
+      retryTimerRef.current = setInterval(() => {
+        countdown -= 1;
+        setRetryCountdown(countdown);
+        if (countdown <= 0) {
+          clearInterval(retryTimerRef.current);
+          setRetryCountdown(0);
+          fetchChats(email);
+        }
+      }, 1000);
       return;
     }
 
     setAppError("Loading your workspace...");
 
     // Step 2: try to load chats — 5 retries
-    const DELAYS = [0, 4000, 7000, 10000, 15000]; // ms before each attempt
+    const DELAYS = [0, 4000, 7000, 10000, 15000];
     for (let attempt = 0; attempt < DELAYS.length; attempt++) {
       if (attempt > 0) {
         setAppError(`Connecting... (attempt ${attempt + 1}/${DELAYS.length})`);
@@ -107,7 +127,6 @@ function Home() {
         return; // success
       } catch (err) {
         console.error(`fetchChats attempt ${attempt + 1} failed:`, err);
-        // continue to next attempt
       }
     }
 
@@ -117,6 +136,8 @@ function Home() {
   }, []);
 
   const retryInit = () => {
+    if (retryTimerRef.current) clearInterval(retryTimerRef.current);
+    setRetryCountdown(0);
     if (user) fetchChats(user.email);
   };
 
@@ -232,12 +253,12 @@ function Home() {
             {appError || "Loading your workspace..."}
           </p>
           <p className="text-xs text-gray-600">
-            ☕ First load can take up to 30s while the server wakes up
+            ☕ First load can take up to 60s while the server wakes up
           </p>
 
           {/* Animated progress bar */}
           <div className="mt-5 h-1 w-48 mx-auto rounded-full bg-gray-800 overflow-hidden">
-            <div className="h-full w-1/3 rounded-full bg-gradient-to-r from-purple-600 to-pink-500 animate-[loading-bar_2s_ease-in-out_infinite]" />
+            <div className="h-full w-1/3 rounded-full bg-gradient-to-r from-purple-600 to-pink-500 animate-pulse" />
           </div>
         </div>
       </div>
@@ -247,21 +268,26 @@ function Home() {
   if (appError && chats.length === 0) {
     return (
       <div className="min-h-screen min-h-[100dvh] flex items-center justify-center bg-[#0a0a0a] px-4">
-        <div className="text-center max-w-xs">
-          <div className="w-12 h-12 rounded-full bg-red-500/20 flex items-center justify-center mx-auto mb-4">
-            <span className="text-red-400 text-xl">⚠</span>
+        <div className="text-center max-w-xs w-full">
+          <div className="w-14 h-14 rounded-2xl bg-red-500/20 flex items-center justify-center mx-auto mb-5">
+            <span className="text-red-400 text-2xl">⚠️</span>
           </div>
-          <h2 className="text-white font-semibold mb-2">Connection Failed</h2>
-          <p className="text-gray-400 text-sm mb-6">{appError}</p>
+          <h2 className="text-white font-bold text-lg mb-2">Connection Failed</h2>
+          <p className="text-gray-400 text-sm mb-2 leading-relaxed">{appError}</p>
+          {retryCountdown > 0 && (
+            <p className="text-purple-400 text-xs mb-5">
+              Auto-retrying in {retryCountdown}s...
+            </p>
+          )}
           <button
             onClick={retryInit}
-            className="px-6 py-3 rounded-xl bg-gradient-to-r from-purple-600 to-pink-500 text-white text-sm font-semibold hover:opacity-90 active:scale-95 transition touch-manipulation w-full"
+            className="px-6 py-3.5 rounded-xl bg-gradient-to-r from-purple-600 to-pink-500 text-white text-sm font-semibold hover:opacity-90 active:scale-95 transition touch-manipulation w-full mb-3"
           >
-            🔄 Retry Connection
+            🔄 Retry Now
           </button>
           <button
             onClick={handleLogout}
-            className="mt-3 text-xs text-gray-600 hover:text-gray-400 transition"
+            className="text-xs text-gray-600 hover:text-gray-400 transition"
           >
             Sign out
           </button>
@@ -290,23 +316,15 @@ function Home() {
         setIsSidebarOpen={setIsSidebarOpen}
       />
 
-      {currentPage === "email" && (
-        <EmailComposer theme={theme} profile={profile} onClose={() => setCurrentPage("chat")} />
-      )}
-      {currentPage === "calendar" && (
-        <CalendarComposer theme={theme} profile={profile} onClose={() => setCurrentPage("chat")} />
-      )}
-      {currentPage === "url" && (
-        <UrlSummarizer theme={theme} onClose={() => setCurrentPage("chat")} />
-      )}
-
       <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
+        {/* Header always visible — hamburger menu works on ALL pages on mobile */}
         <Header
           theme={theme}
           setTheme={setTheme}
           profile={profile}
           setIsSidebarOpen={setIsSidebarOpen}
           activeChat={activeChat}
+          currentPage={currentPage}
         />
 
         {currentPage === "chat" && (
@@ -318,6 +336,15 @@ function Home() {
             activeChatId={activeChatId}
             user={user}
           />
+        )}
+        {currentPage === "email" && (
+          <EmailComposer theme={theme} profile={profile} onClose={() => setCurrentPage("chat")} />
+        )}
+        {currentPage === "calendar" && (
+          <CalendarComposer theme={theme} profile={profile} onClose={() => setCurrentPage("chat")} />
+        )}
+        {currentPage === "url" && (
+          <UrlSummarizer theme={theme} onClose={() => setCurrentPage("chat")} />
         )}
         {currentPage === "history" && (
           <ChatHistoryPage

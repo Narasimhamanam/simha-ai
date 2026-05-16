@@ -5,7 +5,7 @@
  */
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "http://127.0.0.1:8000";
-const PING_INTERVAL_MS = 8 * 60 * 1000; // 8 minutes
+const PING_INTERVAL_MS = 4 * 60 * 1000; // 4 minutes — Railway sleeps after ~10min inactivity
 
 let intervalId = null;
 
