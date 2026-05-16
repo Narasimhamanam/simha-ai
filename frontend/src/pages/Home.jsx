@@ -267,8 +267,8 @@ function Home() {
             </div>
 
             {/* Logo Icon */}
-            <div className="w-16 h-16 md:w-20 md:h-20 rounded-2xl md:rounded-[28px] bg-gradient-to-br from-amber-600 via-amber-400 to-orange-500 flex items-center justify-center mb-8 md:mb-10 shadow-2xl shadow-amber-500/40 transform hover:rotate-[10deg] transition-all duration-700 mx-auto md:mx-0 ring-1 ring-amber-400/30">
-              <span className="text-white text-2xl md:text-3xl font-black tracking-tighter">S</span>
+            <div className="w-16 h-16 md:w-20 md:h-20 mb-8 md:mb-10 transform hover:rotate-[10deg] transition-all duration-700 mx-auto md:mx-0">
+              <img src="/logo-lion.png" alt="Simha AI Logo" className="w-full h-full object-contain filter drop-shadow-[0_0_15px_rgba(245,158,11,0.5)]" />
             </div>
 
             <h1 className="text-4xl md:text-5xl font-black mb-3 md:mb-4 tracking-tighter text-gold-gradient text-center md:text-left">

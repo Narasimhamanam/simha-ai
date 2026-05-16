@@ -287,11 +287,11 @@ function ChatArea({ theme, chats, setChats, activeChat, activeChatId, user, cred
       <div className="flex-1 overflow-y-auto overscroll-contain" style={{ WebkitOverflowScrolling: "touch" }}>
         <div className="max-w-2xl mx-auto w-full px-3 sm:px-4 pt-4">
 
-          {/* Welcome View */}
+            {/* Welcome View */}
             {!activeChat?.messages.length && (
               <div className="flex-1 flex flex-col items-center justify-center p-8 text-center animate-in fade-in slide-in-from-bottom-8 duration-1000">
-                <div className="w-24 h-24 rounded-[32px] bg-gradient-to-br from-amber-600 via-amber-400 to-amber-600 flex items-center justify-center mb-10 shadow-2xl shadow-amber-500/30 group hover:rotate-12 transition-all duration-700">
-                  <span className="text-white text-4xl font-black">S</span>
+                <div className="w-24 h-24 mb-10 group hover:rotate-12 transition-all duration-700">
+                  <img src="/logo-lion.png" alt="Simha AI Logo" className="w-full h-full object-contain filter drop-shadow-[0_0_25px_rgba(245,158,11,0.6)]" />
                 </div>
                 <h2 className={`text-4xl font-black mb-4 tracking-tight text-amber-500`}>
                   How can I guide you?

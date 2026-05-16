@@ -128,8 +128,8 @@ function Sidebar({
         {/* ── TOP: Logo ── */}
         <div className="flex items-center justify-between px-5 pt-7 pb-5">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-amber-600 via-amber-500 to-amber-600 flex items-center justify-center shadow-lg shadow-amber-500/30 flex-shrink-0">
-              <span className="text-white text-lg font-black">S</span>
+            <div className="w-9 h-9 flex-shrink-0">
+              <img src="/logo-lion.png" alt="Logo" className="w-full h-full object-contain filter drop-shadow-[0_0_8px_rgba(245,158,11,0.4)]" />
             </div>
             <div>
               <p className={`text-base font-black leading-none tracking-tight ${dark ? "text-white" : "text-amber-950"}`}>Simha AI</p>
@@ -247,8 +247,8 @@ function Sidebar({
             {profile?.avatar ? (
               <img src={profile.avatar} alt="avatar" className="w-8 h-8 rounded-xl object-cover ring-2 ring-amber-500/20 flex-shrink-0" />
             ) : (
-              <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-amber-600 to-amber-400 flex items-center justify-center flex-shrink-0 shadow-lg shadow-amber-500/20">
-                <span className="text-white text-sm font-black">{profile?.nickname?.charAt(0)?.toUpperCase() || "U"}</span>
+              <div className="w-8 h-8 flex-shrink-0">
+                <img src="/logo-lion.png" alt="U" className="w-full h-full object-contain" />
               </div>
             )}
             <div className="flex-1 min-w-0">
