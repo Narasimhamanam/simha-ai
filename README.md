@@ -83,14 +83,14 @@ Upload PDFs and ask questions — powered by ChromaDB + HuggingFace embeddings
 </td>
 <td align="center" width="200">
 
-### 💬 Persistent Chat History
-All conversations saved to MongoDB with full message history
+### 🖼️ Vision (OCR)
+Upload images and ask the AI to explain, describe, or extract text from them
 
 </td>
 <td align="center" width="200">
 
-### 🔐 Firebase Auth
-Secure Google & email/password authentication out of the box
+### 💰 SaaS Credit System
+Daily 10 free credits system with PRO upgrade via Razorpay Integration
 
 </td>
 </tr>
@@ -393,6 +393,8 @@ simha-ai/
 | `MONGO_URL` | ✅ | MongoDB Atlas connection string |
 | `DATABASE_NAME` | ✅ | MongoDB database name |
 | `GROQ_API_KEY` | ✅ | Groq Cloud API key |
+| `RAZORPAY_KEY_ID` | ✅ | Razorpay API Key ID |
+| `RAZORPAY_KEY_SECRET` | ✅ | Razorpay API Key Secret |
 
 ### Frontend (`.env`)
 | Variable | Required | Description |
@@ -404,18 +406,41 @@ simha-ai/
 | `VITE_FIREBASE_MESSAGING_SENDER_ID` | ✅ | Firebase messaging sender ID |
 | `VITE_FIREBASE_APP_ID` | ✅ | Firebase app ID |
 | `VITE_BACKEND_URL` | ✅ | Backend API base URL |
+| `VITE_RAZORPAY_KEY_ID` | ✅ | Razorpay Key ID for frontend popup |
+
+---
+
+## 📱 Premium Mobile Experience
+
+Simha AI is engineered with a **Mobile-First** approach. We use advanced CSS techniques (`fixed inset-0`, `overscroll-behavior: none`, and `100dvh`) to ensure:
+- **Zero Window Bouncing**: The header and input bar are pinned perfectly to the viewport.
+- **Native App Feel**: Smooth internal scrolling with a fixed UI shell.
+- **Responsive Navigation**: A slick sidebar toggle optimized for thumb reach.
+
+---
+
+## 💰 SaaS Monetization (Pro Workflow)
+
+The platform includes a fully functional simulation of a SaaS business model:
+1. **Free Tier**: Users get **10 credits per day** (automatically reset every 24 hours UTC).
+2. **Dynamic Deduction**: Credits are deducted based on the complexity and length of AI responses.
+3. **Upgrade Path**: When credits run out, users are prompted to upgrade to **PRO**.
+4. **Razorpay Integration**: Real-world payment gateway flow including signature verification for secure upgrades.
+5. **Unlimited Access**: PRO users enjoy a custom "👑 PRO" badge and infinite AI usage.
 
 ---
 
 ## 🗺️ Roadmap
 
-- [ ] 🌙 Dark / Light theme toggle
-- [ ] 🎤 Voice input support (Web Speech API)
+- [x] 🌙 Dark / Light theme toggle
+- [x] 🎤 Voice input support (Web Speech API)
+- [x] 🖼️ Image Vision agent (Groq Vision)
+- [x] 💰 Daily Credits & PRO Membership
+- [x] 💳 Razorpay Payment Integration
 - [ ] 🖼️ Image generation agent (DALL-E / Stability AI)
 - [ ] 📊 Analytics dashboard for usage stats
 - [ ] 🔗 Google Calendar API direct integration (OAuth)
 - [ ] 📤 Gmail API integration (send drafted emails)
-- [ ] 🧠 Long-term memory with user profiles
 - [ ] 📱 Mobile app (React Native)
 
 ---
