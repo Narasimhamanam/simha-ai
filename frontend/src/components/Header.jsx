@@ -27,7 +27,8 @@ const PAGE_EMOJIS = {
   settings: "⚙️",
 };
 
-function Header({ theme, setTheme, profile, setIsSidebarOpen, isSidebarOpen, activeChat, currentPage, createNewChat, credits, isPro }) {
+function Header({ theme, setTheme, profile, setIsSidebarOpen, isSidebarOpen, activeChat, currentPage, createNewChat, credits, isPro, selectedAgent }) {
+  const isDivine = selectedAgent === "divine";
   const dark = theme === "dark";
   const firstName = profile?.nickname?.split(" ")[0] || "";
   const chatTitle = activeChat?.title && activeChat.title !== "New Chat" ? activeChat.title : null;
@@ -35,18 +36,18 @@ function Header({ theme, setTheme, profile, setIsSidebarOpen, isSidebarOpen, act
   const pageEmoji = PAGE_EMOJIS[currentPage];
 
   return (
-    <header className={`sticky top-0 z-20 flex items-center justify-between px-6 py-3 h-20 transition-all duration-500 ${
+    <header className={`sticky top-0 z-20 flex items-center justify-between px-6 py-3 h-20 transition-all duration-500 border-b backdrop-blur-2xl shadow-lg ${
       dark 
-        ? "bg-[#080502]/80 backdrop-blur-2xl border-b border-amber-500/10 shadow-lg shadow-black/20" 
-        : "bg-[#fffbeb]/80 backdrop-blur-2xl border-b border-amber-200 shadow-sm"
+        ? isDivine ? "bg-[#06090c]/80 border-sky-500/10 shadow-black/20" : "bg-[#080502]/80 border-amber-500/10 shadow-black/20" 
+        : isDivine ? "bg-white/80 border-sky-100 shadow-sm" : "bg-[#fffbeb]/80 border-amber-200 shadow-sm"
     }`}>
       {/* LEFT — Hamburger */}
       <button
         onClick={() => setIsSidebarOpen(!isSidebarOpen)}
         className={`p-3 rounded-2xl transition-all duration-300 group ${
           dark 
-            ? "bg-white/5 text-amber-500 border border-amber-500/10 hover:bg-amber-500/10 hover:border-amber-500/30" 
-            : "bg-white text-amber-900 border border-amber-200 hover:border-amber-400 shadow-sm"
+            ? isDivine ? "bg-white/5 text-sky-500 border border-sky-500/10 hover:bg-sky-500/10 hover:border-sky-500/30" : "bg-white/5 text-amber-500 border border-amber-500/10 hover:bg-amber-500/10 hover:border-amber-500/30" 
+            : isDivine ? "bg-white text-sky-900 border border-sky-200 hover:border-sky-400 shadow-sm" : "bg-white text-amber-900 border border-amber-200 hover:border-amber-400 shadow-sm"
         }`}
         aria-label={isSidebarOpen ? "Close Sidebar" : "Open Sidebar"}
       >
@@ -65,17 +66,21 @@ function Header({ theme, setTheme, profile, setIsSidebarOpen, isSidebarOpen, act
           </span>
         ) : (
           <div className="flex items-center gap-2">
-            <div className="w-6 h-6 flex-shrink-0">
-              <img src="/logo-lion.png" alt="Logo" className="w-full h-full object-contain logo-mask filter drop-shadow-[0_0_5px_rgba(245,158,11,0.3)]" />
+            <div className={`w-6 h-6 flex-shrink-0 ${isDivine ? "divine-breathing" : ""}`}>
+              {isDivine ? (
+                <div className="w-full h-full flex items-center justify-center text-xl">🦚</div>
+              ) : (
+                <img src="/logo-lion.png" alt="Logo" className="w-full h-full object-contain logo-mask filter drop-shadow-[0_0_5px_rgba(245,158,11,0.3)]" />
+              )}
             </div>
             <div className="flex flex-col items-start leading-none">
-              <span className={`text-sm font-black tracking-tight ${dark ? "text-white" : "text-gray-900"}`}>
+              <span className={`text-sm font-black tracking-tight ${dark ? "text-white" : isDivine ? "text-sky-950" : "text-gray-900"}`}>
                 {chatTitle
                   ? <span className="max-w-[140px] truncate block">{chatTitle}</span>
-                  : "Simha AI"}
+                  : isDivine ? "Krishna AI" : "Simha AI"}
               </span>
-              <span className={`text-[9px] font-bold ${dark ? "text-amber-500/60" : "text-amber-600/60"} uppercase tracking-widest mt-0.5`}>
-                Assistant
+              <span className={`text-[9px] font-bold ${dark ? isDivine ? "text-sky-500/60" : "text-amber-500/60" : isDivine ? "text-sky-600/60" : "text-amber-600/60"} uppercase tracking-widest mt-0.5`}>
+                {isDivine ? "Perspective" : "Assistant"}
               </span>
             </div>
           </div>
@@ -85,27 +90,25 @@ function Header({ theme, setTheme, profile, setIsSidebarOpen, isSidebarOpen, act
       {/* RIGHT — Theme toggle + New chat */}
       <div className="flex items-center gap-1">
         {/* Credits Badge */}
-        {(credits !== undefined && credits !== null) && !isPro && (
           <div className={`mr-4 flex items-center gap-2 px-4 py-2 rounded-full text-[11px] font-black tracking-widest shadow-lg transition-all duration-300 ${
             credits <= 0 
               ? dark ? "bg-red-500/10 text-red-400 border border-red-500/20" : "bg-red-50 text-red-600 border border-red-100"
-              : dark ? "bg-amber-500/10 text-amber-500 border border-amber-500/20 shadow-amber-500/5" : "bg-amber-50 text-amber-700 border border-amber-200"
+              : dark 
+                ? isDivine ? "bg-sky-500/10 text-sky-500 border border-sky-500/20 shadow-sky-500/5" : "bg-amber-500/10 text-amber-500 border border-amber-500/20 shadow-amber-500/5" 
+                : isDivine ? "bg-sky-50 text-sky-700 border border-sky-200" : "bg-amber-50 text-amber-700 border border-amber-200"
           }`}>
-            <span className="animate-pulse">⚡</span>
+            <span className="animate-pulse">{isDivine ? "✨" : "⚡"}</span>
             {credits.toFixed(1)}
           </div>
-        )}
         {/* Pro Badge */}
-        {isPro && (
-          <div className={`mr-4 flex items-center gap-2 px-5 py-2.5 rounded-full text-[11px] font-black tracking-widest transition-all duration-500 shadow-[0_0_20px_rgba(245,158,11,0.2)] ${
+          <div className={`mr-4 flex items-center gap-2 px-5 py-2.5 rounded-full text-[11px] font-black tracking-widest transition-all duration-500 shadow-lg ${
             dark 
-              ? "bg-gradient-to-r from-amber-600 to-amber-400 text-black border border-amber-400/50" 
-              : "bg-gradient-to-r from-amber-500 to-amber-400 text-white border border-amber-300 shadow-amber-900/10"
+              ? isDivine ? "bg-gradient-to-r from-sky-600 to-sky-400 text-white border border-sky-400/50 shadow-sky-500/10" : "bg-gradient-to-r from-amber-600 to-amber-400 text-black border border-amber-400/50 shadow-amber-500/10" 
+              : isDivine ? "bg-gradient-to-r from-sky-500 to-sky-400 text-white border border-sky-300 shadow-sky-900/10" : "bg-gradient-to-r from-amber-500 to-amber-400 text-white border border-amber-300 shadow-amber-900/10"
           }`}>
-            <span className="text-sm">👑</span>
-            PRO MEMBER
+            <span className="text-sm">{isDivine ? "🦚" : "👑"}</span>
+            {isDivine ? "DIVINE MEMBER" : "PRO MEMBER"}
           </div>
-        )}
         <ThemeToggle theme={theme} setTheme={setTheme} />
         {currentPage === "chat" && (
           <button

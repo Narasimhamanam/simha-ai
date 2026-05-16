@@ -36,12 +36,11 @@ const SUGGESTIONS = [
   "Interview prep tips",
 ];
 
-function ChatArea({ theme, chats, setChats, activeChat, activeChatId, user, credits, fetchCredits, isPro }) {
+function ChatArea({ theme, chats, setChats, activeChat, activeChatId, user, credits, fetchCredits, isPro, selectedAgent, setSelectedAgent }) {
   const dark = theme === "dark";
   const outOfCredits = !isPro && credits !== undefined && credits <= 0;
 
   const [input, setInput] = useState("");
-  const [selectedAgent, setSelectedAgent] = useState("study");
   const [loading, setLoading] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);   // PDF
   const [selectedImage, setSelectedImage] = useState(null); // image file

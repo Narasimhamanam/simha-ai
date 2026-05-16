@@ -26,6 +26,7 @@ function Home() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(window.innerWidth >= 1024);
   const [appLoading, setAppLoading] = useState(false); // true while fetching chats after login
   const [appError, setAppError] = useState("");        // error message during init
+  const [selectedAgent, setSelectedAgent] = useState("study");
 
   useEffect(() => { document.documentElement.classList.add("dark"); }, []);
   useEffect(() => {
@@ -398,6 +399,8 @@ function Home() {
         isSidebarOpen={isSidebarOpen}
         setIsSidebarOpen={setIsSidebarOpen}
         isPro={isPro}
+        selectedAgent={selectedAgent}
+        setSelectedAgent={setSelectedAgent}
       />
 
       <div className={`flex-1 flex flex-col min-w-0 h-full overflow-hidden transition-all duration-500 ${isSidebarOpen ? "md:ml-[260px]" : "md:ml-0"}`}>
@@ -416,6 +419,7 @@ function Home() {
           createNewChat={createNewChat}
           credits={credits}
           isPro={isPro}
+          selectedAgent={selectedAgent}
         />
 
         {currentPage === "chat" && (
@@ -429,6 +433,8 @@ function Home() {
             credits={credits}
             isPro={isPro}
             fetchCredits={() => fetchCredits(user?.email)}
+            selectedAgent={selectedAgent}
+            setSelectedAgent={setSelectedAgent}
           />
         )}
         {currentPage === "email" && (
