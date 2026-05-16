@@ -276,35 +276,32 @@ async def stream_chat(request: ChatRequest):
     # ── Stream response (semaphore caps concurrent Groq calls at 5) ──
     async def generate():
         full_response = ""
-        async with groq_semaphore:
-            try:
+        try:
+            async with groq_semaphore:
                 loop = asyncio.get_event_loop()
-                # route_query is sync — run in thread pool to avoid blocking event loop
-                generator = await loop.run_in_executor(
+                response_text = await loop.run_in_executor(
                     None, lambda: route_query(message, history, stream=False)
                 )
-                # Stream the response in chunks for real-time feel
-                chunk_size = 8
-                for i in range(0, len(generator), chunk_size):
-                    chunk = generator[i:i + chunk_size]
-                    full_response += chunk
-                    yield chunk
-                    await asyncio.sleep(0.01)
-            except Exception as e:
-                error_msg = "⚠️ AI is busy — please try again in a moment."
-                full_response = error_msg
-                yield error_msg
-                print(f"[stream] Error: {e}")
+                if not response_text:
+                    response_text = "No response. Please try again."
+            chunk_size = 8
+            for i in range(0, len(response_text), chunk_size):
+                chunk = response_text[i:i + chunk_size]
+                full_response += chunk
+                yield chunk
+                await asyncio.sleep(0.01)
+        except Exception as e:
+            error_msg = "AI is busy, please try again in a moment."
+            full_response = error_msg
+            yield error_msg
+            print(f"[stream] Error: {e}")
         finally:
             if full_response:
-                # Update in-memory (capped at 20 turns to prevent RAM bloat)
                 if user_id not in conversation_memory:
                     conversation_memory[user_id] = []
                 conversation_memory[user_id].append({"user": message, "assistant": full_response})
                 if len(conversation_memory[user_id]) > 20:
                     conversation_memory[user_id] = conversation_memory[user_id][-20:]
-
-                # Persist to MongoDB
                 if chat_id:
                     collection = get_chat_collection()
                     if collection is not None:
@@ -312,21 +309,18 @@ async def stream_chat(request: ChatRequest):
                             await collection.update_one(
                                 {"_id": ObjectId(chat_id)},
                                 {
-                                    "$push": {
-                                        "messages": {
-                                            "$each": [
-                                                {"role": "user", "content": request.query or message, "file": request.file_name},
-                                                {"role": "assistant", "content": full_response}
-                                            ]
-                                        }
-                                    },
+                                    "$push": {"messages": {"$each": [
+                                        {"role": "user", "content": request.query or message, "file": request.file_name},
+                                        {"role": "assistant", "content": full_response}
+                                    ]}},
                                     "$set": {"updated_at": __import__("datetime").datetime.utcnow()}
                                 }
                             )
-                        except Exception as e:
-                            print("DB save error:", e)
+                        except Exception as db_err:
+                            print("DB save error:", db_err)
 
     return StreamingResponse(generate(), media_type="text/plain")
+
 
 # Frontend/Render compatibility aliases for streaming
 @app.post("/streamchat")
