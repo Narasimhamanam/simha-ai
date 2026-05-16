@@ -3,10 +3,19 @@
 @tailwind utilities;
 
 @layer base {
+  html, body, #root {
+    height: 100%;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: hidden; /* strictly prevents window bouncing/scrolling */
+  }
+
   body {
     @apply font-sans antialiased bg-white text-gray-900;
     -webkit-tap-highlight-color: transparent;
     overscroll-behavior: none;
+    position: fixed; /* iOS safari bounce fix */
   }
 }
 

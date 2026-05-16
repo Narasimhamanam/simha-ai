@@ -223,7 +223,7 @@ function Home() {
     prewarm();
 
     return (
-      <div className="min-h-screen min-h-[100dvh] flex items-center justify-center bg-[#0a0a0a] px-4">
+      <div className="fixed inset-0 flex flex-col items-center justify-center bg-[#0a0a0a] px-4">
         <div className="w-full max-w-sm bg-[#141414] border border-gray-800 p-8 rounded-2xl shadow-2xl text-center">
           <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-600 to-pink-500 flex items-center justify-center mx-auto mb-5 shadow-lg shadow-purple-500/30">
             <span className="text-white text-xl font-bold">S</span>
@@ -251,7 +251,7 @@ function Home() {
   // ── APP LOADING / ERROR SCREEN ──────────────────────────────────────────
   if (appLoading && chats.length === 0) {
     return (
-      <div className="min-h-screen min-h-[100dvh] flex items-center justify-center bg-[#0a0a0a] px-4">
+      <div className="fixed inset-0 flex items-center justify-center bg-[#0a0a0a] px-4">
         <div className="text-center w-full max-w-xs">
           {/* Logo */}
           <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-600 to-pink-500 flex items-center justify-center mx-auto mb-6 shadow-lg shadow-purple-500/30">
@@ -291,7 +291,7 @@ function Home() {
 
   if (appError && chats.length === 0) {
     return (
-      <div className="min-h-screen min-h-[100dvh] flex items-center justify-center bg-[#0a0a0a] px-4">
+      <div className="fixed inset-0 flex items-center justify-center bg-[#0a0a0a] px-4">
         <div className="text-center max-w-xs w-full">
           <div className="w-14 h-14 rounded-2xl bg-red-500/20 flex items-center justify-center mx-auto mb-5">
             <span className="text-red-400 text-2xl">⚠️</span>
@@ -322,7 +322,7 @@ function Home() {
 
   // ── MAIN UI ─────────────────────────────────────────────────────────────
   return (
-    <div className="h-screen h-[100dvh] flex overflow-hidden text-sm bg-white dark:bg-[#0a0a0a] text-gray-900 dark:text-gray-100">
+    <div className="fixed inset-0 flex overflow-hidden text-sm bg-white dark:bg-[#0a0a0a] text-gray-900 dark:text-gray-100">
       <ConnectionStatus theme={theme} />
 
       <Sidebar
