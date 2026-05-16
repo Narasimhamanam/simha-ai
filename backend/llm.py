@@ -12,7 +12,7 @@ PRIMARY_MODEL = "llama-3.3-70b-versatile"
 FALLBACK_MODEL = "llama-3.1-8b-instant"   # fast, always available
 
 
-def generate_response(prompt, stream=False, max_retries=2):
+def generate_response(prompt, stream=False, max_retries=2, temperature=0.2, max_tokens=2048):
     """
     Generate response with automatic retry on rate limit and model fallback.
     - Retries up to max_retries times with exponential backoff on 429
@@ -26,8 +26,8 @@ def generate_response(prompt, stream=False, max_retries=2):
                 completion = client.chat.completions.create(
                     model=model,
                     messages=[{"role": "user", "content": prompt}],
-                    temperature=0.2,
-                    max_tokens=2048,
+                    temperature=temperature,
+                    max_tokens=max_tokens,
                     stream=stream,
                 )
 
