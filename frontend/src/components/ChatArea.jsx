@@ -258,6 +258,10 @@ function ChatArea({ theme, chats, setChats, activeChat, activeChatId, user, cred
         const { done, value } = await reader.read();
         if (done) break;
         fullResponse += decoder.decode(value, { stream: true });
+        
+        // Calmer streaming: slight artificial delay for Divine Mode
+        if (isDivine) await new Promise(r => setTimeout(r, 20));
+
         setChats((prevChats) =>
           prevChats.map((chat) => {
             if (chat.id !== activeChatId) return chat;
@@ -321,16 +325,16 @@ function ChatArea({ theme, chats, setChats, activeChat, activeChatId, user, cred
                 animate={{ opacity: 1, y: 0 }}
                 className={`flex-1 flex flex-col items-center justify-center p-8 text-center ${isDivine ? "divine-aura" : ""}`}
               >
-                <div className={`w-24 h-24 mb-10 group hover:rotate-12 transition-all duration-700 ${isDivine ? "animate-divine-float" : ""}`}>
+                <div className={`w-24 h-24 mb-10 group transition-all duration-700 ${isDivine ? "divine-breathing" : "hover:rotate-12"}`}>
                   {isDivine ? (
-                    <div className="w-full h-full flex items-center justify-center text-6xl drop-shadow-[0_0_15px_rgba(14,165,233,0.8)]">🦚</div>
+                    <div className="w-full h-full flex items-center justify-center text-6xl">🦚</div>
                   ) : (
                     <img src="/logo-lion.png" alt="Simha AI Logo" className="w-full h-full object-contain logo-mask filter drop-shadow-[0_0_25px_rgba(245,158,11,0.6)]" />
                   )}
                 </div>
                 
                 <h2 className={`text-4xl font-black mb-4 tracking-tight ${isDivine ? "text-divine-gradient" : "text-amber-500"}`}>
-                  {isDivine ? "Ask Krishna" : "How can I guide you?"}
+                  {isDivine ? "Seek Perspective" : "How can I guide you?"}
                 </h2>
                 
                 <p className={`text-sm max-w-sm mb-12 leading-relaxed font-medium ${
@@ -339,7 +343,7 @@ function ChatArea({ theme, chats, setChats, activeChat, activeChatId, user, cred
                     : dark ? "text-amber-100/40" : "text-amber-900/60"
                 }`}>
                   {isDivine 
-                    ? "Seek clarity through the timeless wisdom of the Bhagavad Gita. Share your heart's burden."
+                    ? "Speak freely. Sometimes clarity begins by sharing what weighs on your heart."
                     : "Protected by Intelligence. Guided by Dharma. Ask anything to start your journey."}
                 </p>
                 
@@ -403,14 +407,16 @@ function ChatArea({ theme, chats, setChats, activeChat, activeChatId, user, cred
               )}
 
               <div 
-                      className={`max-w-[85%] md:max-w-[75%] rounded-[32px] px-6 py-5 shadow-sm text-sm leading-relaxed ${
+                      className={`max-w-[85%] md:max-w-[75%] px-6 py-5 shadow-sm text-sm leading-relaxed transition-all duration-500 ${
+                        isDivine ? "divine-bubble" : "rounded-[32px]"
+                      } ${
                         msg.role === "user"
                           ? isDivine
                             ? "bg-gradient-to-br from-sky-600 to-sky-500 text-white font-black ml-4 shadow-xl shadow-sky-900/20 border border-sky-400/30"
                             : "bg-gradient-to-br from-amber-600 to-amber-500 text-black font-black ml-4 shadow-xl shadow-amber-900/20 border border-amber-400/30"
                           : dark
                             ? isDivine
-                              ? "bg-[#06090c]/80 backdrop-blur-xl text-sky-50 border border-sky-500/10 mr-4 shadow-2xl shadow-black/40"
+                              ? "bg-[#06090c]/90 backdrop-blur-xl text-sky-50 border border-sky-500/10 mr-4 shadow-2xl shadow-black/40"
                               : "bg-[#0c0906]/80 backdrop-blur-xl text-amber-50 border border-amber-500/10 mr-4 shadow-2xl shadow-black/40"
                             : isDivine
                               ? "bg-white text-slate-800 border border-sky-100 shadow-xl shadow-sky-900/5 mr-4"
@@ -511,6 +517,10 @@ function ChatArea({ theme, chats, setChats, activeChat, activeChatId, user, cred
                 >
                   {msg.content || ""}
                 </ReactMarkdown>
+                {/* Glowing cursor for Divine Mode during streaming */}
+                {msg.role === "assistant" && loading && isDivine && index === activeChat.messages.length - 1 && (
+                  <span className="divine-cursor" />
+                )}
               </div>
             </div>
           ))}

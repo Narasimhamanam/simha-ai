@@ -209,6 +209,36 @@
   animation: divine-shimmer 4s infinite ease-in-out;
 }
 
+/* ── DIVINE UI ENHANCEMENTS ── */
+.divine-breathing {
+  animation: divine-breath 3s infinite ease-in-out;
+}
+
+@keyframes divine-breath {
+  0%, 100% { transform: scale(1); filter: drop-shadow(0 0 10px rgba(14, 165, 233, 0.4)); }
+  50% { transform: scale(1.1); filter: drop-shadow(0 0 25px rgba(14, 165, 233, 0.8)); }
+}
+
+.divine-cursor {
+  display: inline-block;
+  width: 8px;
+  height: 18px;
+  background: var(--divine-blue);
+  margin-left: 4px;
+  border-radius: 2px;
+  box-shadow: 0 0 10px var(--divine-blue);
+  animation: divine-cursor-blink 1s infinite;
+}
+
+@keyframes divine-cursor-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+.divine-bubble {
+  @apply rounded-[40px] px-8 py-6;
+}
+
 /* Safe area for iPhone notch / home bar */
 .pb-safe {
   padding-bottom: max(12px, env(safe-area-inset-bottom));
