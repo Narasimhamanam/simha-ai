@@ -231,7 +231,7 @@ function Home() {
           <img 
             src="/neon-lion.png" 
             alt="Cinematic Lion" 
-            className="w-full h-full object-cover opacity-60 animate-cinematic"
+            className="w-[180%] h-[180%] md:w-[120%] md:h-[120%] object-contain opacity-60 animate-lion-walk animate-roar"
           />
           <div className="neural-overlay opacity-80" />
           <div className="absolute inset-0 bg-gradient-to-t from-[#030303] via-transparent to-[#030303] opacity-60" />

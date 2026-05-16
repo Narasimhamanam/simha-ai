@@ -45,42 +45,43 @@
 }
 
 /* Animations */
-@keyframes cinematic-zoom {
-  0% { transform: scale(1); }
-  100% { transform: scale(1.1); }
+@keyframes lion-walk {
+  0% { 
+    transform: translateX(40%) translateY(0) scale(1);
+    opacity: 0;
+  }
+  10% { opacity: 0.6; }
+  45% { transform: translateX(0%) translateY(-10px) scale(1.05); }
+  50% { transform: translateX(0%) translateY(0) scale(1.05); } /* Pause in center to "stare" */
+  55% { transform: translateX(0%) translateY(-10px) scale(1.05); }
+  90% { opacity: 0.6; }
+  100% { 
+    transform: translateX(-40%) translateY(0) scale(1);
+    opacity: 0;
+  }
 }
 
-@keyframes neural-flow {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
+@keyframes step-bob {
+  0%, 100% { margin-top: 0; }
+  25% { margin-top: -5px; }
+  75% { margin-top: 5px; }
 }
 
-@keyframes float {
-  0%, 100% { transform: translateY(0) translateX(0); }
-  33% { transform: translateY(-10px) translateX(5px); }
-  66% { transform: translateY(5px) translateX(-5px); }
+@keyframes pulse-roar {
+  0%, 100% { filter: drop-shadow(0 0 20px rgba(168, 85, 247, 0.3)) brightness(1); }
+  50% { filter: drop-shadow(0 0 60px rgba(168, 85, 247, 0.8)) brightness(1.5); }
 }
 
-@keyframes pulse-glow {
-  0%, 100% { opacity: 0.3; filter: drop-shadow(0 0 20px rgba(168, 85, 247, 0.3)); }
-  50% { opacity: 0.7; filter: drop-shadow(0 0 50px rgba(168, 85, 247, 0.7)); }
+.animate-lion-walk {
+  animation: lion-walk 20s ease-in-out infinite;
 }
 
-.animate-cinematic {
-  animation: cinematic-zoom 20s ease-in-out infinite alternate;
-}
-
-.animate-float {
-  animation: float 10s ease-in-out infinite;
-}
-
-.animate-lion-glow {
-  animation: pulse-glow 5s ease-in-out infinite;
+.animate-roar {
+  animation: pulse-roar 4s ease-in-out infinite;
 }
 
 .neural-overlay {
-  background: radial-gradient(circle at center, transparent 0%, #030303 90%);
+  background: radial-gradient(circle at center, transparent 0%, #030303 95%);
   @apply absolute inset-0 pointer-events-none;
 }
 
