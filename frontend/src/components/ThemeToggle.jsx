@@ -1,24 +1,19 @@
+import { Sun, Moon } from "lucide-react";
+
 function ThemeToggle({ theme, setTheme }) {
   const dark = theme === "dark";
 
   return (
     <button
       onClick={() => setTheme(dark ? "light" : "dark")}
-      className="
-        px-5
-        py-2.5
-        rounded-full
-        text-sm
-        font-semibold
-        text-white
-        bg-gradient-to-r
-        from-purple-600
-        to-fuchsia-500
-        hover:scale-105
-        transition-all
-      "
+      aria-label="Toggle theme"
+      className={`p-2 rounded-xl transition-all touch-manipulation ${
+        dark
+          ? "text-gray-400 hover:text-yellow-400 hover:bg-white/8"
+          : "text-gray-500 hover:text-gray-900 hover:bg-gray-100"
+      }`}
     >
-      {dark ? "Light" : "Dark"}
+      {dark ? <Sun size={18} /> : <Moon size={18} />}
     </button>
   );
 }

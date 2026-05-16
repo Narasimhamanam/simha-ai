@@ -325,6 +325,7 @@ function Home() {
           setIsSidebarOpen={setIsSidebarOpen}
           activeChat={activeChat}
           currentPage={currentPage}
+          createNewChat={createNewChat}
         />
 
         {currentPage === "chat" && (

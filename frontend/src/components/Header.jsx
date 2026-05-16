@@ -1,4 +1,4 @@
-import { Menu } from "lucide-react";
+import { Menu, SquarePen } from "lucide-react";
 import ThemeToggle from "./ThemeToggle";
 
 function getGreeting() {
@@ -9,77 +9,80 @@ function getGreeting() {
 }
 
 const PAGE_TITLES = {
-  chat: null, // handled separately
-  email: "✉️ Email Composer",
-  calendar: "📅 AI Scheduler",
-  url: "🌐 URL Summarizer",
-  history: "📜 Chat History",
-  documents: "📄 Documents",
-  settings: "⚙️ Settings",
+  chat: null,
+  email: "Email Composer",
+  calendar: "AI Scheduler",
+  url: "URL Summarizer",
+  history: "Chat History",
+  documents: "Documents",
+  settings: "Settings",
 };
 
-function Header({ theme, setTheme, profile, setIsSidebarOpen, activeChat, currentPage }) {
+const PAGE_EMOJIS = {
+  email: "✉️",
+  calendar: "📅",
+  url: "🌐",
+  history: "📜",
+  documents: "📄",
+  settings: "⚙️",
+};
+
+function Header({ theme, setTheme, profile, setIsSidebarOpen, activeChat, currentPage, createNewChat }) {
   const dark = theme === "dark";
-  const greeting = getGreeting();
   const firstName = profile?.nickname?.split(" ")[0] || "";
   const chatTitle = activeChat?.title && activeChat.title !== "New Chat" ? activeChat.title : null;
   const pageTitle = PAGE_TITLES[currentPage];
+  const pageEmoji = PAGE_EMOJIS[currentPage];
 
   return (
-    <div className={`flex items-center justify-between px-4 md:px-5 py-3 border-b sticky top-0 z-10 backdrop-blur-md ${
-      dark ? "bg-[#0a0a0a]/80 border-gray-900" : "bg-white/80 border-gray-100"
+    <div className={`flex items-center justify-between px-3 py-2.5 border-b sticky top-0 z-10 backdrop-blur-md ${
+      dark ? "bg-[#0a0a0a]/90 border-gray-900" : "bg-white/90 border-gray-100"
     }`}>
-      {/* LEFT */}
-      <div className="flex items-center gap-3 min-w-0">
-        {/* Mobile menu toggle — always visible */}
-        <button
-          onClick={() => setIsSidebarOpen(true)}
-          className={`p-1.5 rounded-lg md:hidden transition touch-manipulation ${
-            dark ? "text-gray-400 hover:bg-white/5 hover:text-white" : "text-gray-500 hover:bg-gray-100 hover:text-gray-900"
-          }`}
-          aria-label="Open menu"
-        >
-          <Menu size={20} />
-        </button>
+      {/* LEFT — Hamburger */}
+      <button
+        onClick={() => setIsSidebarOpen(true)}
+        className={`p-2 rounded-xl transition touch-manipulation ${
+          dark ? "text-gray-400 hover:bg-white/8 hover:text-white" : "text-gray-500 hover:bg-gray-100 hover:text-gray-900"
+        }`}
+        aria-label="Open menu"
+      >
+        <Menu size={20} />
+      </button>
 
-        <div className="min-w-0">
-          {pageTitle ? (
-            /* Non-chat page: show page name */
-            <>
-              <h1 className={`text-sm font-semibold truncate ${dark ? "text-white" : "text-gray-900"}`}>
-                {pageTitle}
-              </h1>
-              <p className={`text-[11px] ${dark ? "text-gray-600" : "text-gray-400"}`}>
-                Simha AI
-              </p>
-            </>
-          ) : chatTitle ? (
-            /* Chat page with a named conversation */
-            <>
-              <h1 className={`text-sm font-semibold truncate max-w-[160px] sm:max-w-xs ${dark ? "text-white" : "text-gray-900"}`}>
-                {chatTitle}
-              </h1>
-              <p className={`text-[11px] ${dark ? "text-gray-600" : "text-gray-400"}`}>
-                {greeting}{firstName ? `, ${firstName}` : ""}
-              </p>
-            </>
-          ) : (
-            /* Chat page, new/empty chat */
-            <>
-              <h1 className={`text-sm font-semibold ${dark ? "text-white" : "text-gray-900"}`}>
-                {greeting}{firstName ? `, ${firstName}` : ""} 👋
-              </h1>
-              <p className={`text-[11px] ${dark ? "text-gray-600" : "text-gray-400"}`}>
-                How can I help you today?
-              </p>
-            </>
-          )}
-        </div>
+      {/* CENTER — Model/Page title */}
+      <div className="flex flex-col items-center">
+        {pageTitle ? (
+          <span className={`text-sm font-semibold ${dark ? "text-white" : "text-gray-900"}`}>
+            {pageEmoji} {pageTitle}
+          </span>
+        ) : (
+          <>
+            <span className={`text-sm font-semibold ${dark ? "text-white" : "text-gray-900"}`}>
+              {chatTitle
+                ? <span className="max-w-[140px] truncate block">{chatTitle}</span>
+                : "Simha AI"}
+            </span>
+            <span className={`text-[10px] ${dark ? "text-gray-600" : "text-gray-400"}`}>
+              {firstName ? `${firstName}'s workspace` : "Multi-Agent Assistant"}
+            </span>
+          </>
+        )}
       </div>
 
-      {/* RIGHT */}
-      <div className="flex items-center gap-2">
+      {/* RIGHT — Theme toggle + New chat */}
+      <div className="flex items-center gap-1">
         <ThemeToggle theme={theme} setTheme={setTheme} />
+        {currentPage === "chat" && (
+          <button
+            onClick={createNewChat}
+            className={`p-2 rounded-xl transition touch-manipulation ${
+              dark ? "text-gray-400 hover:bg-white/8 hover:text-white" : "text-gray-500 hover:bg-gray-100 hover:text-gray-900"
+            }`}
+            aria-label="New chat"
+          >
+            <SquarePen size={18} />
+          </button>
+        )}
       </div>
     </div>
   );

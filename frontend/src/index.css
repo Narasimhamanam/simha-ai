@@ -5,7 +5,25 @@
 @layer base {
   body {
     @apply font-sans antialiased bg-white text-gray-900;
+    -webkit-tap-highlight-color: transparent;
+    overscroll-behavior: none;
   }
+}
+
+/* Safe area for iPhone notch / home bar */
+.pb-safe {
+  padding-bottom: max(12px, env(safe-area-inset-bottom));
+}
+
+/* Smooth scrolling for chat */
+.scroll-smooth {
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Prevent layout shift on mobile keyboard open */
+html {
+  height: -webkit-fill-available;
 }
 
 @keyframes loading-bar {
