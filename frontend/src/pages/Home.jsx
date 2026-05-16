@@ -430,6 +430,8 @@ function Home() {
           credits={credits}
           isPro={isPro}
           selectedAgent={selectedAgent}
+          isMusicPlaying={isMusicPlaying}
+          setIsMusicPlaying={setIsMusicPlaying}
         />
 
         {currentPage === "chat" && (

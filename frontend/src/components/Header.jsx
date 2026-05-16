@@ -1,4 +1,4 @@
-import { Menu, SquarePen } from "lucide-react";
+import { Menu, SquarePen, Volume2, VolumeX } from "lucide-react";
 import ThemeToggle from "./ThemeToggle";
 
 function getGreeting() {
@@ -27,7 +27,7 @@ const PAGE_EMOJIS = {
   settings: "⚙️",
 };
 
-function Header({ theme, setTheme, profile, setIsSidebarOpen, isSidebarOpen, activeChat, currentPage, createNewChat, credits, isPro, selectedAgent }) {
+function Header({ theme, setTheme, profile, setIsSidebarOpen, isSidebarOpen, activeChat, currentPage, createNewChat, credits, isPro, selectedAgent, isMusicPlaying, setIsMusicPlaying }) {
   const isDivine = selectedAgent === "divine";
   const dark = theme === "dark";
   const firstName = profile?.nickname?.split(" ")[0] || "";
@@ -101,6 +101,7 @@ function Header({ theme, setTheme, profile, setIsSidebarOpen, isSidebarOpen, act
             {credits.toFixed(1)}
           </div>
         {/* Pro Badge */}
+        {isPro && (
           <div className={`mr-4 flex items-center gap-2 px-5 py-2.5 rounded-full text-[11px] font-black tracking-widest transition-all duration-500 shadow-lg ${
             dark 
               ? isDivine ? "bg-gradient-to-r from-sky-600 to-sky-400 text-white border border-sky-400/50 shadow-sky-500/10" : "bg-gradient-to-r from-amber-600 to-amber-400 text-black border border-amber-400/50 shadow-amber-500/10" 
@@ -109,6 +110,23 @@ function Header({ theme, setTheme, profile, setIsSidebarOpen, isSidebarOpen, act
             <span className="text-sm">{isDivine ? "🦚" : "👑"}</span>
             {isDivine ? "DIVINE MEMBER" : "PRO MEMBER"}
           </div>
+        )}
+
+        {/* Music Toggle - Only for Divine Mode */}
+        {isDivine && (
+          <button
+            onClick={() => setIsMusicPlaying(!isMusicPlaying)}
+            className={`p-2.5 rounded-xl transition-all duration-300 mr-1 ${
+              dark 
+                ? isMusicPlaying ? "bg-sky-500/20 text-sky-400 border border-sky-500/30" : "text-sky-500/40 hover:text-sky-400 hover:bg-white/5" 
+                : isMusicPlaying ? "bg-sky-100 text-sky-600 border border-sky-200" : "text-sky-900/40 hover:text-sky-900 hover:bg-sky-100"
+            }`}
+            aria-label="Toggle Music"
+          >
+            {isMusicPlaying ? <Volume2 size={18} /> : <VolumeX size={18} />}
+          </button>
+        )}
+
         <ThemeToggle theme={theme} setTheme={setTheme} />
         {currentPage === "chat" && (
           <button

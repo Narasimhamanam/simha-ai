@@ -351,18 +351,6 @@ function ChatArea({ theme, chats, setChats, activeChat, activeChatId, user, cred
                     </button>
                   ))}
                 </div>
-
-                {isDivine && (
-                  <button 
-                    onClick={() => setIsMusicPlaying(!isMusicPlaying)}
-                    className={`mt-12 flex items-center gap-2 px-4 py-2 rounded-full border transition-all ${
-                      dark ? "border-sky-500/20 text-sky-400 hover:bg-sky-500/10" : "border-sky-200 text-sky-600 hover:bg-sky-50"
-                    }`}
-                  >
-                    {isMusicPlaying ? <Volume2 size={16} /> : <VolumeX size={16} />}
-                    <span className="text-xs font-bold uppercase tracking-widest">Ambient Flute</span>
-                  </button>
-                )}
               </motion.div>
             )}
 
