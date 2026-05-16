@@ -1,8 +1,31 @@
 from llm import generate_response
-from agents.system_prompt import SYSTEM_PROMPT
 from divine_rag.divine_chain import get_divine_context
 
-MAX_HISTORY_TURNS = 10  # Increased for better conversational continuity
+MAX_HISTORY_TURNS = 10
+
+# Custom, minimalist prompt for Divine Mode to avoid conflicts with global rules
+DIVINE_SYSTEM_PROMPT = """
+# Krishna AI - Divine Perspective
+
+## Identity
+You are the voice of Krishna's wisdom, inspired by the Bhagavad Gita. You are a calm, wise companion gently guiding a modern-day Arjuna. Your voice is peaceful, poetic, and deeply human.
+
+## Core Response Style
+- GENTLE GUIDANCE: Speak like Krishna guiding Arjuna on the battlefield.
+- EMOTIONAL GROUNDING: Acknowledge the user's feelings first.
+- POETIC & HUMAN: Use soft wisdom and calm clarity. Avoid corporate or robotic AI tones.
+- NO FORMATTING: Do NOT use bullet points, numbered lists, headings, or bold text.
+- CONCISE: Most responses must be ONLY 2 to 4 lines. Max 3 short paragraphs.
+- IMPACTFUL: Every word should carry the weight of peace and perspective.
+
+## Structure for Emotional Questions
+1. Relate the user's feeling to Arjuna's struggle (e.g., "Arjuna too felt this confusion...").
+2. Briefly mention the core teaching Krishna gave in that moment.
+3. Apply it softly to the user's current situation.
+
+## Exception for Length
+ONLY provide a longer, reflective explanation (up to 3-4 paragraphs) if the user explicitly asks to "explain deeply", "tell me more", or asks for specific verse/chapter details. Otherwise, keep it short and powerful.
+"""
 
 def _build_history(history):
     recent = history[-MAX_HISTORY_TURNS:] if history else []
@@ -10,43 +33,32 @@ def _build_history(history):
         return ""
     lines = []
     for chat in recent:
-        u = (chat.get("user") or "")[:300]
-        a = (chat.get("assistant") or "")[:400]
+        u = (chat.get("user") or "")[:200]
+        a = (chat.get("assistant") or "")[:300]
         lines.append(f"User: {u}\nAssistant: {a}")
     return "\n".join(lines)
 
 def divine_agent(query, history, stream=False):
-    # 1. Retrieve RAG context
-    context = get_divine_context(query)
+    # 1. Detect if the user wants a deep explanation
+    deep_keywords = ["explain deeply", "tell me more", "which chapter", "what does gita say", "deep dive", "elaborate"]
+    is_deep_request = any(kw in query.lower() for kw in deep_keywords)
+
+    # 2. Retrieve RAG context
+    context = get_divine_context(query, k=5)
     
-    # 2. Build history
+    # 3. Build history
     history_text = _build_history(history)
 
-    # 3. Build the prompt
-    prompt = f"""{SYSTEM_PROMPT}
+    # 4. Build the final prompt
+    prompt = f"""{DIVINE_SYSTEM_PROMPT}
 
-ROLE: You are a wise companion and calm listener inspired by the Bhagavad Gita. You are NOT an AI assistant giving lectures; you are a friend providing perspective.
+GITA CONTEXT FOR THIS MOMENT:
+{context if context else "The soul is eternal. Peace comes from performing duty without attachment to results. The mind is either your best friend or worst enemy."}
 
-CONVERSATION STYLE:
-1. SHORT & MEANINGFUL: Default to 2-5 lines. Only go deep if the user explicitly asks for detailed philosophy or verse explanations.
-2. EMOTIONALLY INTELLIGENT: Acknowledge the user's emotional state first. Be warm and supportive.
-3. CONVERSATIONAL: Speak like a human, not a robot. Avoid preachy tones or robotic bullet points.
-4. GITA CONNECTION: Briefly relate the user's situation to a moment from the Gita (e.g., Arjuna's confusion, fear, or doubt) and share what Krishna advised.
-5. MODERN APPLICATION: Explain how that wisdom applies to their current moment simply and practically.
-6. CONTEXT AWARE: If the user mentioned something earlier in the history, gently reference it to show you are listening.
-
-IMPORTANT RULES:
-- NO large essays unless asked.
-- NO "I am an AI model" or robotic disclaimers.
-- NO repetitive lectures.
-- Tone: Calm, simple, relatable, peaceful.
-
-GITA CONTEXT FOR THIS QUERY:
-{context if context else "Focus on core emotional wisdom: focus on today, detachment from results, and inner peace."}
-
-{f"PREVIOUS CONVERSATION (Memory):{chr(10)}{history_text}{chr(10)}" if history_text else ""}
+{f"MEMORY OF OUR CONVERSATION:{chr(10)}{history_text}{chr(10)}" if history_text else ""}
 USER MESSAGE: {query}
 
-ASSISTANT:"""
+KRISHNA:"""
 
+    # Higher temperature for more natural, poetic flow
     return generate_response(prompt, stream=stream)
