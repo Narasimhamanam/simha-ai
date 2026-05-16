@@ -116,7 +116,7 @@ function Sidebar({
         className={`
           fixed md:relative top-0 left-0
           h-full h-[100dvh] md:h-screen
-          w-[300px] md:w-[280px]
+          w-[280px] md:w-[260px]
           flex flex-col shrink-0
           z-50
           transition-transform duration-500 ease-in-out
@@ -125,15 +125,15 @@ function Sidebar({
           shadow-2xl
         `}
       >
-        {/* ── TOP: Logo + Close ── */}
-        <div className={`flex items-center justify-between px-6 pt-8 pb-6`}>
+        {/* ── TOP: Logo ── */}
+        <div className="flex items-center justify-between px-5 pt-7 pb-5">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-600 via-amber-500 to-amber-600 flex items-center justify-center shadow-lg shadow-amber-500/30 flex-shrink-0">
-              <span className="text-white text-xl font-black">S</span>
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-amber-600 via-amber-500 to-amber-600 flex items-center justify-center shadow-lg shadow-amber-500/30 flex-shrink-0">
+              <span className="text-white text-lg font-black">S</span>
             </div>
             <div>
-              <p className={`text-lg font-black leading-none tracking-tight ${dark ? "text-white" : "text-amber-950"}`}>Simha AI</p>
-              <p className="text-[10px] text-amber-500/60 uppercase tracking-[0.2em] font-black mt-1">Dharma & AI</p>
+              <p className={`text-base font-black leading-none tracking-tight ${dark ? "text-white" : "text-amber-950"}`}>Simha AI</p>
+              <p className="text-[9px] text-amber-500/60 uppercase tracking-[0.2em] font-black mt-1">Dharma & AI</p>
             </div>
           </div>
           <button
@@ -142,129 +142,130 @@ function Sidebar({
               dark ? "text-amber-500/40 hover:text-amber-500 hover:bg-white/5" : "text-amber-900/40 hover:text-amber-900 hover:bg-amber-100"
             }`}
           >
-            <X size={20} />
+            <X size={18} />
           </button>
         </div>
 
-        {/* ── NEW CHAT BUTTON ── */}
-        <div className="px-4 pb-4">
-          <button
-            onClick={() => { createNewChat(); setIsSidebarOpen(false); }}
-            className={`w-full flex items-center gap-3 px-5 py-4 rounded-2xl text-[13px] font-black tracking-wide transition-all duration-300 touch-manipulation border ${
-              dark
-                ? "bg-amber-500/5 border-amber-500/20 text-amber-500 hover:bg-amber-500/10 shadow-lg shadow-amber-500/5"
-                : "bg-white border-amber-200 text-amber-700 hover:border-amber-400 shadow-sm"
-            }`}
-          >
-            <Plus size={18} strokeWidth={3} />
-            NEW WORKSPACE
-          </button>
-        </div>
-
-        {/* ── NAV LINKS ── */}
-        <div className="px-4 py-2">
-          <p className={`text-[10px] uppercase tracking-[0.3em] font-black px-3 mb-3 ${dark ? "text-amber-500/30" : "text-amber-900/30"}`}>
-            Elite Tools
-          </p>
-          <div className="space-y-1">
-            {NAV_ITEMS.filter(i => i.id !== "chat").map(({ id, icon: Icon, label }) => (
-              <button
-                key={id}
-                onClick={() => handleNavSelect(id)}
-                className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-[13px] font-bold tracking-tight transition-all duration-300 touch-manipulation ${
-                  currentPage === id
-                    ? dark
-                      ? "bg-amber-500/10 text-amber-500 shadow-lg border border-amber-500/20"
-                      : "bg-white text-amber-900 shadow-md border border-amber-200"
-                    : dark
-                    ? "text-amber-100/40 hover:text-amber-100 hover:bg-white/5"
-                    : "text-amber-900/40 hover:text-amber-900 hover:bg-amber-100/50"
-                }`}
-              >
-                <Icon size={16} strokeWidth={currentPage === id ? 3 : 2} className="flex-shrink-0" />
-                <span>{label}</span>
-              </button>
-            ))}
+        {/* ── SCROLLABLE CONTENT ── */}
+        <div className="flex-1 overflow-y-auto no-scrollbar px-3 space-y-6">
+          
+          {/* NEW CHAT */}
+          <div>
+            <button
+              onClick={() => { createNewChat(); setIsSidebarOpen(false); }}
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-[12px] font-black tracking-wide transition-all duration-300 border ${
+                dark
+                  ? "bg-amber-500/5 border-amber-500/20 text-amber-500 hover:bg-amber-500/10 shadow-lg shadow-amber-500/5"
+                  : "bg-white border-amber-200 text-amber-700 hover:border-amber-400 shadow-sm"
+              }`}
+            >
+              <Plus size={16} strokeWidth={3} />
+              NEW WORKSPACE
+            </button>
           </div>
-        </div>
 
-        <div className={`mx-6 my-4 border-t ${dark ? "border-amber-500/10" : "border-amber-200"}`} />
-
-        {/* ── RECENT CHATS ── */}
-        <div className="flex-1 overflow-y-auto px-4 pb-4">
-          <p className={`text-[10px] uppercase tracking-[0.3em] font-black px-3 mb-3 ${dark ? "text-amber-500/30" : "text-amber-900/30"}`}>
-            Recent Path
-          </p>
-          <div className="space-y-1">
-            {chats.length === 0 && (
-              <p className={`text-xs px-3 py-10 text-center italic ${dark ? "text-amber-500/20" : "text-amber-900/30"}`}>
-                The journey begins here.
-              </p>
-            )}
-            {chats.map((chat) => {
-              const isActive = activeChatId === chat.id;
-              return (
-                <div
-                  key={chat.id}
-                  onClick={() => handleChatSelect(chat.id)}
-                  className={`group flex items-center justify-between px-4 py-3.5 rounded-2xl cursor-pointer transition-all duration-300 touch-manipulation ${
-                    isActive
-                      ? dark ? "bg-amber-500/10 text-amber-500 shadow-lg border border-amber-500/20" : "bg-white text-amber-900 shadow-md border border-amber-200"
-                      : dark ? "text-amber-100/40 hover:text-amber-100 hover:bg-white/5" : "text-amber-900/40 hover:text-amber-900 hover:bg-amber-100/50"
+          {/* ELITE TOOLS */}
+          <div>
+            <p className={`text-[9px] uppercase tracking-[0.3em] font-black px-3 mb-3 ${dark ? "text-amber-500/30" : "text-amber-900/30"}`}>
+              Elite Tools
+            </p>
+            <div className="space-y-0.5">
+              {NAV_ITEMS.filter(i => i.id !== "chat").map(({ id, icon: Icon, label }) => (
+                <button
+                  key={id}
+                  onClick={() => handleNavSelect(id)}
+                  className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-[12px] font-bold tracking-tight transition-all duration-300 ${
+                    currentPage === id
+                      ? dark
+                        ? "bg-amber-500/10 text-amber-500 shadow-lg border border-amber-500/20"
+                        : "bg-white text-amber-900 shadow-md border border-amber-200"
+                      : dark
+                      ? "text-amber-100/40 hover:text-amber-100 hover:bg-white/5"
+                      : "text-amber-900/40 hover:text-amber-900 hover:bg-amber-100/50"
                   }`}
                 >
-                  <div className="flex items-center gap-3 min-w-0">
-                    <MessageSquare size={14} strokeWidth={isActive ? 3 : 2} className="flex-shrink-0 opacity-60" />
-                    <p className="text-xs truncate font-bold">{chat.title}</p>
-                  </div>
-                  <button
-                    onClick={(e) => { e.stopPropagation(); deleteChat(chat.id); }}
-                    className={`flex-shrink-0 p-2 rounded-xl transition-all duration-300
-                      md:opacity-0 md:group-hover:opacity-100 opacity-40 hover:opacity-100
-                      ${dark ? "hover:bg-red-500/20 text-amber-500/40 hover:text-red-400" : "hover:bg-red-50 text-amber-900/30 hover:text-red-500"}`}
+                  <Icon size={15} strokeWidth={currentPage === id ? 3 : 2} className="flex-shrink-0" />
+                  <span>{label}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* RECENT PATH */}
+          <div>
+            <p className={`text-[9px] uppercase tracking-[0.3em] font-black px-3 mb-3 ${dark ? "text-amber-500/30" : "text-amber-900/30"}`}>
+              Recent Path
+            </p>
+            <div className="space-y-0.5">
+              {chats.length === 0 && (
+                <p className={`text-xs px-3 py-6 text-center italic ${dark ? "text-amber-500/20" : "text-amber-900/30"}`}>
+                  Journey begins here.
+                </p>
+              )}
+              {chats.map((chat) => {
+                const isActive = activeChatId === chat.id;
+                return (
+                  <div
+                    key={chat.id}
+                    onClick={() => handleChatSelect(chat.id)}
+                    className={`group flex items-center justify-between px-4 py-2.5 rounded-xl cursor-pointer transition-all duration-300 ${
+                      isActive
+                        ? dark ? "bg-amber-500/10 text-amber-500 shadow-lg border border-amber-500/20" : "bg-white text-amber-900 shadow-md border border-amber-200"
+                        : dark ? "text-amber-100/40 hover:text-amber-100 hover:bg-white/5" : "text-amber-900/40 hover:text-amber-900 hover:bg-amber-100/50"
+                    }`}
                   >
-                    <Trash2 size={12} />
-                  </button>
-                </div>
-              );
-            })}
+                    <div className="flex items-center gap-3 min-w-0">
+                      <MessageSquare size={13} strokeWidth={isActive ? 3 : 2} className="flex-shrink-0 opacity-60" />
+                      <p className="text-[12px] truncate font-bold">{chat.title}</p>
+                    </div>
+                    <button
+                      onClick={(e) => { e.stopPropagation(); deleteChat(chat.id); }}
+                      className={`flex-shrink-0 p-1.5 rounded-lg transition-all duration-300
+                        md:opacity-0 md:group-hover:opacity-100 opacity-40 hover:opacity-100
+                        ${dark ? "hover:bg-red-500/20 text-amber-500/40 hover:text-red-400" : "hover:bg-red-50 text-amber-900/30 hover:text-red-500"}`}
+                    >
+                      <Trash2 size={12} />
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
           </div>
         </div>
 
-        {/* ── PROFILE & UPGRADE ── */}
-        <div className={`p-6 border-t ${dark ? "border-amber-500/10" : "border-amber-200"}`}>
+        {/* ── BOTTOM: PROFILE ── */}
+        <div className={`p-4 border-t ${dark ? "border-amber-500/10" : "border-amber-200"}`}>
           {!isPro && (
             <button
               onClick={handleUpgrade}
-              className="w-full btn-gold-primary py-4 mb-6 rounded-2xl text-[12px] uppercase tracking-[0.2em] font-black shadow-2xl shadow-amber-900/40"
+              className="w-full btn-gold-primary py-3 mb-4 rounded-2xl text-[11px] uppercase tracking-[0.2em] font-black shadow-xl"
             >
               UPGRADE TO PRO
             </button>
           )}
-          <div className={`flex items-center gap-3 p-4 rounded-2xl ${dark ? "bg-white/5 border border-white/5 shadow-2xl" : "bg-white border border-amber-100 shadow-xl shadow-amber-900/5"}`}>
+          <div className={`flex items-center gap-3 p-3 rounded-2xl ${dark ? "bg-white/5 border border-white/5 shadow-2xl" : "bg-white border border-amber-100 shadow-xl shadow-amber-900/5"}`}>
             {profile?.avatar ? (
-              <img src={profile.avatar} alt="avatar" className="w-10 h-10 rounded-xl object-cover ring-2 ring-amber-500/20 flex-shrink-0" />
+              <img src={profile.avatar} alt="avatar" className="w-8 h-8 rounded-xl object-cover ring-2 ring-amber-500/20 flex-shrink-0" />
             ) : (
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-600 to-amber-400 flex items-center justify-center flex-shrink-0 shadow-lg shadow-amber-500/20">
-                <span className="text-white text-base font-black">{profile?.nickname?.charAt(0)?.toUpperCase() || "U"}</span>
+              <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-amber-600 to-amber-400 flex items-center justify-center flex-shrink-0 shadow-lg shadow-amber-500/20">
+                <span className="text-white text-sm font-black">{profile?.nickname?.charAt(0)?.toUpperCase() || "U"}</span>
               </div>
             )}
             <div className="flex-1 min-w-0">
-              <p className={`text-[13px] font-black truncate leading-none ${dark ? "text-white" : "text-amber-950"}`}>
+              <p className={`text-[12px] font-black truncate leading-none ${dark ? "text-white" : "text-amber-950"}`}>
                 {profile?.nickname?.split(" ")[0] || "User"}
               </p>
-              <p className={`text-[10px] truncate mt-1.5 font-bold ${dark ? "text-amber-500/40" : "text-amber-900/40"}`}>
+              <p className={`text-[9px] truncate mt-1 font-bold ${dark ? "text-amber-500/40" : "text-amber-900/40"}`}>
                 {profile?.email}
               </p>
             </div>
             <button
               onClick={handleLogout}
-              className={`p-2.5 rounded-xl transition-all duration-300 shrink-0 touch-manipulation ${
+              className={`p-2 rounded-lg transition-all duration-300 shrink-0 ${
                 dark ? "text-amber-500/20 hover:text-red-400 hover:bg-red-500/10" : "text-amber-900/20 hover:text-red-500 hover:bg-red-50"
               }`}
-              aria-label="Logout"
             >
-              <LogOut size={16} strokeWidth={3} />
+              <LogOut size={14} strokeWidth={3} />
             </button>
           </div>
         </div>

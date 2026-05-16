@@ -86,12 +86,12 @@ function Header({ theme, setTheme, profile, setIsSidebarOpen, activeChat, curren
         )}
         {/* Pro Badge */}
         {isPro && (
-          <div className={`mr-4 flex items-center gap-2 px-4 py-2 rounded-full text-[11px] font-black tracking-widest shadow-xl transition-all duration-300 ${
+          <div className={`mr-4 flex items-center gap-2 px-5 py-2.5 rounded-full text-[11px] font-black tracking-widest transition-all duration-500 shadow-[0_0_20px_rgba(245,158,11,0.2)] ${
             dark 
-              ? "bg-amber-500/10 text-amber-400 border border-amber-500/30 shadow-amber-500/10" 
-              : "bg-amber-100 text-amber-800 border border-amber-200"
+              ? "bg-gradient-to-r from-amber-600 to-amber-400 text-black border border-amber-400/50" 
+              : "bg-gradient-to-r from-amber-500 to-amber-400 text-white border border-amber-300 shadow-amber-900/10"
           }`}>
-            <span>👑</span>
+            <span className="text-sm">👑</span>
             PRO MEMBER
           </div>
         )}
