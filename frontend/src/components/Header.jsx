@@ -27,7 +27,7 @@ const PAGE_EMOJIS = {
   settings: "⚙️",
 };
 
-function Header({ theme, setTheme, profile, setIsSidebarOpen, activeChat, currentPage, createNewChat, credits }) {
+function Header({ theme, setTheme, profile, setIsSidebarOpen, activeChat, currentPage, createNewChat, credits, isPro }) {
   const dark = theme === "dark";
   const firstName = profile?.nickname?.split(" ")[0] || "";
   const chatTitle = activeChat?.title && activeChat.title !== "New Chat" ? activeChat.title : null;
@@ -72,7 +72,7 @@ function Header({ theme, setTheme, profile, setIsSidebarOpen, activeChat, curren
       {/* RIGHT — Theme toggle + New chat */}
       <div className="flex items-center gap-1">
         {/* Credits Badge */}
-        {credits !== undefined && credits !== null && (
+        {(credits !== undefined && credits !== null) && !isPro && (
           <div className={`mr-2 flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold shadow-sm ${
             credits <= 0 
               ? dark ? "bg-red-500/20 text-red-400" : "bg-red-100 text-red-600"
@@ -80,6 +80,15 @@ function Header({ theme, setTheme, profile, setIsSidebarOpen, activeChat, curren
           }`}>
             <span>⚡</span>
             {credits.toFixed(1)}
+          </div>
+        )}
+        {/* Pro Badge */}
+        {isPro && (
+          <div className={`mr-2 flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold shadow-sm ${
+            dark ? "bg-amber-500/20 text-amber-400" : "bg-amber-100 text-amber-600"
+          }`}>
+            <span>👑</span>
+            PRO
           </div>
         )}
         <ThemeToggle theme={theme} setTheme={setTheme} />

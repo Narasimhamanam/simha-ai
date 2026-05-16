@@ -48,6 +48,7 @@ function Home() {
   const [chats, setChats] = useState(isDevGuest ? [{ id: guestChatId, title: "New Chat", messages: [] }] : []);
   const [activeChatId, setActiveChatId] = useState(isDevGuest ? guestChatId : null);
   const [credits, setCredits] = useState(10);
+  const [isPro, setIsPro] = useState(false);
   const retryCountRef = useRef(0);
 
   const fetchCredits = useCallback(async (email) => {
@@ -55,6 +56,7 @@ function Home() {
     try {
       const res = await API.get(`/user-credits/${email}`);
       setCredits(res.data.credits);
+      setIsPro(res.data.is_pro);
     } catch (e) {
       console.error("Failed to fetch credits", e);
     }
@@ -325,7 +327,7 @@ function Home() {
     <div className="fixed inset-0 flex overflow-hidden text-sm bg-white dark:bg-[#0a0a0a] text-gray-900 dark:text-gray-100">
       <ConnectionStatus theme={theme} />
 
-      <Sidebar
+        <Sidebar
         theme={theme}
         chats={chats}
         setChats={setChats}
@@ -338,6 +340,7 @@ function Home() {
         handleLogout={handleLogout}
         isSidebarOpen={isSidebarOpen}
         setIsSidebarOpen={setIsSidebarOpen}
+        isPro={isPro}
       />
 
       <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
@@ -351,6 +354,7 @@ function Home() {
           currentPage={currentPage}
           createNewChat={createNewChat}
           credits={credits}
+          isPro={isPro}
         />
 
         {currentPage === "chat" && (
@@ -362,17 +366,18 @@ function Home() {
             activeChatId={activeChatId}
             user={user}
             credits={credits}
+            isPro={isPro}
             fetchCredits={() => fetchCredits(user?.email)}
           />
         )}
         {currentPage === "email" && (
-          <EmailComposer theme={theme} profile={profile} onClose={() => setCurrentPage("chat")} credits={credits} fetchCredits={() => fetchCredits(user?.email)} />
+          <EmailComposer theme={theme} profile={profile} onClose={() => setCurrentPage("chat")} credits={credits} isPro={isPro} fetchCredits={() => fetchCredits(user?.email)} />
         )}
         {currentPage === "calendar" && (
-          <CalendarComposer theme={theme} profile={profile} onClose={() => setCurrentPage("chat")} credits={credits} fetchCredits={() => fetchCredits(user?.email)} />
+          <CalendarComposer theme={theme} profile={profile} onClose={() => setCurrentPage("chat")} credits={credits} isPro={isPro} fetchCredits={() => fetchCredits(user?.email)} />
         )}
         {currentPage === "url" && (
-          <UrlSummarizer theme={theme} onClose={() => setCurrentPage("chat")} credits={credits} fetchCredits={() => fetchCredits(user?.email)} userEmail={user?.email} />
+          <UrlSummarizer theme={theme} onClose={() => setCurrentPage("chat")} credits={credits} isPro={isPro} fetchCredits={() => fetchCredits(user?.email)} userEmail={user?.email} />
         )}
         {currentPage === "history" && (
           <ChatHistoryPage

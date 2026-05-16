@@ -27,9 +27,9 @@ const SUGGESTIONS = [
   "Interview prep tips",
 ];
 
-function ChatArea({ theme, chats, setChats, activeChat, activeChatId, user, credits, fetchCredits }) {
+function ChatArea({ theme, chats, setChats, activeChat, activeChatId, user, credits, fetchCredits, isPro }) {
   const dark = theme === "dark";
-  const outOfCredits = credits !== undefined && credits <= 0;
+  const outOfCredits = !isPro && credits !== undefined && credits <= 0;
 
   const [input, setInput] = useState("");
   const [selectedAgent, setSelectedAgent] = useState("study");

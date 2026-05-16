@@ -14,9 +14,9 @@ const CATEGORY_COLORS = {
   other: "bg-gray-500/20 text-gray-400",
 };
 
-export default function UrlSummarizer({ theme, onClose, credits, fetchCredits, userEmail }) {
+export default function UrlSummarizer({ theme, onClose, credits, fetchCredits, userEmail, isPro }) {
   const dark = theme === "dark";
-  const outOfCredits = credits !== undefined && credits <= 0;
+  const outOfCredits = !isPro && credits !== undefined && credits <= 0;
 
   const [url, setUrl] = useState("");
   const [loading, setLoading] = useState(false);

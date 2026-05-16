@@ -14,9 +14,9 @@ calendarProvider.setCustomParameters({ prompt: "consent" });
 
 const STEP = { PROMPT: "prompt", DRAFT: "draft", PERMISSION: "permission", SAVING: "saving", SUCCESS: "success", ERROR: "error" };
 
-export default function CalendarComposer({ theme, profile, onClose, credits, fetchCredits }) {
+export default function CalendarComposer({ theme, profile, onClose, credits, fetchCredits, isPro }) {
   const dark = theme === "dark";
-  const outOfCredits = credits !== undefined && credits <= 0;
+  const outOfCredits = !isPro && credits !== undefined && credits <= 0;
 
   const [step, setStep] = useState(STEP.PROMPT);
   const [prompt, setPrompt] = useState("");

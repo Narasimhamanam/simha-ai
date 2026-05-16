@@ -17,7 +17,7 @@ const NAV_ITEMS = [
 function Sidebar({
   theme, chats, setChats, activeChatId, setActiveChatId,
   createNewChat, currentPage, setCurrentPage,
-  profile, handleLogout, isSidebarOpen, setIsSidebarOpen,
+  profile, handleLogout, isSidebarOpen, setIsSidebarOpen, isPro
 }) {
   const dark = theme === "dark";
 
@@ -28,6 +28,18 @@ function Sidebar({
       setChats(updated);
       if (updated.length > 0) setActiveChatId(updated[0].id);
     } catch (error) { console.log(error); }
+  };
+
+  const handleUpgrade = async () => {
+    try {
+      const res = await API.post("/create-checkout-session", { email: profile?.email });
+      if (res.data.url) {
+        window.location.href = res.data.url;
+      }
+    } catch (error) {
+      console.error("Upgrade error:", error);
+      alert("Failed to initiate upgrade. Please try again later.");
+    }
   };
 
   const handleChatSelect = (chatId) => {
@@ -168,8 +180,16 @@ function Sidebar({
           </div>
         </div>
 
-        {/* ── PROFILE ── */}
+        {/* ── PROFILE & UPGRADE ── */}
         <div className={`p-3 border-t ${dark ? "border-gray-900" : "border-gray-200"}`}>
+          {!isPro && (
+            <button
+              onClick={handleUpgrade}
+              className="w-full flex items-center justify-center gap-2 py-2.5 mb-3 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 text-white text-[13px] font-bold shadow-md hover:opacity-90 active:scale-95 transition touch-manipulation"
+            >
+              <span>👑</span> Upgrade to PRO
+            </button>
+          )}
           <div className={`flex items-center gap-3 p-2.5 rounded-xl ${dark ? "bg-white/4" : "bg-gray-100"}`}>
             {profile?.avatar ? (
               <img src={profile.avatar} alt="avatar" className="w-9 h-9 rounded-full object-cover ring-2 ring-purple-500/30 flex-shrink-0" />
