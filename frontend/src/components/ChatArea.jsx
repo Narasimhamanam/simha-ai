@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from "react";
-import { Paperclip, Copy, Check, X, ArrowUp, ImageIcon } from "lucide-react";
+import { Paperclip, Copy, Check, X, ArrowUp, ImageIcon, Volume2, VolumeX, Sparkles } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
@@ -18,6 +19,14 @@ const AGENTS = [
   { value: "study",        label: "📚 Study",        desc: "Academics & Placement" },
   { value: "coding",       label: "💻 Coding",        desc: "Code & Debugging" },
   { value: "productivity", label: "🚀 Productivity",  desc: "Tasks & Planning" },
+  { value: "divine",       label: "🦚 Divine",       desc: "Ask Krishna (Gita Wisdom)" },
+];
+
+const DIVINE_SUGGESTIONS = [
+  "I feel lost in life",
+  "How do I stop overthinking?",
+  "I am afraid of failure",
+  "How can I stay disciplined?",
 ];
 
 const SUGGESTIONS = [
@@ -40,6 +49,24 @@ function ChatArea({ theme, chats, setChats, activeChat, activeChatId, user, cred
   const [uploading, setUploading] = useState(false);
   const [copiedCode, setCopiedCode] = useState("");
   const [showAgentPicker, setShowAgentPicker] = useState(false);
+  const [isMusicPlaying, setIsMusicPlaying] = useState(false);
+  const audioRef = useRef(null);
+
+  const isDivine = selectedAgent === "divine";
+
+  useEffect(() => {
+    if (isDivine && isMusicPlaying) {
+      if (!audioRef.current) {
+        audioRef.current = new Audio("https://assets.mixkit.co/music/preview/mixkit-relaxing-meditation-22.mp3");
+        audioRef.current.loop = true;
+        audioRef.current.volume = 0.4;
+      }
+      audioRef.current.play().catch(e => console.log("Music play blocked:", e));
+    } else {
+      audioRef.current?.pause();
+    }
+    return () => audioRef.current?.pause();
+  }, [isDivine, isMusicPlaying]);
 
   const messagesEndRef = useRef(null);
   const fileInputRef = useRef(null);
@@ -289,34 +316,68 @@ function ChatArea({ theme, chats, setChats, activeChat, activeChatId, user, cred
 
             {/* Welcome View */}
             {!activeChat?.messages.length && (
-              <div className="flex-1 flex flex-col items-center justify-center p-8 text-center animate-in fade-in slide-in-from-bottom-8 duration-1000">
-                <div className="w-24 h-24 mb-10 group hover:rotate-12 transition-all duration-700">
-                  <img src="/logo-lion.png" alt="Simha AI Logo" className="w-full h-full object-contain logo-mask filter drop-shadow-[0_0_25px_rgba(245,158,11,0.6)]" />
+              <motion.div 
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className={`flex-1 flex flex-col items-center justify-center p-8 text-center ${isDivine ? "divine-aura" : ""}`}
+              >
+                <div className={`w-24 h-24 mb-10 group hover:rotate-12 transition-all duration-700 ${isDivine ? "animate-divine-float" : ""}`}>
+                  {isDivine ? (
+                    <div className="w-full h-full flex items-center justify-center text-6xl drop-shadow-[0_0_15px_rgba(14,165,233,0.8)]">🦚</div>
+                  ) : (
+                    <img src="/logo-lion.png" alt="Simha AI Logo" className="w-full h-full object-contain logo-mask filter drop-shadow-[0_0_25px_rgba(245,158,11,0.6)]" />
+                  )}
                 </div>
-                <h2 className={`text-4xl font-black mb-4 tracking-tight text-amber-500`}>
-                  How can I guide you?
+                
+                <h2 className={`text-4xl font-black mb-4 tracking-tight ${isDivine ? "text-divine-gradient" : "text-amber-500"}`}>
+                  {isDivine ? "Ask Krishna" : "How can I guide you?"}
                 </h2>
-                <p className={`text-sm max-w-sm mb-12 leading-relaxed font-medium ${dark ? "text-amber-100/40" : "text-amber-900/60"}`}>
-                  Protected by Intelligence. Guided by Dharma.<br/>Ask anything to start your journey.
+                
+                <p className={`text-sm max-w-sm mb-12 leading-relaxed font-medium ${
+                  isDivine 
+                    ? dark ? "text-sky-200/60" : "text-sky-900/60"
+                    : dark ? "text-amber-100/40" : "text-amber-900/60"
+                }`}>
+                  {isDivine 
+                    ? "Seek clarity through the timeless wisdom of the Bhagavad Gita. Share your heart's burden."
+                    : "Protected by Intelligence. Guided by Dharma. Ask anything to start your journey."}
                 </p>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full max-w-2xl">
-                  {SUGGESTIONS.map((s, i) => (
+                  {(isDivine ? DIVINE_SUGGESTIONS : SUGGESTIONS).map((s, i) => (
                     <button
                       key={i}
-                      onClick={() => setInput(s)}
+                      onClick={() => handleSend(s)}
                       className={`p-5 text-left rounded-3xl border transition-all duration-500 hover:scale-[1.03] ${
-                        dark 
-                          ? "bg-white/5 border-amber-500/10 text-amber-100/60 hover:bg-white/10 hover:border-amber-500/30" 
-                          : "bg-white border-amber-100 text-amber-900/70 hover:border-amber-400 hover:shadow-2xl shadow-amber-900/5"
+                        isDivine
+                          ? dark
+                            ? "bg-sky-900/20 border-sky-500/20 text-sky-100/60 hover:bg-sky-500/10 hover:border-sky-500/40"
+                            : "bg-white border-sky-100 text-sky-900/70 hover:border-sky-400 hover:shadow-2xl shadow-sky-900/5"
+                          : dark 
+                            ? "bg-white/5 border-amber-500/10 text-amber-100/60 hover:bg-white/10 hover:border-amber-500/30" 
+                            : "bg-white border-amber-100 text-amber-900/70 hover:border-amber-400 hover:shadow-2xl shadow-amber-900/5"
                       }`}
                     >
-                      <p className="text-[13px] font-bold tracking-wide uppercase opacity-40 mb-1">Knowledge Path</p>
+                      <p className={`text-[13px] font-bold tracking-wide uppercase opacity-40 mb-1`}>
+                        {isDivine ? "Divine Wisdom" : "Knowledge Path"}
+                      </p>
                       <p className="text-sm font-black">{s}</p>
                     </button>
                   ))}
                 </div>
-              </div>
+
+                {isDivine && (
+                  <button 
+                    onClick={() => setIsMusicPlaying(!isMusicPlaying)}
+                    className={`mt-12 flex items-center gap-2 px-4 py-2 rounded-full border transition-all ${
+                      dark ? "border-sky-500/20 text-sky-400 hover:bg-sky-500/10" : "border-sky-200 text-sky-600 hover:bg-sky-50"
+                    }`}
+                  >
+                    {isMusicPlaying ? <Volume2 size={16} /> : <VolumeX size={16} />}
+                    <span className="text-xs font-bold uppercase tracking-widest">Ambient Flute</span>
+                  </button>
+                )}
+              </motion.div>
             )}
 
           <div className="h-4" />
@@ -328,18 +389,32 @@ function ChatArea({ theme, chats, setChats, activeChat, activeChatId, user, cred
             >
               {/* Assistant avatar */}
               {msg.role === "assistant" && (
-                <div className="w-7 h-7 rounded-full bg-gradient-to-br from-amber-600 to-amber-400 flex items-center justify-center flex-shrink-0 mr-2.5 mt-1 overflow-hidden p-1 shadow-lg shadow-amber-500/20">
-                  <img src="/logo-lion.png" alt="S" className="w-full h-full object-contain logo-mask scale-125" />
+                <div className={`w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 mr-2.5 mt-1 overflow-hidden p-1 shadow-lg ${
+                  isDivine 
+                    ? "bg-gradient-to-br from-sky-600 to-blue-400 shadow-sky-500/20" 
+                    : "bg-gradient-to-br from-amber-600 to-amber-400 shadow-amber-500/20"
+                }`}>
+                  {isDivine ? (
+                    <span className="text-sm">🦚</span>
+                  ) : (
+                    <img src="/logo-lion.png" alt="S" className="w-full h-full object-contain logo-mask scale-125" />
+                  )}
                 </div>
               )}
 
               <div 
                       className={`max-w-[85%] md:max-w-[75%] rounded-[32px] px-6 py-5 shadow-sm text-sm leading-relaxed ${
                         msg.role === "user"
-                          ? "bg-gradient-to-br from-amber-600 to-amber-500 text-black font-black ml-4 shadow-xl shadow-amber-900/20 border border-amber-400/30"
+                          ? isDivine
+                            ? "bg-gradient-to-br from-sky-600 to-sky-500 text-white font-black ml-4 shadow-xl shadow-sky-900/20 border border-sky-400/30"
+                            : "bg-gradient-to-br from-amber-600 to-amber-500 text-black font-black ml-4 shadow-xl shadow-amber-900/20 border border-amber-400/30"
                           : dark
-                            ? "bg-[#0c0906]/80 backdrop-blur-xl text-amber-50 border border-amber-500/10 mr-4 shadow-2xl shadow-black/40"
-                            : "bg-white text-slate-800 border border-amber-100 shadow-xl shadow-amber-900/5 mr-4"
+                            ? isDivine
+                              ? "bg-[#06090c]/80 backdrop-blur-xl text-sky-50 border border-sky-500/10 mr-4 shadow-2xl shadow-black/40"
+                              : "bg-[#0c0906]/80 backdrop-blur-xl text-amber-50 border border-amber-500/10 mr-4 shadow-2xl shadow-black/40"
+                            : isDivine
+                              ? "bg-white text-slate-800 border border-sky-100 shadow-xl shadow-sky-900/5 mr-4"
+                              : "bg-white text-slate-800 border border-amber-100 shadow-xl shadow-amber-900/5 mr-4"
                       }`}
                     >
                 {/* Show image if this message has one */}
@@ -443,14 +518,16 @@ function ChatArea({ theme, chats, setChats, activeChat, activeChatId, user, cred
           {/* THINKING DOTS */}
           {loading && (
             <div className="flex items-start gap-2.5 mb-4">
-              <div className="w-7 h-7 rounded-full bg-gradient-to-br from-amber-600 to-amber-400 flex items-center justify-center flex-shrink-0 overflow-hidden p-1 shadow-lg shadow-amber-500/20">
-                <img src="/logo-lion.png" alt="S" className="w-full h-full object-contain logo-mask scale-125" />
+              <div className={`w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden p-1 shadow-lg ${
+                isDivine ? "bg-gradient-to-br from-sky-600 to-blue-400 shadow-sky-500/20" : "bg-gradient-to-br from-amber-600 to-amber-400 shadow-amber-500/20"
+              }`}>
+                {isDivine ? <span className="text-sm">🦚</span> : <img src="/logo-lion.png" alt="S" className="w-full h-full object-contain logo-mask scale-125" />}
               </div>
               <div className={`px-4 py-3 rounded-2xl rounded-tl-md flex items-center gap-2 ${dark ? "bg-[#1a1a1a]" : "bg-gray-100"}`}>
                 {[0, 1, 2].map((i) => (
                   <div
                     key={i}
-                    className="w-2 h-2 rounded-full bg-amber-500 animate-bounce"
+                    className={`w-2 h-2 rounded-full animate-bounce ${isDivine ? "bg-sky-500" : "bg-amber-500"}`}
                     style={{ animationDelay: `${i * 0.15}s` }}
                   />
                 ))}
@@ -540,7 +617,11 @@ function ChatArea({ theme, chats, setChats, activeChat, activeChatId, user, cred
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={handleKeyDown}
                 rows={1}
-                placeholder={outOfCredits ? "Daily limit reached. Resets tomorrow." : "Message Simha AI..."}
+                placeholder={
+                  outOfCredits 
+                    ? "Daily limit reached. Resets tomorrow." 
+                    : isDivine ? "Ask Krishna..." : "Message Simha AI..."
+                }
                 disabled={loading || uploading || outOfCredits}
                 style={{ resize: "none", minHeight: "28px", fontSize: "16px", lineHeight: "1.6" }}
                 className={`w-full bg-transparent outline-none max-h-28 ${
