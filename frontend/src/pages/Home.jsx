@@ -27,6 +27,16 @@ function Home() {
   const [appLoading, setAppLoading] = useState(false); // true while fetching chats after login
   const [appError, setAppError] = useState("");        // error message during init
   const [selectedAgent, setSelectedAgent] = useState("study");
+  const [isMusicPlaying, setIsMusicPlaying] = useState(false);
+
+  // Auto-play music when switching to Divine Mode
+  useEffect(() => {
+    if (selectedAgent === "divine") {
+      setIsMusicPlaying(true);
+    } else {
+      setIsMusicPlaying(false);
+    }
+  }, [selectedAgent]);
 
   useEffect(() => { document.documentElement.classList.add("dark"); }, []);
   useEffect(() => {
@@ -430,12 +440,25 @@ function Home() {
             activeChat={activeChat}
             activeChatId={activeChatId}
             user={user}
-            credits={credits}
-            isPro={isPro}
             fetchCredits={() => fetchCredits(user?.email)}
             selectedAgent={selectedAgent}
             setSelectedAgent={setSelectedAgent}
+            isMusicPlaying={isMusicPlaying}
+            setIsMusicPlaying={setIsMusicPlaying}
           />
+        )}
+        
+        {/* Hidden YouTube Player for Divine Music */}
+        {selectedAgent === "divine" && (
+          <div className="hidden pointer-events-none opacity-0 invisible">
+            <iframe
+              width="1"
+              height="1"
+              src={`https://www.youtube.com/embed/GnjPoRXYxaM?autoplay=${isMusicPlaying ? 1 : 0}&mute=0&loop=1&playlist=GnjPoRXYxaM&controls=0`}
+              title="Divine Music"
+              allow="autoplay"
+            />
+          </div>
         )}
         {currentPage === "email" && (
           <EmailComposer theme={theme} profile={profile} onClose={() => setCurrentPage("chat")} credits={credits} isPro={isPro} fetchCredits={() => fetchCredits(user?.email)} />

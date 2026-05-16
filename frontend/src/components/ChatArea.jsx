@@ -36,7 +36,7 @@ const SUGGESTIONS = [
   "Interview prep tips",
 ];
 
-function ChatArea({ theme, chats, setChats, activeChat, activeChatId, user, credits, fetchCredits, isPro, selectedAgent, setSelectedAgent }) {
+function ChatArea({ theme, chats, setChats, activeChat, activeChatId, user, credits, fetchCredits, isPro, selectedAgent, setSelectedAgent, isMusicPlaying, setIsMusicPlaying }) {
   const dark = theme === "dark";
   const outOfCredits = !isPro && credits !== undefined && credits <= 0;
 
@@ -48,24 +48,7 @@ function ChatArea({ theme, chats, setChats, activeChat, activeChatId, user, cred
   const [uploading, setUploading] = useState(false);
   const [copiedCode, setCopiedCode] = useState("");
   const [showAgentPicker, setShowAgentPicker] = useState(false);
-  const [isMusicPlaying, setIsMusicPlaying] = useState(false);
-  const audioRef = useRef(null);
-
   const isDivine = selectedAgent === "divine";
-
-  useEffect(() => {
-    if (isDivine && isMusicPlaying) {
-      if (!audioRef.current) {
-        audioRef.current = new Audio("https://assets.mixkit.co/music/preview/mixkit-relaxing-meditation-22.mp3");
-        audioRef.current.loop = true;
-        audioRef.current.volume = 0.4;
-      }
-      audioRef.current.play().catch(e => console.log("Music play blocked:", e));
-    } else {
-      audioRef.current?.pause();
-    }
-    return () => audioRef.current?.pause();
-  }, [isDivine, isMusicPlaying]);
 
   const messagesEndRef = useRef(null);
   const fileInputRef = useRef(null);
