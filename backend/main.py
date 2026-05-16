@@ -23,6 +23,10 @@ from rag.rag_chain import ask_pdf
 
 app = FastAPI()
 
+# Limit concurrent Groq API calls — prevents rate limit errors under load
+# Groq free tier: 30 req/min. Semaphore ensures max 5 calls run at once.
+groq_semaphore = asyncio.Semaphore(5)
+
 # -----------------------------------
 # CORS
 # -----------------------------------
@@ -269,15 +273,28 @@ async def stream_chat(request: ChatRequest):
     if not history and user_id in conversation_memory:
         history = conversation_memory[user_id][-10:]
 
-    # ── Stream response ──
+    # ── Stream response (semaphore caps concurrent Groq calls at 5) ──
     async def generate():
         full_response = ""
-        try:
-            generator = route_query(message, history, stream=True)
-            for chunk in generator:
-                full_response += chunk
-                yield chunk
-                await asyncio.sleep(0)
+        async with groq_semaphore:
+            try:
+                loop = asyncio.get_event_loop()
+                # route_query is sync — run in thread pool to avoid blocking event loop
+                generator = await loop.run_in_executor(
+                    None, lambda: route_query(message, history, stream=False)
+                )
+                # Stream the response in chunks for real-time feel
+                chunk_size = 8
+                for i in range(0, len(generator), chunk_size):
+                    chunk = generator[i:i + chunk_size]
+                    full_response += chunk
+                    yield chunk
+                    await asyncio.sleep(0.01)
+            except Exception as e:
+                error_msg = "⚠️ AI is busy — please try again in a moment."
+                full_response = error_msg
+                yield error_msg
+                print(f"[stream] Error: {e}")
         finally:
             if full_response:
                 # Update in-memory (capped at 20 turns to prevent RAM bloat)
@@ -477,31 +494,34 @@ async def create_chat(
 # -----------------------------------
 
 @app.get("/get-chats/{user_email}")
-async def get_chats(
-    user_email: str
-):
-
+async def get_chats(user_email: str):
     collection = get_chat_collection()
     if collection is None:
-        raise HTTPException(status_code=500, detail=str({"error": "MongoDB not configured (MONGO_URL/DATABASE_NAME missing)."}))
+        # Return empty list gracefully — frontend handles it by creating a new chat
+        return []
 
     try:
-        cursor = collection.find({
-            "user_email": user_email
-        })
-
-        docs = await cursor.to_list(length=50)
+        cursor = collection.find(
+            {"user_email": user_email},
+            sort=[("_id", -1)]   # newest first
+        )
+        docs = await cursor.to_list(length=30)  # cap at 30 chats
     except Exception as exc:
-        raise HTTPException(status_code=500, detail=str({"error": "MongoDB find failed", "details": str(exc)}))
+        print(f"get_chats error for {user_email}: {exc}")
+        return []  # return empty instead of crashing
 
-    return [
-        {
+    result = []
+    for doc in docs:
+        messages = doc.get("messages", [])
+        # Return only last 50 messages to avoid huge payloads
+        if len(messages) > 50:
+            messages = messages[-50:]
+        result.append({
             "id": str(doc["_id"]),
-            "title": doc["title"],
-            "messages": doc.get("messages", []),
-        }
-        for doc in docs
-    ]
+            "title": doc.get("title", "New Chat"),
+            "messages": messages,
+        })
+    return result
 
 # -----------------------------------
 # SAVE MESSAGE
