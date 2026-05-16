@@ -231,10 +231,11 @@ function Home() {
           <img 
             src="/narasimha-hero.png" 
             alt="Divine Guardian" 
-            className="w-full h-full object-cover opacity-90 scale-105 animate-[cinematic-zoom_30s_ease-in-out_infinite_alternate]"
+            className="w-full h-full object-cover object-center md:object-cover opacity-90 scale-105 animate-[cinematic-zoom_30s_ease-in-out_infinite_alternate]"
           />
           {/* Depth Overlays */}
-          <div className="absolute inset-0 bg-gradient-to-r from-[#050301] via-transparent to-transparent md:w-3/4 opacity-80" />
+          <div className="absolute inset-0 bg-gradient-to-b md:bg-gradient-to-r from-[#050301] via-transparent to-transparent opacity-80" />
+          <div className="absolute inset-0 bg-black/40 md:bg-transparent" />
           <div className="absolute inset-0 bg-gradient-to-t from-[#050301] via-transparent to-transparent opacity-60" />
           
           {/* Subtle Particles Overlay */}
@@ -256,9 +257,9 @@ function Home() {
           </div>
         </div>
 
-        {/* Login Card - Left Aligned Luxury */}
-        <div className="relative z-10 w-full max-w-[460px] mx-6 md:ml-24 animate-in fade-in slide-in-from-left-16 duration-1000">
-          <div className="glass-luxury rounded-[48px] p-12 md:p-14 border border-amber-500/10 shadow-[0_0_100px_-20px_rgba(245,158,11,0.15)] group">
+        {/* Login Card - Centered on Mobile, Left on Desktop */}
+        <div className="relative z-10 w-full max-w-[380px] md:max-w-[460px] mx-auto md:mx-0 md:ml-24 animate-in fade-in slide-in-from-bottom-8 md:slide-in-from-left-16 duration-1000">
+          <div className="glass-luxury rounded-[32px] md:rounded-[48px] p-8 md:p-14 border border-amber-500/10 shadow-[0_0_100px_-20px_rgba(245,158,11,0.15)] group">
             
             {/* Animated Golden Shimmer Border */}
             <div className="absolute inset-0 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-700">
@@ -266,21 +267,21 @@ function Home() {
             </div>
 
             {/* Logo Icon */}
-            <div className="w-20 h-20 rounded-[28px] bg-gradient-to-br from-amber-600 via-amber-400 to-orange-500 flex items-center justify-center mb-10 shadow-2xl shadow-amber-500/40 transform hover:rotate-[10deg] transition-all duration-700 mx-auto md:mx-0 ring-1 ring-amber-400/30">
-              <span className="text-white text-3xl font-black tracking-tighter">S</span>
+            <div className="w-16 h-16 md:w-20 md:h-20 rounded-2xl md:rounded-[28px] bg-gradient-to-br from-amber-600 via-amber-400 to-orange-500 flex items-center justify-center mb-8 md:mb-10 shadow-2xl shadow-amber-500/40 transform hover:rotate-[10deg] transition-all duration-700 mx-auto md:mx-0 ring-1 ring-amber-400/30">
+              <span className="text-white text-2xl md:text-3xl font-black tracking-tighter">S</span>
             </div>
 
-            <h1 className="text-5xl font-black mb-4 tracking-tighter text-gold-gradient">
+            <h1 className="text-4xl md:text-5xl font-black mb-3 md:mb-4 tracking-tighter text-gold-gradient text-center md:text-left">
               Simha AI
             </h1>
             
-            <p className="text-amber-100/80 text-base mb-14 font-medium leading-relaxed tracking-wide">
+            <p className="text-amber-100/80 text-sm md:text-base mb-10 md:mb-14 font-medium leading-relaxed tracking-wide text-center md:text-left">
               Where Divine Strength meets<br/>Artificial Intelligence.
             </p>
 
             <button
               onClick={handleGoogleLogin}
-              className="w-full btn-gold-shine group flex items-center justify-center gap-4 py-5 px-8 rounded-2xl bg-gradient-to-r from-amber-600 to-amber-500 text-black font-black hover:from-amber-500 hover:to-amber-400 active:scale-95 transition-all duration-300 shadow-2xl shadow-amber-900/40 border border-amber-400/50"
+              className="w-full btn-gold-shine group flex items-center justify-center gap-3 md:gap-4 py-4 md:py-5 px-6 md:px-8 rounded-xl md:rounded-2xl bg-gradient-to-r from-amber-600 to-amber-500 text-black font-black hover:from-amber-500 hover:to-amber-400 active:scale-95 transition-all duration-300 shadow-2xl shadow-amber-900/40 border border-amber-400/50 text-[13px] md:text-base"
             >
               <svg className="w-5 h-5 transition-transform group-hover:scale-110" viewBox="0 0 24 24">
                 <path fill="#000" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -292,7 +293,7 @@ function Home() {
             </button>
 
             {/* Divine Quote Section */}
-            <div className="mt-16 pt-10 border-t border-amber-500/10 text-center md:text-left">
+            <div className="mt-12 md:mt-16 pt-8 md:pt-10 border-t border-amber-500/10 text-center md:text-left">
               <p className="font-['Playfair_Display'] italic text-amber-200/60 text-sm leading-relaxed mb-2 drop-shadow-sm">
                 “Fear not, my devotee. I stand beside those who walk with courage and faith.”
               </p>
