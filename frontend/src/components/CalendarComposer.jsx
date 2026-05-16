@@ -129,7 +129,7 @@ export default function CalendarComposer({ theme, profile, onClose, credits, fet
         {/* Header */}
         <div className={`flex items-center justify-between px-5 py-4 border-b shrink-0 ${dark ? "border-gray-800" : "border-gray-100"}`}>
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-600 to-purple-600 flex items-center justify-center">
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-600 to-amber-400 flex items-center justify-center shadow-lg shadow-amber-500/20">
               <CalendarDays size={15} className="text-white" />
             </div>
             <div>
@@ -169,7 +169,7 @@ export default function CalendarComposer({ theme, profile, onClose, credits, fet
               <button
                 onClick={handleGenerate}
                 disabled={!prompt.trim() || generating || outOfCredits}
-                className="w-full flex items-center justify-center gap-2.5 py-3 rounded-xl bg-gradient-to-r from-violet-600 to-purple-600 text-white text-sm font-semibold hover:opacity-90 active:scale-95 transition disabled:opacity-50 touch-manipulation"
+                className={`w-full flex items-center justify-center gap-2.5 py-3 rounded-xl text-black text-sm font-black tracking-widest hover:opacity-90 active:scale-95 transition disabled:opacity-50 touch-manipulation shadow-lg shadow-amber-500/20 bg-gradient-to-r from-amber-600 to-amber-400`}
               >
                 {generating ? <Loader2 size={16} className="animate-spin" /> : <Sparkles size={16} />}
                 {generating ? "Generating event..." : "Generate Event Details"}
@@ -273,7 +273,7 @@ export default function CalendarComposer({ theme, profile, onClose, credits, fet
                 </p>
               </div>
               {createdLink && (
-                <a href={createdLink} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-violet-600 to-purple-600 text-white text-sm font-medium hover:opacity-90 transition touch-manipulation">
+                <a href={createdLink} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-600 to-amber-400 text-black text-sm font-black tracking-widest hover:opacity-90 transition touch-manipulation shadow-lg shadow-amber-500/20">
                   <CalendarDays size={14} />
                   View in Google Calendar
                 </a>
@@ -310,7 +310,7 @@ export default function CalendarComposer({ theme, profile, onClose, credits, fet
             <button
               onClick={handleConfirm}
               disabled={!event.title || !event.date}
-              className="flex-1 flex items-center justify-center gap-2.5 py-2.5 rounded-xl bg-gradient-to-r from-violet-600 to-purple-600 text-white text-sm font-semibold hover:opacity-90 active:scale-95 transition disabled:opacity-40 touch-manipulation"
+              className="flex-1 flex items-center justify-center gap-2.5 py-2.5 rounded-xl bg-gradient-to-r from-amber-600 to-amber-400 text-black text-sm font-black tracking-widest hover:opacity-90 active:scale-95 transition disabled:opacity-40 touch-manipulation shadow-lg shadow-amber-500/20"
             >
               <CalendarDays size={15} />
               {accessToken ? "Create Event" : "Grant Permission & Create"}

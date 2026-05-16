@@ -291,7 +291,7 @@ function ChatArea({ theme, chats, setChats, activeChat, activeChatId, user, cred
             {!activeChat?.messages.length && (
               <div className="flex-1 flex flex-col items-center justify-center p-8 text-center animate-in fade-in slide-in-from-bottom-8 duration-1000">
                 <div className="w-24 h-24 mb-10 group hover:rotate-12 transition-all duration-700">
-                  <img src="/logo-lion.png" alt="Simha AI Logo" className="w-full h-full object-contain filter drop-shadow-[0_0_25px_rgba(245,158,11,0.6)]" />
+                  <img src="/logo-lion.png" alt="Simha AI Logo" className="w-full h-full object-contain logo-mask filter drop-shadow-[0_0_25px_rgba(245,158,11,0.6)]" />
                 </div>
                 <h2 className={`text-4xl font-black mb-4 tracking-tight text-amber-500`}>
                   How can I guide you?
@@ -328,8 +328,8 @@ function ChatArea({ theme, chats, setChats, activeChat, activeChatId, user, cred
             >
               {/* Assistant avatar */}
               {msg.role === "assistant" && (
-                <div className="w-7 h-7 rounded-full bg-gradient-to-br from-purple-600 to-pink-500 flex items-center justify-center flex-shrink-0 mr-2.5 mt-1">
-                  <span className="text-white text-[11px] font-bold">S</span>
+                <div className="w-7 h-7 rounded-full bg-gradient-to-br from-amber-600 to-amber-400 flex items-center justify-center flex-shrink-0 mr-2.5 mt-1 overflow-hidden p-1 shadow-lg shadow-amber-500/20">
+                  <img src="/logo-lion.png" alt="S" className="w-full h-full object-contain logo-mask scale-125" />
                 </div>
               )}
 
@@ -370,7 +370,7 @@ function ChatArea({ theme, chats, setChats, activeChat, activeChatId, user, cred
                     li: ({ children }) => <li className="text-[14px] leading-6">{children}</li>,
                     strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
                     blockquote: ({ children }) => (
-                      <blockquote className={`border-l-4 pl-4 italic my-3 ${dark ? "border-purple-700 text-gray-400" : "border-purple-300 text-gray-600"}`}>
+                      <blockquote className={`border-l-4 pl-4 italic my-3 ${dark ? "border-amber-700 text-gray-400" : "border-amber-300 text-gray-600"}`}>
                         {children}
                       </blockquote>
                     ),
@@ -443,14 +443,14 @@ function ChatArea({ theme, chats, setChats, activeChat, activeChatId, user, cred
           {/* THINKING DOTS */}
           {loading && (
             <div className="flex items-start gap-2.5 mb-4">
-              <div className="w-7 h-7 rounded-full bg-gradient-to-br from-purple-600 to-pink-500 flex items-center justify-center flex-shrink-0">
-                <span className="text-white text-[11px] font-bold">S</span>
+              <div className="w-7 h-7 rounded-full bg-gradient-to-br from-amber-600 to-amber-400 flex items-center justify-center flex-shrink-0 overflow-hidden p-1 shadow-lg shadow-amber-500/20">
+                <img src="/logo-lion.png" alt="S" className="w-full h-full object-contain logo-mask scale-125" />
               </div>
               <div className={`px-4 py-3 rounded-2xl rounded-tl-md flex items-center gap-2 ${dark ? "bg-[#1a1a1a]" : "bg-gray-100"}`}>
                 {[0, 1, 2].map((i) => (
                   <div
                     key={i}
-                    className="w-2 h-2 rounded-full bg-purple-500 animate-bounce"
+                    className="w-2 h-2 rounded-full bg-amber-500 animate-bounce"
                     style={{ animationDelay: `${i * 0.15}s` }}
                   />
                 ))}
@@ -493,7 +493,7 @@ function ChatArea({ theme, chats, setChats, activeChat, activeChatId, user, cred
                     <p className={`text-[11px] mt-0.5 ${dark ? "text-gray-600" : "text-gray-400"}`}>{a.desc}</p>
                   </div>
                   {selectedAgent === a.value && (
-                    <Check size={14} className="ml-auto text-purple-500" />
+                    <Check size={14} className="ml-auto text-amber-500" />
                   )}
                 </button>
               ))}
@@ -579,7 +579,7 @@ function ChatArea({ theme, chats, setChats, activeChat, activeChatId, user, cred
                     onChange={handleImageChange}
                     disabled={loading || uploading || outOfCredits}
                   />
-                  <ImageIcon size={17} className={imagePreview ? "text-purple-400" : ""} />
+                  <ImageIcon size={17} className={imagePreview ? "text-amber-500" : ""} />
                 </label>
 
                 {/* Attach PDF */}
@@ -594,7 +594,7 @@ function ChatArea({ theme, chats, setChats, activeChat, activeChatId, user, cred
                     onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
                     disabled={loading || uploading || outOfCredits}
                   />
-                  <Paperclip size={17} className={selectedFile ? "text-purple-400" : ""} />
+                  <Paperclip size={17} className={selectedFile ? "text-amber-500" : ""} />
                 </label>
 
                 {/* Voice */}

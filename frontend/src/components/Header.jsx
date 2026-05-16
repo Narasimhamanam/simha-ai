@@ -64,16 +64,21 @@ function Header({ theme, setTheme, profile, setIsSidebarOpen, activeChat, curren
             {pageEmoji} {pageTitle}
           </span>
         ) : (
-          <>
-            <span className={`text-sm font-semibold ${dark ? "text-white" : "text-gray-900"}`}>
-              {chatTitle
-                ? <span className="max-w-[140px] truncate block">{chatTitle}</span>
-                : "Simha AI"}
-            </span>
-            <span className={`text-[10px] ${dark ? "text-gray-600" : "text-gray-400"}`}>
-              {firstName ? `${firstName}'s workspace` : "Multi-Agent Assistant"}
-            </span>
-          </>
+          <div className="flex items-center gap-2">
+            <div className="w-6 h-6 flex-shrink-0">
+              <img src="/logo-lion.png" alt="Logo" className="w-full h-full object-contain logo-mask filter drop-shadow-[0_0_5px_rgba(245,158,11,0.3)]" />
+            </div>
+            <div className="flex flex-col items-start leading-none">
+              <span className={`text-sm font-black tracking-tight ${dark ? "text-white" : "text-gray-900"}`}>
+                {chatTitle
+                  ? <span className="max-w-[140px] truncate block">{chatTitle}</span>
+                  : "Simha AI"}
+              </span>
+              <span className={`text-[9px] font-bold ${dark ? "text-amber-500/60" : "text-amber-600/60"} uppercase tracking-widest mt-0.5`}>
+                Assistant
+              </span>
+            </div>
+          </div>
         )}
       </div>
 

@@ -21,7 +21,7 @@ function ChatHistoryPage({
         className="
         text-4xl
         font-bold
-        text-purple-500
+        text-amber-500
         mb-10
       "
       >

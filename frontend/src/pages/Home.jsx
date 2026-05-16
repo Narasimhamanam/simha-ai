@@ -268,7 +268,7 @@ function Home() {
 
             {/* Logo Icon */}
             <div className="w-16 h-16 md:w-20 md:h-20 mb-8 md:mb-10 transform hover:rotate-[10deg] transition-all duration-700 mx-auto md:mx-0">
-              <img src="/logo-lion.png" alt="Simha AI Logo" className="w-full h-full object-contain filter drop-shadow-[0_0_15px_rgba(245,158,11,0.5)]" />
+              <img src="/logo-lion.png" alt="Simha AI Logo" className="w-full h-full object-contain logo-mask filter drop-shadow-[0_0_15px_rgba(245,158,11,0.5)]" />
             </div>
 
             <h1 className="text-4xl md:text-5xl font-black mb-3 md:mb-4 tracking-tighter text-gold-gradient text-center md:text-left">

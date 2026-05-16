@@ -86,7 +86,7 @@ export default function DocumentsPage({ theme, user, setActiveChatId, setCurrent
           <div className="flex flex-col items-center gap-3">
             <div className="flex gap-1.5">
               {[0, 1, 2].map((i) => (
-                <div key={i} className="w-2 h-2 rounded-full bg-purple-500 animate-bounce" style={{ animationDelay: `${i * 0.15}s` }} />
+                <div key={i} className="w-2 h-2 rounded-full bg-amber-500 animate-bounce" style={{ animationDelay: `${i * 0.15}s` }} />
               ))}
             </div>
             <p className={`text-sm ${dark ? "text-gray-500" : "text-gray-400"}`}>Loading documents...</p>

@@ -129,7 +129,7 @@ function Sidebar({
         <div className="flex items-center justify-between px-5 pt-7 pb-5">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 flex-shrink-0">
-              <img src="/logo-lion.png" alt="Logo" className="w-full h-full object-contain filter drop-shadow-[0_0_8px_rgba(245,158,11,0.4)]" />
+              <img src="/logo-lion.png" alt="Logo" className="w-full h-full object-contain logo-mask filter drop-shadow-[0_0_8px_rgba(245,158,11,0.4)]" />
             </div>
             <div>
               <p className={`text-base font-black leading-none tracking-tight ${dark ? "text-white" : "text-amber-950"}`}>Simha AI</p>
@@ -248,7 +248,7 @@ function Sidebar({
               <img src={profile.avatar} alt="avatar" className="w-8 h-8 rounded-xl object-cover ring-2 ring-amber-500/20 flex-shrink-0" />
             ) : (
               <div className="w-8 h-8 flex-shrink-0">
-                <img src="/logo-lion.png" alt="U" className="w-full h-full object-contain" />
+                <img src="/logo-lion.png" alt="U" className="w-full h-full object-contain logo-mask" />
               </div>
             )}
             <div className="flex-1 min-w-0">

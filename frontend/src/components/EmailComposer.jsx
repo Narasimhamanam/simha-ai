@@ -212,8 +212,8 @@ export default function EmailComposer({ theme, profile, onClose, credits, fetchC
         {/* ── HEADER ── */}
         <div className={`flex items-center justify-between px-5 py-4 border-b shrink-0 ${dark ? "border-gray-800" : "border-gray-100"}`}>
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center">
-              <Mail size={15} className="text-white" />
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-600 to-amber-400 flex items-center justify-center shadow-lg shadow-amber-500/20">
+              <Mail size={15} className="text-black" />
             </div>
             <div>
               <h2 className={`text-sm font-semibold ${dark ? "text-white" : "text-gray-900"}`}>AI Email Composer</h2>
@@ -244,8 +244,8 @@ export default function EmailComposer({ theme, profile, onClose, credits, fetchC
                   style={{ fontSize: "16px" }}
                   className={`w-full rounded-xl border px-4 py-3 text-sm leading-6 outline-none resize-none transition ${
                     dark
-                      ? "bg-[#1a1a1a] border-gray-800 text-white placeholder:text-gray-600 focus:border-blue-600"
-                      : "bg-gray-50 border-gray-200 text-gray-900 placeholder:text-gray-400 focus:border-blue-500"
+                      ? "bg-[#1a1a1a] border-gray-800 text-white placeholder:text-gray-600 focus:border-amber-600"
+                      : "bg-gray-50 border-gray-200 text-gray-900 placeholder:text-gray-400 focus:border-amber-500"
                   }`}
                   onKeyDown={(e) => { if (e.key === "Enter" && e.ctrlKey) handleGenerate(); }}
                 />
@@ -257,7 +257,7 @@ export default function EmailComposer({ theme, profile, onClose, credits, fetchC
               <button
                 onClick={handleGenerate}
                 disabled={!prompt.trim() || generating || outOfCredits}
-                className="w-full flex items-center justify-center gap-2.5 py-3 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-sm font-semibold hover:opacity-90 active:scale-95 transition disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation"
+                className="w-full flex items-center justify-center gap-2.5 py-3 rounded-xl bg-gradient-to-r from-amber-600 to-amber-400 text-black text-sm font-black tracking-widest hover:opacity-90 active:scale-95 transition disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation shadow-lg shadow-amber-500/20"
               >
                 {generating ? <Loader2 size={16} className="animate-spin" /> : <Sparkles size={16} />}
                 {generating ? "Generating your email..." : "Generate Email Draft"}
@@ -269,7 +269,7 @@ export default function EmailComposer({ theme, profile, onClose, credits, fetchC
           {step === STEP.DRAFT && (
             <div className="p-5 space-y-3">
               {draft.suggestions && (
-                <div className={`flex items-start gap-2.5 px-3.5 py-2.5 rounded-xl text-xs ${dark ? "bg-blue-950/50 border border-blue-900 text-blue-300" : "bg-blue-50 border border-blue-100 text-blue-700"}`}>
+                <div className={`flex items-start gap-2.5 px-3.5 py-2.5 rounded-xl text-xs ${dark ? "bg-amber-950/30 border border-amber-900/50 text-amber-500" : "bg-amber-50 border border-amber-100 text-amber-700"}`}>
                   <Sparkles size={13} className="shrink-0 mt-0.5" />
                   {draft.suggestions}
                 </div>
@@ -409,13 +409,13 @@ export default function EmailComposer({ theme, profile, onClose, credits, fetchC
                   Your email to <span className="font-medium">{draft.to}</span> was sent successfully.
                 </p>
               </div>
-              <button
-                onClick={() => { setStep(STEP.PROMPT); setPrompt(""); setDraft({ to: "", cc: "", subject: "", body: "" }); setAttachments([]); }}
-                className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-sm font-medium hover:opacity-90 transition touch-manipulation"
-              >
-                <RefreshCw size={14} />
-                Send Another
-              </button>
+                <button
+                  onClick={() => { setStep(STEP.PROMPT); setPrompt(""); setDraft({ to: "", cc: "", subject: "", body: "" }); setAttachments([]); }}
+                  className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-600 to-amber-400 text-black text-sm font-black tracking-widest hover:opacity-90 transition touch-manipulation shadow-lg shadow-amber-500/20"
+                >
+                  <RefreshCw size={14} />
+                  Send Another
+                </button>
             </div>
           )}
 
@@ -453,14 +453,14 @@ export default function EmailComposer({ theme, profile, onClose, credits, fetchC
               Regenerate
             </button>
 
-            <button
-              onClick={handleConfirmSend}
-              disabled={!draft.to.trim()}
-              className="flex-1 flex items-center justify-center gap-2.5 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-sm font-semibold hover:opacity-90 active:scale-95 transition disabled:opacity-40 disabled:cursor-not-allowed touch-manipulation"
-            >
-              <Send size={15} />
-              {accessToken ? "Send Email" : "Grant Permission & Send"}
-            </button>
+              <button
+                onClick={handleConfirmSend}
+                disabled={!draft.to.trim()}
+                className="flex-1 flex items-center justify-center gap-2.5 py-2.5 rounded-xl bg-gradient-to-r from-amber-600 to-amber-400 text-black text-sm font-black tracking-widest hover:opacity-90 active:scale-95 transition disabled:opacity-40 disabled:cursor-not-allowed touch-manipulation shadow-lg shadow-amber-500/20"
+              >
+                <Send size={15} />
+                {accessToken ? "Send Email" : "Grant Permission & Send"}
+              </button>
           </div>
         )}
       </div>

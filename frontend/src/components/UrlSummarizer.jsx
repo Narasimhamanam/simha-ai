@@ -8,7 +8,7 @@ import API from "../services/api";
 const CATEGORY_COLORS = {
   article: "bg-blue-500/20 text-blue-400",
   documentation: "bg-green-500/20 text-green-400",
-  research: "bg-purple-500/20 text-purple-400",
+  research: "bg-amber-500/20 text-amber-500",
   news: "bg-orange-500/20 text-orange-400",
   tutorial: "bg-cyan-500/20 text-cyan-400",
   other: "bg-gray-500/20 text-gray-400",
