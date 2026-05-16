@@ -6,25 +6,44 @@
 
 :root {
   --gold-primary: #f59e0b;
+  --gold-secondary: #d97706;
   --gold-glow: rgba(245, 158, 11, 0.5);
-  --glass-bg: rgba(0, 0, 0, 0.4);
+  --obsidian: #080502;
+  --ivory: #fffbeb;
 }
 
 @layer base {
   html, body, #root {
     height: 100%;
-    width: 100%;
     margin: 0;
     padding: 0;
-    overflow: hidden;
-    @apply selection:bg-purple-500/30;
+    overflow-x: hidden;
+    @apply font-['Outfit'] antialiased;
+  }
+
+  /* Custom Selection */
+  ::selection {
+    @apply bg-amber-500/30 text-amber-200;
+  }
+
+  /* Scrollbar - Premium Gold */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    @apply bg-transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply bg-amber-500/20 rounded-full hover:bg-amber-500/40 transition-colors;
   }
 
   body {
-    @apply font-sans antialiased bg-slate-50 text-slate-900 transition-colors duration-300;
+    @apply bg-slate-50 text-slate-900 transition-colors duration-300;
     -webkit-tap-highlight-color: transparent;
     overscroll-behavior: none;
     position: fixed;
+    width: 100%;
   }
 
   .dark body {
@@ -85,9 +104,21 @@
 }
 
 .glass-luxury {
-  @apply bg-black/40 backdrop-blur-2xl border border-amber-500/20 shadow-[0_0_50px_-12px_rgba(245,158,11,0.25)];
+  @apply bg-black/40 backdrop-blur-2xl border border-amber-500/10 shadow-[0_0_50px_-12px_rgba(245,158,11,0.2)];
   position: relative;
   overflow: hidden;
+}
+
+.btn-gold-primary {
+  @apply bg-gradient-to-r from-amber-600 to-amber-500 text-black font-black shadow-xl shadow-amber-900/20 hover:from-amber-500 hover:to-amber-400 active:scale-95 transition-all duration-300;
+}
+
+.card-luxury-dark {
+  @apply bg-[#0c0906] border border-amber-500/10 shadow-xl shadow-black/40 rounded-3xl;
+}
+
+.card-luxury-light {
+  @apply bg-white border border-amber-100 shadow-xl shadow-amber-900/5 rounded-3xl;
 }
 
 .glass-luxury::before {

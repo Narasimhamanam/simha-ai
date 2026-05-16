@@ -287,31 +287,32 @@ function ChatArea({ theme, chats, setChats, activeChat, activeChatId, user, cred
       <div className="flex-1 overflow-y-auto overscroll-contain" style={{ WebkitOverflowScrolling: "touch" }}>
         <div className="max-w-2xl mx-auto w-full px-3 sm:px-4 pt-4">
 
-          {/* EMPTY STATE — ChatGPT style */}
-          {!activeChat?.messages.length && (
-              <div className="flex-1 flex flex-col items-center justify-center p-6 text-center animate-in fade-in duration-700">
-                <div className="w-20 h-20 rounded-[28px] bg-gradient-to-br from-purple-600 to-pink-500 flex items-center justify-center mb-8 shadow-2xl shadow-purple-500/20">
-                  <span className="text-white text-3xl font-black">S</span>
+          {/* Welcome View */}
+            {!activeChat?.messages.length && (
+              <div className="flex-1 flex flex-col items-center justify-center p-8 text-center animate-in fade-in slide-in-from-bottom-8 duration-1000">
+                <div className="w-24 h-24 rounded-[32px] bg-gradient-to-br from-amber-600 via-amber-400 to-amber-600 flex items-center justify-center mb-10 shadow-2xl shadow-amber-500/30 group hover:rotate-12 transition-all duration-700">
+                  <span className="text-white text-4xl font-black">S</span>
                 </div>
-                <h2 className={`text-3xl font-black mb-3 tracking-tight ${dark ? "text-white" : "text-slate-900"}`}>
-                  How can I help you today?
+                <h2 className={`text-4xl font-black mb-4 tracking-tight text-amber-500`}>
+                  How can I guide you?
                 </h2>
-                <p className={`text-sm max-w-sm mb-10 leading-relaxed font-medium ${dark ? "text-slate-500" : "text-slate-400"}`}>
-                  Simha AI is your intelligent partner for studying, coding, and professional productivity.
+                <p className={`text-sm max-w-sm mb-12 leading-relaxed font-medium ${dark ? "text-amber-100/40" : "text-amber-900/60"}`}>
+                  Protected by Intelligence. Guided by Dharma.<br/>Ask anything to start your journey.
                 </p>
                 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 w-full max-w-xl">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full max-w-2xl">
                   {SUGGESTIONS.map((s, i) => (
                     <button
                       key={i}
                       onClick={() => setInput(s)}
-                      className={`p-4 text-left rounded-2xl border transition-all duration-300 hover:scale-[1.02] ${
+                      className={`p-5 text-left rounded-3xl border transition-all duration-500 hover:scale-[1.03] ${
                         dark 
-                          ? "bg-white/5 border-white/5 text-slate-300 hover:bg-white/10" 
-                          : "bg-white border-slate-100 text-slate-600 hover:border-purple-200 hover:shadow-lg shadow-slate-100/50"
+                          ? "bg-white/5 border-amber-500/10 text-amber-100/60 hover:bg-white/10 hover:border-amber-500/30" 
+                          : "bg-white border-amber-100 text-amber-900/70 hover:border-amber-400 hover:shadow-2xl shadow-amber-900/5"
                       }`}
                     >
-                      <p className="text-sm font-semibold">{s}</p>
+                      <p className="text-[13px] font-bold tracking-wide uppercase opacity-40 mb-1">Knowledge Path</p>
+                      <p className="text-sm font-black">{s}</p>
                     </button>
                   ))}
                 </div>
@@ -332,13 +333,15 @@ function ChatArea({ theme, chats, setChats, activeChat, activeChatId, user, cred
                 </div>
               )}
 
-              <div className={`max-w-[85%] md:max-w-[75%] rounded-[24px] px-5 py-4 shadow-sm text-sm leading-relaxed ${
+              <div 
+                      className={`max-w-[85%] md:max-w-[75%] rounded-[32px] px-6 py-5 shadow-sm text-sm leading-relaxed ${
                         msg.role === "user"
-                          ? "bg-gradient-to-br from-purple-600 to-indigo-600 text-white font-medium ml-4 shadow-lg shadow-purple-500/20"
+                          ? "bg-gradient-to-br from-amber-600 to-amber-500 text-black font-black ml-4 shadow-xl shadow-amber-900/20 border border-amber-400/30"
                           : dark
-                            ? "bg-white/5 text-slate-100 border border-white/5 mr-4"
-                            : "bg-white text-slate-800 border border-slate-100 shadow-lg shadow-slate-200/50 mr-4"
-                      }`}>
+                            ? "bg-[#0c0906]/80 backdrop-blur-xl text-amber-50 border border-amber-500/10 mr-4 shadow-2xl shadow-black/40"
+                            : "bg-white text-slate-800 border border-amber-100 shadow-xl shadow-amber-900/5 mr-4"
+                      }`}
+                    >
                 {/* Show image if this message has one */}
                 {msg.image && (
                   <img

@@ -35,10 +35,10 @@ function Header({ theme, setTheme, profile, setIsSidebarOpen, activeChat, curren
   const pageEmoji = PAGE_EMOJIS[currentPage];
 
   return (
-    <header className={`sticky top-0 z-20 flex items-center justify-between px-4 py-3 h-16 transition-all duration-300 ${
+    <header className={`sticky top-0 z-20 flex items-center justify-between px-6 py-3 h-20 transition-all duration-500 ${
       dark 
-        ? "bg-[#030303]/80 backdrop-blur-xl border-b border-white/5" 
-        : "bg-white/80 backdrop-blur-xl border-b border-slate-200"
+        ? "bg-[#080502]/80 backdrop-blur-2xl border-b border-amber-500/10 shadow-lg shadow-black/20" 
+        : "bg-[#fffbeb]/80 backdrop-blur-2xl border-b border-amber-200 shadow-sm"
     }`}>
       {/* LEFT — Hamburger */}
       <button
@@ -75,10 +75,10 @@ function Header({ theme, setTheme, profile, setIsSidebarOpen, activeChat, curren
       <div className="flex items-center gap-1">
         {/* Credits Badge */}
         {(credits !== undefined && credits !== null) && !isPro && (
-          <div className={`mr-2 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-black shadow-lg transition-all duration-300 ${
+          <div className={`mr-4 flex items-center gap-2 px-4 py-2 rounded-full text-[11px] font-black tracking-widest shadow-lg transition-all duration-300 ${
             credits <= 0 
               ? dark ? "bg-red-500/10 text-red-400 border border-red-500/20" : "bg-red-50 text-red-600 border border-red-100"
-              : dark ? "bg-purple-500/10 text-purple-400 border border-purple-500/20" : "bg-purple-50 text-purple-600 border border-purple-100"
+              : dark ? "bg-amber-500/10 text-amber-500 border border-amber-500/20 shadow-amber-500/5" : "bg-amber-50 text-amber-700 border border-amber-200"
           }`}>
             <span className="animate-pulse">⚡</span>
             {credits.toFixed(1)}
@@ -86,10 +86,10 @@ function Header({ theme, setTheme, profile, setIsSidebarOpen, activeChat, curren
         )}
         {/* Pro Badge */}
         {isPro && (
-          <div className={`mr-2 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-black shadow-lg transition-all duration-300 ${
+          <div className={`mr-4 flex items-center gap-2 px-4 py-2 rounded-full text-[11px] font-black tracking-widest shadow-xl transition-all duration-300 ${
             dark 
-              ? "bg-amber-500/10 text-amber-400 border border-amber-500/20 shadow-amber-500/10" 
-              : "bg-amber-50 text-amber-600 border border-amber-100"
+              ? "bg-amber-500/10 text-amber-400 border border-amber-500/30 shadow-amber-500/10" 
+              : "bg-amber-100 text-amber-800 border border-amber-200"
           }`}>
             <span>👑</span>
             PRO MEMBER
