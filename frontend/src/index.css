@@ -45,22 +45,43 @@
 }
 
 /* Animations */
+@keyframes cinematic-zoom {
+  0% { transform: scale(1); }
+  100% { transform: scale(1.1); }
+}
+
+@keyframes neural-flow {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
 @keyframes float {
-  0%, 100% { transform: translateY(0) scale(1); }
-  50% { transform: translateY(-15px) scale(1.02); }
+  0%, 100% { transform: translateY(0) translateX(0); }
+  33% { transform: translateY(-10px) translateX(5px); }
+  66% { transform: translateY(5px) translateX(-5px); }
 }
 
 @keyframes pulse-glow {
-  0%, 100% { opacity: 0.5; filter: drop-shadow(0 0 20px rgba(168, 85, 247, 0.3)); }
-  50% { opacity: 0.8; filter: drop-shadow(0 0 40px rgba(168, 85, 247, 0.6)); }
+  0%, 100% { opacity: 0.3; filter: drop-shadow(0 0 20px rgba(168, 85, 247, 0.3)); }
+  50% { opacity: 0.7; filter: drop-shadow(0 0 50px rgba(168, 85, 247, 0.7)); }
+}
+
+.animate-cinematic {
+  animation: cinematic-zoom 20s ease-in-out infinite alternate;
 }
 
 .animate-float {
-  animation: float 6s ease-in-out infinite;
+  animation: float 10s ease-in-out infinite;
 }
 
 .animate-lion-glow {
-  animation: pulse-glow 4s ease-in-out infinite;
+  animation: pulse-glow 5s ease-in-out infinite;
+}
+
+.neural-overlay {
+  background: radial-gradient(circle at center, transparent 0%, #030303 90%);
+  @apply absolute inset-0 pointer-events-none;
 }
 
 /* Safe area for iPhone notch / home bar */

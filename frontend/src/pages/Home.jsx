@@ -226,20 +226,23 @@ function Home() {
 
     return (
       <div className="fixed inset-0 flex items-center justify-center bg-[#030303] overflow-hidden">
-        {/* Animated Neon Lion Background */}
+        {/* Animated Cinematic Lion Background */}
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none overflow-hidden">
           <img 
             src="/neon-lion.png" 
-            alt="Neon Lion" 
-            className="w-[120%] h-[120%] md:w-[90%] md:h-[90%] object-contain opacity-40 animate-float animate-lion-glow"
+            alt="Cinematic Lion" 
+            className="w-full h-full object-cover opacity-60 animate-cinematic"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#030303] via-transparent to-[#030303]" />
-          <div className="absolute inset-0 bg-gradient-to-r from-[#030303] via-transparent to-[#030303]" />
+          <div className="neural-overlay opacity-80" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#030303] via-transparent to-[#030303] opacity-60" />
+          
+          {/* Floating Neural Particles Simulation */}
+          <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-[0.03] mix-blend-overlay" />
         </div>
 
         {/* Login Card */}
-        <div className="relative z-10 w-full max-w-[400px] mx-4">
-          <div className="glass-effect rounded-[40px] p-10 border border-white/10 shadow-[0_0_50px_-12px_rgba(168,85,247,0.3)] text-center">
+        <div className="relative z-10 w-full max-w-[400px] mx-4 animate-in fade-in zoom-in duration-1000">
+          <div className="glass-effect rounded-[48px] p-12 border border-white/10 shadow-[0_0_80px_-20px_rgba(168,85,247,0.4)] text-center">
             {/* Logo Icon */}
             <div className="w-20 h-20 rounded-[28px] bg-gradient-to-br from-purple-600 via-purple-500 to-pink-500 flex items-center justify-center mx-auto mb-8 shadow-2xl shadow-purple-500/40 transform hover:scale-110 transition-transform duration-500">
               <span className="text-white text-3xl font-black tracking-tighter">S</span>
