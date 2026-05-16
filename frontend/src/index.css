@@ -1,6 +1,14 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Playfair+Display:italic,wght@400;700&family=Outfit:wght@300;400;600;700;900&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+:root {
+  --gold-primary: #f59e0b;
+  --gold-glow: rgba(245, 158, 11, 0.5);
+  --glass-bg: rgba(0, 0, 0, 0.4);
+}
 
 @layer base {
   html, body, #root {
@@ -45,44 +53,75 @@
 }
 
 /* Animations */
-@keyframes lion-walk {
-  0% { 
-    transform: translateX(40%) translateY(0) scale(1);
-    opacity: 0;
-  }
-  10% { opacity: 0.6; }
-  45% { transform: translateX(0%) translateY(-10px) scale(1.05); }
-  50% { transform: translateX(0%) translateY(0) scale(1.05); } /* Pause in center to "stare" */
-  55% { transform: translateX(0%) translateY(-10px) scale(1.05); }
-  90% { opacity: 0.6; }
-  100% { 
-    transform: translateX(-40%) translateY(0) scale(1);
-    opacity: 0;
-  }
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
 }
 
-@keyframes step-bob {
-  0%, 100% { margin-top: 0; }
-  25% { margin-top: -5px; }
-  75% { margin-top: 5px; }
+@keyframes gold-float {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-20px) scale(1.05); opacity: 0.8; }
 }
 
-@keyframes pulse-roar {
-  0%, 100% { filter: drop-shadow(0 0 20px rgba(168, 85, 247, 0.3)) brightness(1); }
-  50% { filter: drop-shadow(0 0 60px rgba(168, 85, 247, 0.8)) brightness(1.5); }
+@keyframes glow-pulse {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 0.8; }
 }
 
-.animate-lion-walk {
-  animation: lion-walk 20s ease-in-out infinite;
+@keyframes border-rotate {
+  0% { border-image-source: conic-gradient(from 0deg, transparent, var(--gold-primary), transparent); }
+  100% { border-image-source: conic-gradient(from 360deg, transparent, var(--gold-primary), transparent); }
 }
 
-.animate-roar {
-  animation: pulse-roar 4s ease-in-out infinite;
+.animate-shimmer {
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+  background-size: 200% 100%;
+  animation: shimmer 3s infinite;
 }
 
-.neural-overlay {
-  background: radial-gradient(circle at center, transparent 0%, #030303 95%);
-  @apply absolute inset-0 pointer-events-none;
+.text-gold-gradient {
+  @apply bg-clip-text text-transparent bg-gradient-to-br from-amber-200 via-amber-500 to-amber-700;
+  filter: drop-shadow(0 0 8px rgba(245, 158, 11, 0.3));
+}
+
+.glass-luxury {
+  @apply bg-black/40 backdrop-blur-2xl border border-amber-500/20 shadow-[0_0_50px_-12px_rgba(245,158,11,0.25)];
+  position: relative;
+  overflow: hidden;
+}
+
+.glass-luxury::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, transparent 50%, rgba(0,0,0,0.1) 100%);
+  pointer-events: none;
+}
+
+.btn-gold-shine {
+  @apply relative overflow-hidden transition-all duration-500;
+}
+
+.btn-gold-shine::after {
+  content: "";
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(45deg, transparent, rgba(255,255,255,0.2), transparent);
+  transform: rotate(45deg);
+  transition: 0.5s;
+  left: -150%;
+}
+
+.btn-gold-shine:hover::after {
+  left: 150%;
+}
+
+.particles-bg {
+  background-image: radial-gradient(circle, rgba(245, 158, 11, 0.1) 1px, transparent 1px);
+  background-size: 30px 30px;
 }
 
 /* Safe area for iPhone notch / home bar */
