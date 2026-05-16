@@ -27,7 +27,7 @@ const PAGE_EMOJIS = {
   settings: "⚙️",
 };
 
-function Header({ theme, setTheme, profile, setIsSidebarOpen, activeChat, currentPage, createNewChat, credits, isPro }) {
+function Header({ theme, setTheme, profile, setIsSidebarOpen, isSidebarOpen, activeChat, currentPage, createNewChat, credits, isPro }) {
   const dark = theme === "dark";
   const firstName = profile?.nickname?.split(" ")[0] || "";
   const chatTitle = activeChat?.title && activeChat.title !== "New Chat" ? activeChat.title : null;
