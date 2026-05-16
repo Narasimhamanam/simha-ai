@@ -108,7 +108,7 @@ function Header({ theme, setTheme, profile, setIsSidebarOpen, activeChat, curren
           </button>
         )}
       </div>
-    </div>
+    </header>
   );
 }
 
