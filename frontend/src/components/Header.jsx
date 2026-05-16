@@ -43,12 +43,18 @@ function Header({ theme, setTheme, profile, setIsSidebarOpen, activeChat, curren
       {/* LEFT — Hamburger */}
       <button
         onClick={() => setIsSidebarOpen(true)}
-        className={`p-2 rounded-xl transition touch-manipulation ${
-          dark ? "text-gray-400 hover:bg-white/8 hover:text-white" : "text-gray-500 hover:bg-gray-100 hover:text-gray-900"
+        className={`p-3 rounded-2xl transition-all duration-300 group ${
+          dark 
+            ? "bg-white/5 text-amber-500 border border-amber-500/10 hover:bg-amber-500/10 hover:border-amber-500/30" 
+            : "bg-white text-amber-900 border border-amber-200 hover:border-amber-400 shadow-sm"
         }`}
-        aria-label="Open menu"
+        aria-label="Open Sidebar"
       >
-        <Menu size={20} />
+        <div className="space-y-1.5 flex flex-col items-center">
+          <div className="w-5 h-0.5 bg-current rounded-full transition-all group-hover:w-6"></div>
+          <div className="w-6 h-0.5 bg-current rounded-full"></div>
+          <div className="w-4 h-0.5 bg-current rounded-full transition-all group-hover:w-6"></div>
+        </div>
       </button>
 
       {/* CENTER — Model/Page title */}
