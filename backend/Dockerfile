@@ -27,5 +27,5 @@ RUN mkdir -p uploads chroma_db
 # Expose port (Railway sets $PORT automatically)
 EXPOSE 8000
 
-# Start the server with 2 workers for concurrent multi-user support
-CMD uvicorn main:app --host 0.0.0.0 --port ${PORT:-8000} --workers 2 --timeout-keep-alive 75
+# Start the server (1 worker — Railway free tier 512MB RAM limit)
+CMD uvicorn main:app --host 0.0.0.0 --port ${PORT:-8000} --timeout-keep-alive 75
