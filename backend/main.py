@@ -16,6 +16,7 @@ from memory.chat_memory import conversation_memory
 import asyncio
 from fastapi import UploadFile, File
 import shutil
+import base64
 
 from rag.pdf_processor import process_pdf
 from rag.vector_store import create_vector_store
@@ -97,6 +98,52 @@ async def health():
         "database": "connected" if db_ok else "unavailable",
         "version": "2.0"
     }
+
+# -----------------------------------
+# ANALYZE IMAGE (Vision)
+# -----------------------------------
+
+class ImageAnalysisRequest(BaseModel):
+    image_base64: str  # full data URL like "data:image/jpeg;base64,..."
+    prompt: str = "Describe this image in detail."
+
+@app.post("/analyze-image")
+async def analyze_image(request: ImageAnalysisRequest):
+    """Analyze an image using Groq's vision model."""
+    from groq import Groq as _Groq
+    import os as _os
+
+    if not request.image_base64:
+        raise HTTPException(status_code=400, detail="image_base64 is required.")
+
+    # Strip data URL prefix if present, keep as full data URL for Groq
+    image_url = request.image_base64  # Groq accepts data URLs directly
+
+    try:
+        _client = _Groq(api_key=_os.getenv("GROQ_API_KEY"))
+        completion = _client.chat.completions.create(
+            model="meta-llama/llama-4-scout-17b-16e-instruct",
+            messages=[
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "image_url",
+                            "image_url": {"url": image_url},
+                        },
+                        {
+                            "type": "text",
+                            "text": request.prompt,
+                        },
+                    ],
+                }
+            ],
+            temperature=0.3,
+            max_tokens=1024,
+        )
+        return {"response": completion.choices[0].message.content}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Image analysis failed: {str(e)}")
 
 # -----------------------------------
 # GENERATE EMAIL DRAFT

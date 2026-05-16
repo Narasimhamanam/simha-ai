@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, useCallback } from "react";
-import { Paperclip, Copy, Check, X, ArrowUp, Mic, MicOff } from "lucide-react";
+import { Paperclip, Copy, Check, X, ArrowUp, ImageIcon } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
@@ -33,13 +33,16 @@ function ChatArea({ theme, chats, setChats, activeChat, activeChatId, user }) {
   const [input, setInput] = useState("");
   const [selectedAgent, setSelectedAgent] = useState("study");
   const [loading, setLoading] = useState(false);
-  const [selectedFile, setSelectedFile] = useState(null);
+  const [selectedFile, setSelectedFile] = useState(null);   // PDF
+  const [selectedImage, setSelectedImage] = useState(null); // image file
+  const [imagePreview, setImagePreview] = useState(null);   // base64 data URL
   const [uploading, setUploading] = useState(false);
   const [copiedCode, setCopiedCode] = useState("");
   const [showAgentPicker, setShowAgentPicker] = useState(false);
 
   const messagesEndRef = useRef(null);
   const fileInputRef = useRef(null);
+  const imageInputRef = useRef(null);
   const textareaRef = useRef(null);
 
   useEffect(() => {
@@ -108,14 +111,17 @@ function ChatArea({ theme, chats, setChats, activeChat, activeChatId, user }) {
     if (loading || uploading || !activeChatId) return;
     const currentInput = (overrideText ?? input ?? "").trim();
     const currentFile = selectedFile;
-    if (!currentInput && !currentFile) return;
+    const currentImage = imagePreview; // base64
+    const currentImageName = selectedImage?.name || "image";
+    if (!currentInput && !currentFile && !currentImage) return;
 
     const isFirstMessage = (activeChat?.messages || []).length === 0;
 
     const userMessage = {
       role: "user",
-      content: currentInput || `Analyze this file: ${currentFile?.name || "File"}`,
+      content: currentInput || (currentImage ? "Analyze this image" : `Analyze this file: ${currentFile?.name || "File"}`),
       file: currentFile?.name || null,
+      image: currentImage || null, // base64 shown in chat bubble
     };
 
     updateActiveChatMessages((messages) => [...messages, userMessage]);
@@ -130,10 +136,39 @@ function ChatArea({ theme, chats, setChats, activeChat, activeChatId, user }) {
 
     setInput("");
     setSelectedFile(null);
+    setSelectedImage(null);
+    setImagePreview(null);
     if (fileInputRef.current) fileInputRef.current.value = "";
+    if (imageInputRef.current) imageInputRef.current.value = "";
     setLoading(true);
 
     try {
+      // If image is attached, use the vision endpoint
+      if (currentImage) {
+        const tempMsg = { role: "assistant", content: "" };
+        updateActiveChatMessages((messages) => [...messages, tempMsg]);
+        const baseURL = import.meta.env.VITE_BACKEND_URL || "http://127.0.0.1:8000";
+        const res = await fetch(`${baseURL}/analyze-image`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            image_base64: currentImage,
+            prompt: currentInput || "Describe this image in detail and explain what you see.",
+          }),
+          signal: AbortSignal.timeout(60000),
+        });
+        if (!res.ok) throw new Error("Image analysis failed.");
+        const data = await res.json();
+        const answer = data.response || "Could not analyze image.";
+        updateActiveChatMessages((messages) => {
+          const msgs = [...messages];
+          msgs[msgs.length - 1] = { ...msgs[msgs.length - 1], content: answer };
+          return msgs;
+        });
+        setLoading(false);
+        return;
+      }
+
       let uploadedFileData = null;
       if (currentFile) uploadedFileData = await uploadFileIfNeeded(currentFile);
 
@@ -226,11 +261,27 @@ function ChatArea({ theme, chats, setChats, activeChat, activeChatId, user }) {
   const selectedAgentObj = AGENTS.find((a) => a.value === selectedAgent);
   const hasMessages = activeChat?.messages && activeChat.messages.length > 0;
 
-  return (
-    <div className="flex-1 flex flex-col overflow-hidden relative">
+  // Handle image file selection -> convert to base64
+  const handleImageChange = (e) => {
+    const file = e.target.files?.[0] || null;
+    if (!file) return;
+    setSelectedImage(file);
+    const reader = new FileReader();
+    reader.onloadend = () => setImagePreview(reader.result);
+    reader.readAsDataURL(file);
+  };
 
-      {/* ── MESSAGES AREA ── */}
-      <div className="flex-1 overflow-y-auto scroll-smooth" style={{ paddingBottom: "140px" }}>
+  const clearImage = () => {
+    setSelectedImage(null);
+    setImagePreview(null);
+    if (imageInputRef.current) imageInputRef.current.value = "";
+  };
+
+  return (
+    <div className="flex-1 flex flex-col overflow-hidden">
+
+      {/* ── MESSAGES AREA — takes all space above input, scrolls independently ── */}
+      <div className="flex-1 overflow-y-auto overscroll-contain" style={{ WebkitOverflowScrolling: "touch" }}>
         <div className="max-w-2xl mx-auto w-full px-3 sm:px-4 pt-4">
 
           {/* EMPTY STATE — ChatGPT style */}
@@ -265,11 +316,12 @@ function ChatArea({ theme, chats, setChats, activeChat, activeChatId, user }) {
             </div>
           )}
 
+          <div className="h-4" />
           {/* MESSAGES */}
           {activeChat?.messages?.map((msg, index) => (
             <div
               key={index}
-              className={`flex w-full mb-4 ${msg.role === "user" ? "justify-end" : "justify-start"}`}
+              className={`flex w-full mb-5 ${msg.role === "user" ? "justify-end" : "justify-start"}`}
             >
               {/* Assistant avatar */}
               {msg.role === "assistant" && (
@@ -285,6 +337,14 @@ function ChatArea({ theme, chats, setChats, activeChat, activeChatId, user }) {
                     }`
                   : `text-[14px] leading-relaxed ${dark ? "text-gray-100" : "text-gray-800"}`
               }`}>
+                {/* Show image if this message has one */}
+                {msg.image && (
+                  <img
+                    src={msg.image}
+                    alt="uploaded"
+                    className="max-w-[220px] sm:max-w-[280px] rounded-2xl mb-2 object-cover"
+                  />
+                )}
                 {msg.file && (
                   <div className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl mb-2 text-[11px] ${
                     dark ? "bg-white/10 text-gray-300" : "bg-black/5 text-gray-600"
@@ -393,13 +453,16 @@ function ChatArea({ theme, chats, setChats, activeChat, activeChatId, user }) {
             </div>
           )}
 
+          <div className="h-4" />
           <div ref={messagesEndRef} />
         </div>
       </div>
 
-      {/* ── INPUT AREA — ChatGPT style ── */}
-      <div className={`absolute bottom-0 left-0 right-0 px-3 sm:px-4 pb-safe`}>
-        <div className={`max-w-2xl mx-auto pb-3`}>
+      {/* ── INPUT AREA — stacked in flex, never overlaps messages ── */}
+      <div className={`shrink-0 px-3 sm:px-4 pb-safe border-t ${
+        dark ? "border-gray-900 bg-[#0a0a0a]" : "border-gray-100 bg-white"
+      }`}>
+        <div className="max-w-2xl mx-auto pt-2 pb-2">
 
           {/* Agent picker popup */}
           {showAgentPicker && (
@@ -432,7 +495,20 @@ function ChatArea({ theme, chats, setChats, activeChat, activeChatId, user }) {
             </div>
           )}
 
-          {/* File preview */}
+          {/* Image preview */}
+          {imagePreview && (
+            <div className="relative inline-block mb-2">
+              <img src={imagePreview} alt="preview" className="h-20 rounded-2xl object-cover border border-gray-700" />
+              <button
+                onClick={clearImage}
+                className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-gray-800 text-white flex items-center justify-center"
+              >
+                <X size={11} />
+              </button>
+            </div>
+          )}
+
+          {/* PDF file preview */}
           {selectedFile && (
             <div className={`flex items-center gap-2 px-3 py-2 mb-1 rounded-xl text-xs ${dark ? "bg-white/6 text-gray-400" : "bg-gray-100 text-gray-500"}`}>
               <span>📄 {selectedFile.name}</span>
@@ -486,10 +562,25 @@ function ChatArea({ theme, chats, setChats, activeChat, activeChatId, user }) {
                   <span className="hidden xs:inline">{selectedAgentObj?.label.split(" ").slice(1).join(" ")}</span>
                 </button>
 
+                {/* Attach image */}
+                <label className={`cursor-pointer p-2 rounded-full transition touch-manipulation ${
+                  dark ? "text-gray-500 hover:text-gray-300 hover:bg-white/8" : "text-gray-400 hover:text-gray-600 hover:bg-gray-100"
+                }`} title="Upload image">
+                  <input
+                    ref={imageInputRef}
+                    type="file"
+                    hidden
+                    accept="image/*"
+                    onChange={handleImageChange}
+                    disabled={loading || uploading}
+                  />
+                  <ImageIcon size={17} className={imagePreview ? "text-purple-400" : ""} />
+                </label>
+
                 {/* Attach PDF */}
                 <label className={`cursor-pointer p-2 rounded-full transition touch-manipulation ${
                   dark ? "text-gray-500 hover:text-gray-300 hover:bg-white/8" : "text-gray-400 hover:text-gray-600 hover:bg-gray-100"
-                }`}>
+                }`} title="Upload PDF">
                   <input
                     ref={fileInputRef}
                     type="file"
@@ -512,10 +603,10 @@ function ChatArea({ theme, chats, setChats, activeChat, activeChatId, user }) {
               {/* Right: Send button */}
               <button
                 type="button"
-                onClick={() => handleSend()}
-                disabled={loading || uploading || (!input.trim() && !selectedFile)}
+                onClick={() => handleSend(undefined)}
+                disabled={loading || uploading || (!input.trim() && !selectedFile && !imagePreview)}
                 className={`p-2.5 rounded-full transition-all touch-manipulation active:scale-95 ${
-                  !input.trim() && !selectedFile
+                  !input.trim() && !selectedFile && !imagePreview
                     ? dark ? "bg-gray-800 text-gray-600 cursor-not-allowed" : "bg-gray-200 text-gray-400 cursor-not-allowed"
                     : "bg-white text-gray-900 hover:bg-gray-100 shadow-sm"
                 }`}
