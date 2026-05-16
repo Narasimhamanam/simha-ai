@@ -76,7 +76,7 @@ function Sidebar({
           name: profile?.nickname || "",
           email: profile?.email || "",
         },
-        theme: { color: "#a855f7" },
+        theme: { color: "#f59e0b" },
       };
 
       const rzp = new window.Razorpay(options);
@@ -105,7 +105,7 @@ function Sidebar({
     <>
       {/* ── MOBILE BACKDROP ── */}
       <div
-        className={`fixed inset-0 bg-black/70 backdrop-blur-sm z-40 md:hidden transition-opacity duration-300 ${
+        className={`fixed inset-0 bg-black/80 backdrop-blur-md z-40 md:hidden transition-opacity duration-500 ${
           isSidebarOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
         }`}
         onClick={() => setIsSidebarOpen(false)}
@@ -116,57 +116,89 @@ function Sidebar({
         className={`
           fixed md:relative top-0 left-0
           h-full h-[100dvh] md:h-screen
-          w-[300px] md:w-[260px]
+          w-[300px] md:w-[280px]
           flex flex-col shrink-0
           z-50
-            onClick={() => { createNewChat(); setIsSidebarOpen(false); }}
-            className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-semibold transition-all touch-manipulation ${
-              dark
-                ? "bg-white/6 hover:bg-white/10 text-gray-200 border border-white/8"
-                : "bg-white hover:bg-gray-50 text-gray-800 border border-gray-200 shadow-sm"
+          transition-transform duration-500 ease-in-out
+          ${isSidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"}
+          ${dark ? "bg-[#080502] border-r border-amber-500/10" : "bg-[#fffbeb] border-r border-amber-200"}
+          shadow-2xl
+        `}
+      >
+        {/* ── TOP: Logo + Close ── */}
+        <div className={`flex items-center justify-between px-6 pt-8 pb-6`}>
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-600 via-amber-500 to-amber-600 flex items-center justify-center shadow-lg shadow-amber-500/30 flex-shrink-0">
+              <span className="text-white text-xl font-black">S</span>
+            </div>
+            <div>
+              <p className={`text-lg font-black leading-none tracking-tight ${dark ? "text-white" : "text-amber-950"}`}>Simha AI</p>
+              <p className="text-[10px] text-amber-500/60 uppercase tracking-[0.2em] font-black mt-1">Dharma & AI</p>
+            </div>
+          </div>
+          <button
+            onClick={() => setIsSidebarOpen(false)}
+            className={`md:hidden p-2 rounded-xl transition-all ${
+              dark ? "text-amber-500/40 hover:text-amber-500 hover:bg-white/5" : "text-amber-900/40 hover:text-amber-900 hover:bg-amber-100"
             }`}
           >
-            <Plus size={16} />
-            New Chat
+            <X size={20} />
+          </button>
+        </div>
+
+        {/* ── NEW CHAT BUTTON ── */}
+        <div className="px-4 pb-4">
+          <button
+            onClick={() => { createNewChat(); setIsSidebarOpen(false); }}
+            className={`w-full flex items-center gap-3 px-5 py-4 rounded-2xl text-[13px] font-black tracking-wide transition-all duration-300 touch-manipulation border ${
+              dark
+                ? "bg-amber-500/5 border-amber-500/20 text-amber-500 hover:bg-amber-500/10 shadow-lg shadow-amber-500/5"
+                : "bg-white border-amber-200 text-amber-700 hover:border-amber-400 shadow-sm"
+            }`}
+          >
+            <Plus size={18} strokeWidth={3} />
+            NEW WORKSPACE
           </button>
         </div>
 
         {/* ── NAV LINKS ── */}
-        <div className="px-3 pt-2 pb-1">
-          <p className={`text-[10px] uppercase tracking-widest font-semibold px-2 mb-1.5 ${dark ? "text-gray-700" : "text-gray-400"}`}>
-            Tools
+        <div className="px-4 py-2">
+          <p className={`text-[10px] uppercase tracking-[0.3em] font-black px-3 mb-3 ${dark ? "text-amber-500/30" : "text-amber-900/30"}`}>
+            Elite Tools
           </p>
-          {NAV_ITEMS.filter(i => i.id !== "chat").map(({ id, icon: Icon, label }) => (
-            <button
-              key={id}
-              onClick={() => handleNavSelect(id)}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all mb-0.5 touch-manipulation ${
-                currentPage === id
-                  ? dark
-                    ? "bg-white/10 text-white font-medium"
-                    : "bg-gray-200 text-gray-900 font-medium"
-                  : dark
-                  ? "text-gray-400 hover:text-gray-200 hover:bg-white/6"
-                  : "text-gray-500 hover:text-gray-800 hover:bg-gray-100"
-              }`}
-            >
-              <Icon size={16} className="flex-shrink-0" />
-              <span>{label}</span>
-            </button>
-          ))}
+          <div className="space-y-1">
+            {NAV_ITEMS.filter(i => i.id !== "chat").map(({ id, icon: Icon, label }) => (
+              <button
+                key={id}
+                onClick={() => handleNavSelect(id)}
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-[13px] font-bold tracking-tight transition-all duration-300 touch-manipulation ${
+                  currentPage === id
+                    ? dark
+                      ? "bg-amber-500/10 text-amber-500 shadow-lg border border-amber-500/20"
+                      : "bg-white text-amber-900 shadow-md border border-amber-200"
+                    : dark
+                    ? "text-amber-100/40 hover:text-amber-100 hover:bg-white/5"
+                    : "text-amber-900/40 hover:text-amber-900 hover:bg-amber-100/50"
+                }`}
+              >
+                <Icon size={16} strokeWidth={currentPage === id ? 3 : 2} className="flex-shrink-0" />
+                <span>{label}</span>
+              </button>
+            ))}
+          </div>
         </div>
 
-        <div className={`mx-3 my-2 border-t ${dark ? "border-gray-900" : "border-gray-200"}`} />
+        <div className={`mx-6 my-4 border-t ${dark ? "border-amber-500/10" : "border-amber-200"}`} />
 
         {/* ── RECENT CHATS ── */}
-        <div className="flex-1 overflow-y-auto px-3 pb-2">
-          <p className={`text-[10px] uppercase tracking-widest font-semibold px-2 mb-1.5 ${dark ? "text-gray-700" : "text-gray-400"}`}>
-            Recent Chats
+        <div className="flex-1 overflow-y-auto px-4 pb-4">
+          <p className={`text-[10px] uppercase tracking-[0.3em] font-black px-3 mb-3 ${dark ? "text-amber-500/30" : "text-amber-900/30"}`}>
+            Recent Path
           </p>
-          <div className="space-y-0.5">
+          <div className="space-y-1">
             {chats.length === 0 && (
-              <p className={`text-xs px-3 py-6 text-center ${dark ? "text-gray-700" : "text-gray-400"}`}>
-                No chats yet. Start a new one!
+              <p className={`text-xs px-3 py-10 text-center italic ${dark ? "text-amber-500/20" : "text-amber-900/30"}`}>
+                The journey begins here.
               </p>
             )}
             {chats.map((chat) => {
@@ -181,15 +213,15 @@ function Sidebar({
                       : dark ? "text-amber-100/40 hover:text-amber-100 hover:bg-white/5" : "text-amber-900/40 hover:text-amber-900 hover:bg-amber-100/50"
                   }`}
                 >
-                  <div className="flex items-center gap-2.5 min-w-0">
-                    <MessageSquare size={13} className="flex-shrink-0 opacity-60" />
-                    <p className="text-xs truncate">{chat.title}</p>
+                  <div className="flex items-center gap-3 min-w-0">
+                    <MessageSquare size={14} strokeWidth={isActive ? 3 : 2} className="flex-shrink-0 opacity-60" />
+                    <p className="text-xs truncate font-bold">{chat.title}</p>
                   </div>
                   <button
                     onClick={(e) => { e.stopPropagation(); deleteChat(chat.id); }}
-                    className={`flex-shrink-0 p-1.5 rounded-lg transition-all touch-manipulation
-                      md:opacity-0 md:group-hover:opacity-100 opacity-30 hover:opacity-100
-                      ${dark ? "hover:bg-red-500/20 text-gray-500 hover:text-red-400" : "hover:bg-red-50 text-gray-400 hover:text-red-500"}`}
+                    className={`flex-shrink-0 p-2 rounded-xl transition-all duration-300
+                      md:opacity-0 md:group-hover:opacity-100 opacity-40 hover:opacity-100
+                      ${dark ? "hover:bg-red-500/20 text-amber-500/40 hover:text-red-400" : "hover:bg-red-50 text-amber-900/30 hover:text-red-500"}`}
                   >
                     <Trash2 size={12} />
                   </button>
@@ -204,35 +236,35 @@ function Sidebar({
           {!isPro && (
             <button
               onClick={handleUpgrade}
-              className="w-full btn-gold-primary py-4 mb-6 rounded-2xl text-[12px] uppercase tracking-widest"
+              className="w-full btn-gold-primary py-4 mb-6 rounded-2xl text-[12px] uppercase tracking-[0.2em] font-black shadow-2xl shadow-amber-900/40"
             >
               UPGRADE TO PRO
             </button>
           )}
-          <div className={`flex items-center gap-3 p-4 rounded-2xl ${dark ? "bg-white/5" : "bg-white border border-amber-100 shadow-sm"}`}>
+          <div className={`flex items-center gap-3 p-4 rounded-2xl ${dark ? "bg-white/5 border border-white/5 shadow-2xl" : "bg-white border border-amber-100 shadow-xl shadow-amber-900/5"}`}>
             {profile?.avatar ? (
-              <img src={profile.avatar} alt="avatar" className="w-9 h-9 rounded-full object-cover ring-2 ring-purple-500/30 flex-shrink-0" />
+              <img src={profile.avatar} alt="avatar" className="w-10 h-10 rounded-xl object-cover ring-2 ring-amber-500/20 flex-shrink-0" />
             ) : (
-              <div className="w-9 h-9 rounded-full bg-gradient-to-br from-purple-600 to-pink-500 flex items-center justify-center flex-shrink-0">
-                <span className="text-white text-sm font-bold">{profile?.nickname?.charAt(0)?.toUpperCase() || "U"}</span>
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-600 to-amber-400 flex items-center justify-center flex-shrink-0 shadow-lg shadow-amber-500/20">
+                <span className="text-white text-base font-black">{profile?.nickname?.charAt(0)?.toUpperCase() || "U"}</span>
               </div>
             )}
             <div className="flex-1 min-w-0">
-              <p className={`text-xs font-semibold truncate ${dark ? "text-gray-200" : "text-gray-800"}`}>
+              <p className={`text-[13px] font-black truncate leading-none ${dark ? "text-white" : "text-amber-950"}`}>
                 {profile?.nickname?.split(" ")[0] || "User"}
               </p>
-              <p className={`text-[10px] truncate ${dark ? "text-gray-600" : "text-gray-400"}`}>
+              <p className={`text-[10px] truncate mt-1.5 font-bold ${dark ? "text-amber-500/40" : "text-amber-900/40"}`}>
                 {profile?.email}
               </p>
             </div>
             <button
               onClick={handleLogout}
-              className={`p-2 rounded-lg transition shrink-0 touch-manipulation ${
-                dark ? "text-gray-600 hover:text-red-400 hover:bg-red-500/10" : "text-gray-400 hover:text-red-500 hover:bg-red-50"
+              className={`p-2.5 rounded-xl transition-all duration-300 shrink-0 touch-manipulation ${
+                dark ? "text-amber-500/20 hover:text-red-400 hover:bg-red-500/10" : "text-amber-900/20 hover:text-red-500 hover:bg-red-50"
               }`}
               aria-label="Logout"
             >
-              <LogOut size={15} />
+              <LogOut size={16} strokeWidth={3} />
             </button>
           </div>
         </div>
