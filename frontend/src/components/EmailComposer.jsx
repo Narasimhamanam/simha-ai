@@ -80,8 +80,9 @@ const STEP = {
   ERROR: "error",
 };
 
-export default function EmailComposer({ theme, profile, onClose }) {
+export default function EmailComposer({ theme, profile, onClose, credits, fetchCredits }) {
   const dark = theme === "dark";
+  const outOfCredits = credits !== undefined && credits <= 0;
 
   const [step, setStep] = useState(STEP.PROMPT);
   const [prompt, setPrompt] = useState("");
@@ -102,6 +103,7 @@ export default function EmailComposer({ theme, profile, onClose }) {
       const res = await API.post("/generate-email", {
         prompt: prompt.trim(),
         sender_name: profile?.nickname || "",
+        user_email: profile?.email || "",
       });
       setDraft(res.data);
       setStep(STEP.DRAFT);
@@ -110,6 +112,7 @@ export default function EmailComposer({ theme, profile, onClose }) {
       setStep(STEP.ERROR);
     } finally {
       setGenerating(false);
+      if (fetchCredits) fetchCredits();
     }
   };
 
@@ -235,7 +238,8 @@ export default function EmailComposer({ theme, profile, onClose }) {
                 <textarea
                   value={prompt}
                   onChange={(e) => setPrompt(e.target.value)}
-                  placeholder={`e.g. "Send a follow-up email to hr@company.com asking about my interview result for Software Engineer role"`}
+                  placeholder={outOfCredits ? "Daily limit reached. Resets tomorrow." : `e.g. "Send a follow-up email..."`}
+                  disabled={outOfCredits}
                   rows={5}
                   style={{ fontSize: "16px" }}
                   className={`w-full rounded-xl border px-4 py-3 text-sm leading-6 outline-none resize-none transition ${
@@ -252,7 +256,7 @@ export default function EmailComposer({ theme, profile, onClose }) {
 
               <button
                 onClick={handleGenerate}
-                disabled={!prompt.trim() || generating}
+                disabled={!prompt.trim() || generating || outOfCredits}
                 className="w-full flex items-center justify-center gap-2.5 py-3 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-sm font-semibold hover:opacity-90 active:scale-95 transition disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation"
               >
                 {generating ? <Loader2 size={16} className="animate-spin" /> : <Sparkles size={16} />}

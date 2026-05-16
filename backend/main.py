@@ -22,6 +22,8 @@ from rag.pdf_processor import process_pdf
 from rag.vector_store import create_vector_store
 from rag.rag_chain import ask_pdf
 
+from credits import get_user_credits, check_credits, deduct_credits, calculate_credits
+
 app = FastAPI()
 
 # Limit concurrent Groq API calls — prevents rate limit errors under load
@@ -100,12 +102,22 @@ async def health():
     }
 
 # -----------------------------------
+# USER CREDITS
+# -----------------------------------
+
+@app.get("/user-credits/{email}")
+async def fetch_user_credits(email: str):
+    credits = await get_user_credits(email)
+    return {"credits": credits}
+
+# -----------------------------------
 # ANALYZE IMAGE (Vision)
 # -----------------------------------
 
 class ImageAnalysisRequest(BaseModel):
     image_base64: str  # full data URL like "data:image/jpeg;base64,..."
     prompt: str = "Describe this image in detail."
+    user_email: str | None = ""
 
 @app.post("/analyze-image")
 async def analyze_image(request: ImageAnalysisRequest):
@@ -115,6 +127,8 @@ async def analyze_image(request: ImageAnalysisRequest):
 
     if not request.image_base64:
         raise HTTPException(status_code=400, detail="image_base64 is required.")
+
+    await check_credits(request.user_email)
 
     # Strip data URL prefix if present, keep as full data URL for Groq
     image_url = request.image_base64  # Groq accepts data URLs directly
@@ -141,7 +155,10 @@ async def analyze_image(request: ImageAnalysisRequest):
             temperature=0.3,
             max_tokens=1024,
         )
-        return {"response": completion.choices[0].message.content}
+        response_text = completion.choices[0].message.content
+        cost = calculate_credits(request.prompt, response_text)
+        await deduct_credits(request.user_email, cost)
+        return {"response": response_text}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Image analysis failed: {str(e)}")
 
@@ -152,16 +169,22 @@ async def analyze_image(request: ImageAnalysisRequest):
 class EmailDraftRequest(BaseModel):
     prompt: str
     sender_name: str | None = ""
+    user_email: str | None = ""
 
 @app.post("/generate-email")
 async def generate_email(request: EmailDraftRequest):
     if not request.prompt or not request.prompt.strip():
         raise HTTPException(status_code=400, detail="Prompt is required.")
+        
+    await check_credits(request.user_email)
+    
     try:
         draft = generate_email_draft(
             prompt=request.prompt.strip(),
             sender_name=request.sender_name or ""
         )
+        cost = calculate_credits(request.prompt, draft.get("body", ""))
+        await deduct_credits(request.user_email, cost)
         return draft
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str({"error": "Email generation failed", "details": str(exc)}))
@@ -172,13 +195,19 @@ async def generate_email(request: EmailDraftRequest):
 
 class SummarizeUrlRequest(BaseModel):
     url: str
+    user_email: str | None = ""
 
 @app.post("/summarize-url")
 async def summarize_url_endpoint(request: SummarizeUrlRequest):
     if not request.url or not request.url.startswith("http"):
         raise HTTPException(status_code=400, detail="A valid URL starting with http/https is required.")
+        
+    await check_credits(request.user_email)
+    
     try:
         result = await summarize_url(request.url)
+        cost = calculate_credits(request.url, result.get("summary", ""))
+        await deduct_credits(request.user_email, cost)
         return result
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str({"error": "URL summarization failed", "details": str(exc)}))
@@ -190,16 +219,22 @@ async def summarize_url_endpoint(request: SummarizeUrlRequest):
 class CalendarEventRequest(BaseModel):
     prompt: str
     sender_name: str | None = ""
+    user_email: str | None = ""
 
 @app.post("/generate-calendar-event")
 async def generate_calendar_event_endpoint(request: CalendarEventRequest):
     if not request.prompt or not request.prompt.strip():
         raise HTTPException(status_code=400, detail="Prompt is required.")
+        
+    await check_credits(request.user_email)
+    
     try:
         event = generate_calendar_event(
             prompt=request.prompt.strip(),
             sender_name=request.sender_name or ""
         )
+        cost = calculate_credits(request.prompt, event.get("description", ""))
+        await deduct_credits(request.user_email, cost)
         return event
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str({"error": "Calendar event generation failed", "details": str(exc)}))
@@ -319,6 +354,8 @@ async def stream_chat(request: ChatRequest):
     # Fall back to in-memory history if MongoDB gave nothing
     if not history and user_id in conversation_memory:
         history = conversation_memory[user_id][-10:]
+        
+    await check_credits(user_id)
 
     # ── Stream response (semaphore caps concurrent Groq calls at 5) ──
     async def generate():
@@ -344,6 +381,9 @@ async def stream_chat(request: ChatRequest):
             print(f"[stream] Error: {e}")
         finally:
             if full_response:
+                cost = calculate_credits(request.query or message, full_response)
+                await deduct_credits(user_id, cost)
+                
                 if user_id not in conversation_memory:
                     conversation_memory[user_id] = []
                 conversation_memory[user_id].append({"user": message, "assistant": full_response})

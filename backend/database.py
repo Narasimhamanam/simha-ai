@@ -12,14 +12,16 @@ DATABASE_NAME = os.getenv("DATABASE_NAME")
 _client: AsyncIOMotorClient | None = None
 _chat_collection = None
 _documents_collection = None
+_users_collection = None
 
 
 def _reset_client():
     """Force-reset the cached client so next call recreates it."""
-    global _client, _chat_collection, _documents_collection
+    global _client, _chat_collection, _documents_collection, _users_collection
     _client = None
     _chat_collection = None
     _documents_collection = None
+    _users_collection = None
 
 
 def _get_db():
@@ -56,3 +58,13 @@ def get_documents_collection():
     if _documents_collection is None:
         _documents_collection = db["documents"]
     return _documents_collection
+
+
+def get_users_collection():
+    global _users_collection
+    db = _get_db()
+    if db is None:
+        return None
+    if _users_collection is None:
+        _users_collection = db["users"]
+    return _users_collection

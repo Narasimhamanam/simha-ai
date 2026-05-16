@@ -27,7 +27,7 @@ const PAGE_EMOJIS = {
   settings: "⚙️",
 };
 
-function Header({ theme, setTheme, profile, setIsSidebarOpen, activeChat, currentPage, createNewChat }) {
+function Header({ theme, setTheme, profile, setIsSidebarOpen, activeChat, currentPage, createNewChat, credits }) {
   const dark = theme === "dark";
   const firstName = profile?.nickname?.split(" ")[0] || "";
   const chatTitle = activeChat?.title && activeChat.title !== "New Chat" ? activeChat.title : null;
@@ -71,6 +71,17 @@ function Header({ theme, setTheme, profile, setIsSidebarOpen, activeChat, curren
 
       {/* RIGHT — Theme toggle + New chat */}
       <div className="flex items-center gap-1">
+        {/* Credits Badge */}
+        {credits !== undefined && credits !== null && (
+          <div className={`mr-2 flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold shadow-sm ${
+            credits <= 0 
+              ? dark ? "bg-red-500/20 text-red-400" : "bg-red-100 text-red-600"
+              : dark ? "bg-purple-500/20 text-purple-400" : "bg-purple-100 text-purple-600"
+          }`}>
+            <span>⚡</span>
+            {credits.toFixed(1)}
+          </div>
+        )}
         <ThemeToggle theme={theme} setTheme={setTheme} />
         {currentPage === "chat" && (
           <button

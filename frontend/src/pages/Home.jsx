@@ -47,7 +47,18 @@ function Home() {
   const guestChatId = "local-guest-chat";
   const [chats, setChats] = useState(isDevGuest ? [{ id: guestChatId, title: "New Chat", messages: [] }] : []);
   const [activeChatId, setActiveChatId] = useState(isDevGuest ? guestChatId : null);
+  const [credits, setCredits] = useState(10);
   const retryCountRef = useRef(0);
+
+  const fetchCredits = useCallback(async (email) => {
+    if (!email) return;
+    try {
+      const res = await API.get(`/user-credits/${email}`);
+      setCredits(res.data.credits);
+    } catch (e) {
+      console.error("Failed to fetch credits", e);
+    }
+  }, []);
 
   // ── Warm up backend before fetching ────────────────────────────────────
   const warmUpBackend = async () => {
@@ -123,6 +134,10 @@ function Home() {
         }
 
         setAppError("");
+        
+        // Fetch credits
+        await fetchCredits(email);
+
         setAppLoading(false);
         return; // success
       } catch (err) {
@@ -133,7 +148,7 @@ function Home() {
     // All attempts exhausted
     setAppLoading(false);
     setAppError("Could not connect after several attempts. Please tap Retry.");
-  }, []);
+  }, [fetchCredits]);
 
   const retryInit = () => {
     if (retryTimerRef.current) clearInterval(retryTimerRef.current);
@@ -158,16 +173,18 @@ function Home() {
   // ── Auth ────────────────────────────────────────────────────────────────
   useEffect(() => {
     if (isDevGuest) return;
-    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      setUser(currentUser);
-      if (!currentUser) {
+    const unsubscribe = onAuthStateChanged(auth, async (u) => {
+      if (u) {
+        setUser(u);
+        setProfile({ nickname: u.displayName || "User", email: u.email });
+        if (!isDevGuest) fetchChats(u.email);
+        startKeepAlive();
+      } else {
         stopKeepAlive();
+        setUser(null);
         setChats([]);
         setActiveChatId(null);
-        return;
       }
-      startKeepAlive();
-      await fetchChats(currentUser.email);
     });
     return () => unsubscribe();
   }, [isDevGuest, fetchChats]);
@@ -178,6 +195,13 @@ function Home() {
     const saved = localStorage.getItem(`simha_profile_${user.email}`);
     setProfile(saved ? JSON.parse(saved) : { nickname: user.displayName, email: user.email, avatar: user.photoURL });
   }, [user]);
+
+  useEffect(() => {
+    if (user?.email) {
+      const interval = setInterval(() => fetchCredits(user.email), 10000); // poll every 10s
+      return () => clearInterval(interval);
+    }
+  }, [user, fetchCredits]);
 
   const handleGoogleLogin = async () => {
     try { await signInWithPopup(auth, provider); }
@@ -326,6 +350,7 @@ function Home() {
           activeChat={activeChat}
           currentPage={currentPage}
           createNewChat={createNewChat}
+          credits={credits}
         />
 
         {currentPage === "chat" && (
@@ -336,16 +361,18 @@ function Home() {
             activeChat={activeChat}
             activeChatId={activeChatId}
             user={user}
+            credits={credits}
+            fetchCredits={() => fetchCredits(user?.email)}
           />
         )}
         {currentPage === "email" && (
-          <EmailComposer theme={theme} profile={profile} onClose={() => setCurrentPage("chat")} />
+          <EmailComposer theme={theme} profile={profile} onClose={() => setCurrentPage("chat")} credits={credits} fetchCredits={() => fetchCredits(user?.email)} />
         )}
         {currentPage === "calendar" && (
-          <CalendarComposer theme={theme} profile={profile} onClose={() => setCurrentPage("chat")} />
+          <CalendarComposer theme={theme} profile={profile} onClose={() => setCurrentPage("chat")} credits={credits} fetchCredits={() => fetchCredits(user?.email)} />
         )}
         {currentPage === "url" && (
-          <UrlSummarizer theme={theme} onClose={() => setCurrentPage("chat")} />
+          <UrlSummarizer theme={theme} onClose={() => setCurrentPage("chat")} credits={credits} fetchCredits={() => fetchCredits(user?.email)} userEmail={user?.email} />
         )}
         {currentPage === "history" && (
           <ChatHistoryPage

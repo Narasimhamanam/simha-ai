@@ -14,8 +14,9 @@ calendarProvider.setCustomParameters({ prompt: "consent" });
 
 const STEP = { PROMPT: "prompt", DRAFT: "draft", PERMISSION: "permission", SAVING: "saving", SUCCESS: "success", ERROR: "error" };
 
-export default function CalendarComposer({ theme, profile, onClose }) {
+export default function CalendarComposer({ theme, profile, onClose, credits, fetchCredits }) {
   const dark = theme === "dark";
+  const outOfCredits = credits !== undefined && credits <= 0;
 
   const [step, setStep] = useState(STEP.PROMPT);
   const [prompt, setPrompt] = useState("");
@@ -33,6 +34,7 @@ export default function CalendarComposer({ theme, profile, onClose }) {
       const res = await API.post("/generate-calendar-event", {
         prompt: prompt.trim(),
         sender_name: profile?.nickname || "",
+        user_email: profile?.email || "",
       });
       setEvent(res.data);
       setAttendeeInput(res.data.attendees?.join(", ") || "");
@@ -42,6 +44,7 @@ export default function CalendarComposer({ theme, profile, onClose }) {
       setStep(STEP.ERROR);
     } finally {
       setGenerating(false);
+      if (fetchCredits) fetchCredits();
     }
   };
 
@@ -150,7 +153,8 @@ export default function CalendarComposer({ theme, profile, onClose }) {
                 <textarea
                   value={prompt}
                   onChange={(e) => setPrompt(e.target.value)}
-                  placeholder={`e.g. "Schedule a project review meeting with pravallika@gmail.com tomorrow at 3 PM for 1 hour"`}
+                  placeholder={outOfCredits ? "Daily limit reached. Resets tomorrow." : `e.g. "Schedule a project review..."`}
+                  disabled={outOfCredits}
                   rows={4}
                   style={{ fontSize: "16px" }}
                   className={`w-full rounded-xl border px-4 py-3 text-sm leading-6 outline-none resize-none transition ${
@@ -164,7 +168,7 @@ export default function CalendarComposer({ theme, profile, onClose }) {
               </div>
               <button
                 onClick={handleGenerate}
-                disabled={!prompt.trim() || generating}
+                disabled={!prompt.trim() || generating || outOfCredits}
                 className="w-full flex items-center justify-center gap-2.5 py-3 rounded-xl bg-gradient-to-r from-violet-600 to-purple-600 text-white text-sm font-semibold hover:opacity-90 active:scale-95 transition disabled:opacity-50 touch-manipulation"
               >
                 {generating ? <Loader2 size={16} className="animate-spin" /> : <Sparkles size={16} />}

@@ -27,8 +27,9 @@ const SUGGESTIONS = [
   "Interview prep tips",
 ];
 
-function ChatArea({ theme, chats, setChats, activeChat, activeChatId, user }) {
+function ChatArea({ theme, chats, setChats, activeChat, activeChatId, user, credits, fetchCredits }) {
   const dark = theme === "dark";
+  const outOfCredits = credits !== undefined && credits <= 0;
 
   const [input, setInput] = useState("");
   const [selectedAgent, setSelectedAgent] = useState("study");
@@ -166,6 +167,7 @@ function ChatArea({ theme, chats, setChats, activeChat, activeChatId, user }) {
           return msgs;
         });
         setLoading(false);
+        if (fetchCredits) fetchCredits();
         return;
       }
 
@@ -174,7 +176,7 @@ function ChatArea({ theme, chats, setChats, activeChat, activeChatId, user }) {
 
       const payload = {
         chat_id: activeChatId,
-        user_id: user?.uid || user?.id || "guest",
+        user_id: user?.email || "guest",
         agent: selectedAgent,
         query: currentInput || `Analyze uploaded file: ${currentFile?.name || "File"}`,
         file_name: currentFile?.name || null,
@@ -248,6 +250,7 @@ function ChatArea({ theme, chats, setChats, activeChat, activeChatId, user }) {
       ]);
     } finally {
       setLoading(false);
+      if (fetchCredits) fetchCredits();
     }
   };
 
@@ -535,8 +538,8 @@ function ChatArea({ theme, chats, setChats, activeChat, activeChatId, user }) {
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={handleKeyDown}
                 rows={1}
-                placeholder="Message Simha AI..."
-                disabled={loading || uploading}
+                placeholder={outOfCredits ? "Daily limit reached. Resets tomorrow." : "Message Simha AI..."}
+                disabled={loading || uploading || outOfCredits}
                 style={{ resize: "none", minHeight: "28px", fontSize: "16px", lineHeight: "1.6" }}
                 className={`w-full bg-transparent outline-none max-h-28 ${
                   dark ? "text-white placeholder:text-gray-600" : "text-gray-900 placeholder:text-gray-400"
@@ -572,7 +575,7 @@ function ChatArea({ theme, chats, setChats, activeChat, activeChatId, user }) {
                     hidden
                     accept="image/*"
                     onChange={handleImageChange}
-                    disabled={loading || uploading}
+                    disabled={loading || uploading || outOfCredits}
                   />
                   <ImageIcon size={17} className={imagePreview ? "text-purple-400" : ""} />
                 </label>
@@ -587,7 +590,7 @@ function ChatArea({ theme, chats, setChats, activeChat, activeChatId, user }) {
                     hidden
                     accept=".pdf,.txt,.doc,.docx"
                     onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
-                    disabled={loading || uploading}
+                    disabled={loading || uploading || outOfCredits}
                   />
                   <Paperclip size={17} className={selectedFile ? "text-purple-400" : ""} />
                 </label>
@@ -595,7 +598,7 @@ function ChatArea({ theme, chats, setChats, activeChat, activeChatId, user }) {
                 {/* Voice */}
                 <VoiceInput
                   theme={theme}
-                  disabled={loading || uploading}
+                  disabled={loading || uploading || outOfCredits}
                   onTranscript={(text) => setInput((prev) => prev ? prev + " " + text : text)}
                 />
               </div>
@@ -604,9 +607,9 @@ function ChatArea({ theme, chats, setChats, activeChat, activeChatId, user }) {
               <button
                 type="button"
                 onClick={() => handleSend(undefined)}
-                disabled={loading || uploading || (!input.trim() && !selectedFile && !imagePreview)}
+                disabled={loading || uploading || outOfCredits || (!input.trim() && !selectedFile && !imagePreview)}
                 className={`p-2.5 rounded-full transition-all touch-manipulation active:scale-95 ${
-                  !input.trim() && !selectedFile && !imagePreview
+                  outOfCredits || (!input.trim() && !selectedFile && !imagePreview)
                     ? dark ? "bg-gray-800 text-gray-600 cursor-not-allowed" : "bg-gray-200 text-gray-400 cursor-not-allowed"
                     : "bg-white text-gray-900 hover:bg-gray-100 shadow-sm"
                 }`}

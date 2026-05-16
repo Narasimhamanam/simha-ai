@@ -14,8 +14,9 @@ const CATEGORY_COLORS = {
   other: "bg-gray-500/20 text-gray-400",
 };
 
-export default function UrlSummarizer({ theme, onClose }) {
+export default function UrlSummarizer({ theme, onClose, credits, fetchCredits, userEmail }) {
   const dark = theme === "dark";
+  const outOfCredits = credits !== undefined && credits <= 0;
 
   const [url, setUrl] = useState("");
   const [loading, setLoading] = useState(false);
@@ -31,7 +32,7 @@ export default function UrlSummarizer({ theme, onClose }) {
     setError("");
 
     try {
-      const res = await API.post("/summarize-url", { url: cleanUrl });
+      const res = await API.post("/summarize-url", { url: cleanUrl, user_email: userEmail || "" });
       setResult(res.data);
     } catch (err) {
       setError(
@@ -41,6 +42,7 @@ export default function UrlSummarizer({ theme, onClose }) {
       );
     } finally {
       setLoading(false);
+      if (fetchCredits) fetchCredits();
     }
   };
 
@@ -76,7 +78,8 @@ export default function UrlSummarizer({ theme, onClose }) {
               value={url}
               onChange={(e) => setUrl(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleSummarize()}
-              placeholder="https://example.com/article"
+              placeholder={outOfCredits ? "Daily limit reached." : "https://example.com/article"}
+              disabled={outOfCredits}
               style={{ fontSize: "16px" }}
               className={`flex-1 rounded-xl border px-4 py-2.5 text-sm outline-none transition ${
                 dark
@@ -86,7 +89,7 @@ export default function UrlSummarizer({ theme, onClose }) {
             />
             <button
               onClick={handleSummarize}
-              disabled={!url.trim() || loading}
+              disabled={!url.trim() || loading || outOfCredits}
               className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-teal-600 text-white text-sm font-semibold hover:opacity-90 active:scale-95 transition disabled:opacity-50 touch-manipulation shrink-0"
             >
               {loading ? <Loader2 size={15} className="animate-spin" /> : <Sparkles size={15} />}
