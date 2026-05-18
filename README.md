@@ -38,19 +38,39 @@ Whether you're a student preparing for placements, a developer debugging code, o
 <td align="center" width="200">
 
 ### 🎓 Study Agent
-Expert educational tutor covering ML, AI, CS, aptitude & placement prep
+Expert educational tutor covering ML, CS, aptitude & placement prep.
 
 </td>
 <td align="center" width="200">
 
 ### 💻 Coding Agent
-Code generation, debugging, algorithms & technical interview help
+Code generation, debugging, algorithms & technical interview help.
 
 </td>
 <td align="center" width="200">
 
 ### ⚡ Productivity Agent
-Task planning, time management & professional advice
+Task planning, time management & professional advice.
+
+</td>
+</tr>
+<tr>
+<td align="center" width="200">
+
+### 🦚 Ask Krishna Mode
+Spiritual guidance from Bhagavad Gita with comforting personal AI persona.
+
+</td>
+<td align="center" width="200">
+
+### 📄 PDF Q&A (RAG)
+Upload PDFs and ask questions — powered by ChromaDB + HuggingFace embeddings.
+
+</td>
+<td align="center" width="200">
+
+### 🖼️ Vision (OCR)
+Upload images and ask the AI to explain, describe, or extract text from them.
 
 </td>
 </tr>
@@ -58,39 +78,39 @@ Task planning, time management & professional advice
 <td align="center" width="200">
 
 ### 📧 Email Composer
-AI-drafted professional emails from a single sentence prompt
+AI-drafted professional emails from a single sentence prompt.
 
 </td>
 <td align="center" width="200">
 
 ### 📅 Calendar Planner
-Convert natural language into structured Google Calendar events
+Convert natural language into structured Google Calendar events.
 
 </td>
 <td align="center" width="200">
 
 ### 🌐 URL Summarizer
-Paste any URL → get a structured summary with key points
+Paste any URL → get a structured summary with key points.
 
 </td>
 </tr>
 <tr>
 <td align="center" width="200">
 
-### 📄 PDF Q&A (RAG)
-Upload PDFs and ask questions — powered by ChromaDB + HuggingFace embeddings
-
-</td>
-<td align="center" width="200">
-
-### 🖼️ Vision (OCR)
-Upload images and ask the AI to explain, describe, or extract text from them
-
-</td>
-<td align="center" width="200">
-
 ### 💰 SaaS Credit System
-Daily 10 free credits system with PRO upgrade via Razorpay Integration
+Daily 10 free credits system with PRO upgrade via Razorpay Integration.
+
+</td>
+<td align="center" width="200">
+
+### 🎵 Ambient Flute Music
+Seamless, continuous divine ambient background music with toggle controls.
+
+</td>
+<td align="center" width="200">
+
+### ✨ Premium Glassmorphic UI
+Sleek dark mode, sky-blue divine theme, and fluid micro-animations.
 
 </td>
 </tr>
@@ -111,20 +131,20 @@ Daily 10 free credits system with PRO upgrade via Razorpay Integration
 │  React Markdown          │  │       Agent Router           │ │
 │  Syntax Highlighter      │  │  (prefix-based dispatching)  │ │
 │  Lucide Icons            │  └──────────┬──────────────────┘ │
-│                          │             │                     │
-│  Pages:                  │     ┌───────┼────────┐           │
-│  • Chat (streaming)      │     ▼       ▼        ▼           │
-│  • Email Composer        │  Study  Coding  Productivity     │
-│  • Calendar Planner      │  Agent   Agent    Agent          │
-│  • URL Summarizer        │                                   │
-│  • Documents (RAG)       │  Automation Agents:               │
-│  • Chat History          │  • Email Draft (Groq LLM)        │
-│  • Settings              │  • URL Summarizer (httpx)        │
-│                          │  • Calendar Event Generator       │
+│  YouTube Music Player    │             │                     │
+│                          │     ┌───────┼───────┬────────┐    │
+│  Pages:                  │     ▼       ▼       ▼        ▼    │
+│  • Chat (streaming)      │  Study   Coding  Product   Divine │
+│  • Email Composer        │  Agent   Agent    Agent    Agent  │
+│  • Calendar Planner      │                                   │
+│  • URL Summarizer        │  Automation Agents:               │
+│  • Documents (RAG)       │  • Email Draft (Groq LLM)        │
+│  • Chat History          │  • URL Summarizer (httpx)        │
+│  • Settings              │  • Calendar Event Generator       │
 │                          │                                   │
 │                          │  RAG Pipeline:                    │
-│                          │  • PDF Processor (PyPDF)         │
-│                          │  • ChromaDB Vector Store         │
+│                          │  • PDF / Gita Processors         │
+│                          │  • ChromaDB Vector Stores        │
 │                          │  • HuggingFace Embeddings        │
 └──────────────────────────┴──────────────────────────────────┘
          │                              │
@@ -298,12 +318,35 @@ Simha AI uses a **prefix-based routing** system to dispatch queries to specializ
 
 ```python
 # Agent Router Logic
-"study: ..."       → Study Agent      (academics, placement prep, ML/AI)
-"coding: ..."      → Coding Agent     (code generation, debugging)
-"productivity: ..." → Productivity Agent (tasks, planning, advice)
+"study: ..."        → Study Agent         (academics, placement prep, ML/AI)
+"coding: ..."       → Coding Agent        (code generation, debugging)
+"productivity: ..." → Productivity Agent  (tasks, planning, advice)
+"divine: ..."       → Ask Krishna Agent   (Bhagavad Gita RAG wisdom)
+"krishna: ..."      → Ask Krishna Agent   (Bhagavad Gita RAG wisdom)
 ```
 
 Each agent has its own **system prompt**, **context window management**, and **history truncation** to stay within Groq's free-tier token limits.
+
+---
+
+## 🦚 Ask Krishna (Divine Mode) — Gita Wisdom & Soundscape
+
+We have built a completely immersive experience called **Ask Krishna (Divine Mode)**. When selected, this feature transforms the environment to help users seek calm and mental clarity during stressful times.
+
+### 🕉️ Architecture & Technical Highlights:
+1. **Bhagavad Gita RAG Pipeline**:
+   - Uses a dedicated Vector Database powered by **ChromaDB** containing the complete teachings and verses of the Bhagavad Gita.
+   - Text chunks are encoded using the lightweight, fast `all-MiniLM-L6-v2` HuggingFace Embeddings.
+   - Relevancy matching retrieves the exact teaching fitting the user's emotional query or life struggle.
+2. **Comforting AI Persona**:
+   - Guided by a rigorous system prompt representing the calm, comforting voice of Lord Krishna speaking on the battlefield.
+   - Constrained to stay minimal (25-60 words) to avoid AI-like bulleted lists, generic opening statements, or clinical advice, leaving the user with a single, calm poetic thought.
+   - Built-in keyword detectors: if the user asks Krishna to *"explain deeply"*, *"elaborate"*, or *"which chapter"*, it bypasses length constraints to provide extensive theological context.
+3. **Seamless Ambient Soundscape**:
+   - Integrates a seamless, background divine flute soundtrack powered by an embedded hidden media player.
+   - Toggled effortlessly from a dedicated music button in the top navigation header.
+4. **Calming Sky-Blue UI/UX Theme**:
+   - Switching to Divine Mode instantly shifts the dark-mode aesthetic to a rich sky-blue divine theme, offering smooth transitions, breathing icons, and soft typography.
 
 ---
 

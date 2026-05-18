@@ -157,7 +157,7 @@ function ChatArea({ theme, chats, setChats, activeChat, activeChatId, user, cred
       if (currentImage) {
         const tempMsg = { role: "assistant", content: "" };
         updateActiveChatMessages((messages) => [...messages, tempMsg]);
-        const baseURL = import.meta.env.VITE_BACKEND_URL || "http://127.0.0.1:8000";
+        const baseURL = import.meta.env.VITE_BACKEND_URL || "https://simha-ai-production.up.railway.app";
         const res = await fetch(`${baseURL}/analyze-image`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -195,7 +195,7 @@ function ChatArea({ theme, chats, setChats, activeChat, activeChatId, user, cred
       const tempAssistantMsg = { role: "assistant", content: "" };
       updateActiveChatMessages((messages) => [...messages, tempAssistantMsg]);
 
-      const baseURL = import.meta.env.VITE_BACKEND_URL || "http://127.0.0.1:8000";
+      const baseURL = import.meta.env.VITE_BACKEND_URL || "https://simha-ai-production.up.railway.app";
 
       let response = null;
       let lastError = null;
