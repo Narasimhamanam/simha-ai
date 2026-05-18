@@ -1,7 +1,7 @@
 from llm import generate_response
 from agents.system_prompt import SYSTEM_PROMPT
 
-MAX_HISTORY_TURNS = 5  # Only use last 5 Q&A pairs to stay within token budget
+MAX_HISTORY_TURNS = 15  # Only use last 15 Q&A pairs to stay within token budget
 
 def _build_history(history):
     """Build a compact history string, capped to avoid token overflow."""

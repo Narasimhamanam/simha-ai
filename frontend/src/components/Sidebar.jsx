@@ -183,7 +183,11 @@ function Sidebar({
 
           {/* ELITE TOOLS */}
           <div>
-            <p className={`text-[9px] uppercase tracking-[0.3em] font-black px-3 mb-3 ${isDivine ? "text-sky-500/30" : "text-amber-500/30"}`}>
+            <p className={`text-[10px] uppercase tracking-[0.3em] font-black px-3 mb-3 ${
+              dark 
+                ? isDivine ? "text-sky-400 font-extrabold" : "text-amber-400 font-extrabold" 
+                : isDivine ? "text-sky-700 font-black" : "text-amber-800 font-black"
+            }`}>
               Elite Tools
             </p>
             <div className="space-y-0.5">
@@ -197,8 +201,8 @@ function Sidebar({
                         ? isDivine ? "bg-sky-500/10 text-sky-500 shadow-lg border border-sky-500/20" : "bg-amber-500/10 text-amber-500 shadow-lg border border-amber-500/20"
                         : isDivine ? "bg-white text-sky-900 shadow-md border border-sky-200" : "bg-white text-amber-900 shadow-md border border-amber-200"
                       : dark
-                      ? isDivine ? "text-sky-100/40 hover:text-sky-100 hover:bg-white/5" : "text-amber-100/40 hover:text-amber-100 hover:bg-white/5"
-                      : isDivine ? "text-sky-900/40 hover:text-sky-900 hover:bg-sky-100/50" : "text-amber-900/40 hover:text-amber-900 hover:bg-amber-100/50"
+                      ? isDivine ? "text-sky-200/75 hover:text-sky-100 hover:bg-white/5" : "text-amber-200/75 hover:text-amber-100 hover:bg-white/5"
+                      : isDivine ? "text-sky-950/75 hover:text-sky-900 hover:bg-sky-100/50" : "text-amber-950/75 hover:text-amber-900 hover:bg-amber-100/50"
                   }`}
                 >
                   <Icon size={15} strokeWidth={currentPage === id ? 3 : 2} className="flex-shrink-0" />
@@ -210,7 +214,11 @@ function Sidebar({
 
           {/* RECENT PATH */}
           <div>
-            <p className={`text-[9px] uppercase tracking-[0.3em] font-black px-3 mb-3 ${isDivine ? "text-sky-500/30" : "text-amber-500/30"}`}>
+            <p className={`text-[10px] uppercase tracking-[0.3em] font-black px-3 mb-3 ${
+              dark 
+                ? isDivine ? "text-sky-400 font-extrabold" : "text-amber-400 font-extrabold" 
+                : isDivine ? "text-sky-700 font-black" : "text-amber-800 font-black"
+            }`}>
               Recent Path
             </p>
             <div className="space-y-0.5">
@@ -231,8 +239,8 @@ function Sidebar({
                           ? isDivine ? "bg-sky-500/10 text-sky-500 shadow-lg border border-sky-500/20" : "bg-amber-500/10 text-amber-500 shadow-lg border border-amber-500/20" 
                           : isDivine ? "bg-white text-sky-900 shadow-md border border-sky-200" : "bg-white text-amber-900 shadow-md border border-amber-200"
                         : dark 
-                          ? isDivine ? "text-sky-100/40 hover:text-sky-100 hover:bg-white/5" : "text-amber-100/40 hover:text-amber-100 hover:bg-white/5" 
-                          : isDivine ? "text-sky-900/40 hover:text-sky-900 hover:bg-sky-100/50" : "text-amber-900/40 hover:text-amber-900 hover:bg-amber-100/50"
+                          ? isDivine ? "text-sky-200/75 hover:text-sky-100 hover:bg-white/5" : "text-amber-200/75 hover:text-amber-100 hover:bg-white/5" 
+                          : isDivine ? "text-sky-950/75 hover:text-sky-900 hover:bg-sky-100/50" : "text-amber-950/75 hover:text-amber-900 hover:bg-amber-100/50"
                     }`}
                   >
                     <div className="flex items-center gap-3 min-w-0">

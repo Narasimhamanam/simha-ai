@@ -396,7 +396,7 @@ async def stream_chat(request: ChatRequest):
         raise HTTPException(status_code=400, detail=str({"error": "Missing message/query in request."}))
 
     # ── Build conversation history ──
-    # Try loading last 10 messages from MongoDB for persistent context across cold starts
+    # Try loading last 60 messages from MongoDB for persistent context across cold starts
     history = []
     if chat_id:
         collection = get_chat_collection()
@@ -404,7 +404,7 @@ async def stream_chat(request: ChatRequest):
             try:
                 doc = await collection.find_one({"_id": ObjectId(chat_id)})
                 if doc and doc.get("messages"):
-                    raw_msgs = doc["messages"][-20:]  # last 20 messages
+                    raw_msgs = doc["messages"][-60:]  # last 60 messages (30 turns)
                     for i in range(0, len(raw_msgs) - 1, 2):
                         u = raw_msgs[i]
                         a = raw_msgs[i + 1] if i + 1 < len(raw_msgs) else None
@@ -415,7 +415,7 @@ async def stream_chat(request: ChatRequest):
 
     # Fall back to in-memory history if MongoDB gave nothing
     if not history and user_id in conversation_memory:
-        history = conversation_memory[user_id][-10:]
+        history = conversation_memory[user_id][-30:]
         
     await check_credits(user_id)
 
@@ -449,8 +449,8 @@ async def stream_chat(request: ChatRequest):
                 if user_id not in conversation_memory:
                     conversation_memory[user_id] = []
                 conversation_memory[user_id].append({"user": message, "assistant": full_response})
-                if len(conversation_memory[user_id]) > 20:
-                    conversation_memory[user_id] = conversation_memory[user_id][-20:]
+                if len(conversation_memory[user_id]) > 40:
+                    conversation_memory[user_id] = conversation_memory[user_id][-40:]
                 if chat_id:
                     collection = get_chat_collection()
                     if collection is not None:
@@ -656,9 +656,9 @@ async def get_chats(user_email: str):
     result = []
     for doc in docs:
         messages = doc.get("messages", [])
-        # Return only last 50 messages to avoid huge payloads
-        if len(messages) > 50:
-            messages = messages[-50:]
+        # Return only last 100 messages to avoid huge payloads
+        if len(messages) > 100:
+            messages = messages[-100:]
         result.append({
             "id": str(doc["_id"]),
             "title": doc.get("title", "New Chat"),

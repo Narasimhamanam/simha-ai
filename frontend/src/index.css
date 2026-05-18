@@ -18,7 +18,7 @@
     margin: 0;
     padding: 0;
     overflow-x: hidden;
-    @apply font-['Outfit'] antialiased;
+    @apply font-sans antialiased;
   }
 
   /* Custom Selection */

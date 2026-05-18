@@ -2,7 +2,7 @@ import re
 from llm import generate_response
 from divine_rag.divine_chain import get_divine_context
 
-MAX_HISTORY_TURNS = 8
+MAX_HISTORY_TURNS = 20
 
 DIVINE_SYSTEM_PROMPT = """
 # Krishna AI - Hard Constraints

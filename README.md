@@ -53,14 +53,14 @@ Code generation, debugging, algorithms & technical interview help.
 Task planning, time management & professional advice.
 
 </td>
-</tr>
-<tr>
 <td align="center" width="200">
 
-### 🦚 Ask Krishna Mode
+### 🦚 Krishna AI
 Spiritual guidance from Bhagavad Gita with comforting personal AI persona.
 
 </td>
+</tr>
+<tr>
 <td align="center" width="200">
 
 ### 📄 PDF Q&A (RAG)
@@ -73,8 +73,6 @@ Upload PDFs and ask questions — powered by ChromaDB + HuggingFace embeddings.
 Upload images and ask the AI to explain, describe, or extract text from them.
 
 </td>
-</tr>
-<tr>
 <td align="center" width="200">
 
 ### 📧 Email Composer
@@ -87,14 +85,14 @@ AI-drafted professional emails from a single sentence prompt.
 Convert natural language into structured Google Calendar events.
 
 </td>
+</tr>
+<tr>
 <td align="center" width="200">
 
 ### 🌐 URL Summarizer
 Paste any URL → get a structured summary with key points.
 
 </td>
-</tr>
-<tr>
 <td align="center" width="200">
 
 ### 💰 SaaS Credit System

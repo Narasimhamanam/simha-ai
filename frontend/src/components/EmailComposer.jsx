@@ -232,7 +232,7 @@ export default function EmailComposer({ theme, profile, onClose, credits, fetchC
           {step === STEP.PROMPT && (
             <div className="p-5 space-y-4">
               <div>
-                <label className={`text-xs font-semibold mb-2 block ${dark ? "text-gray-300" : "text-gray-700"}`}>
+                <label className={`text-[13px] font-black uppercase tracking-wider mb-2 block ${dark ? "text-amber-400" : "text-amber-950"}`}>
                   ✍️ Describe the email you want to send
                 </label>
                 <textarea
@@ -277,7 +277,7 @@ export default function EmailComposer({ theme, profile, onClose, credits, fetchC
 
               {/* TO */}
               <div>
-                <label className={`text-[11px] font-semibold mb-1 block ${dark ? "text-gray-400" : "text-gray-500"}`}>TO *</label>
+                <label className={`text-[11px] font-black uppercase tracking-widest mb-1 block ${dark ? "text-amber-400" : "text-amber-950"}`}>TO *</label>
                 <input
                   type="email"
                   value={draft.to}
@@ -301,7 +301,7 @@ export default function EmailComposer({ theme, profile, onClose, credits, fetchC
 
               {showCc && (
                 <div>
-                  <label className={`text-[11px] font-semibold mb-1 block ${dark ? "text-gray-400" : "text-gray-500"}`}>CC</label>
+                  <label className={`text-[11px] font-black uppercase tracking-widest mb-1 block ${dark ? "text-amber-400" : "text-amber-950"}`}>CC</label>
                   <input
                     type="email"
                     value={draft.cc}
@@ -317,7 +317,7 @@ export default function EmailComposer({ theme, profile, onClose, credits, fetchC
 
               {/* SUBJECT */}
               <div>
-                <label className={`text-[11px] font-semibold mb-1 block ${dark ? "text-gray-400" : "text-gray-500"}`}>SUBJECT</label>
+                <label className={`text-[11px] font-black uppercase tracking-widest mb-1 block ${dark ? "text-amber-400" : "text-amber-950"}`}>SUBJECT</label>
                 <input
                   type="text"
                   value={draft.subject}
@@ -331,7 +331,7 @@ export default function EmailComposer({ theme, profile, onClose, credits, fetchC
 
               {/* BODY */}
               <div>
-                <label className={`text-[11px] font-semibold mb-1 block ${dark ? "text-gray-400" : "text-gray-500"}`}>BODY</label>
+                <label className={`text-[11px] font-black uppercase tracking-widest mb-1 block ${dark ? "text-amber-400" : "text-amber-950"}`}>BODY</label>
                 <textarea
                   value={draft.body}
                   onChange={(e) => setDraft((d) => ({ ...d, body: e.target.value }))}
@@ -345,7 +345,7 @@ export default function EmailComposer({ theme, profile, onClose, credits, fetchC
 
               {/* ATTACHMENTS */}
               <div>
-                <label className={`text-[11px] font-semibold mb-2 block ${dark ? "text-gray-400" : "text-gray-500"}`}>ATTACHMENTS</label>
+                <label className={`text-[11px] font-black uppercase tracking-widest mb-2 block ${dark ? "text-amber-400" : "text-amber-950"}`}>ATTACHMENTS</label>
                 <div className="flex flex-wrap gap-2">
                   {attachments.map((att) => (
                     <div key={att.name} className={`flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs ${dark ? "bg-[#222] text-gray-300 border border-gray-800" : "bg-gray-100 text-gray-700 border border-gray-200"}`}>

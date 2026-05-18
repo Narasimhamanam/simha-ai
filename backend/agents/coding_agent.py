@@ -1,7 +1,7 @@
 from llm import generate_response
 from agents.system_prompt import SYSTEM_PROMPT
 
-MAX_HISTORY_TURNS = 5
+MAX_HISTORY_TURNS = 15
 
 def _build_history(history):
     recent = history[-MAX_HISTORY_TURNS:] if history else []

@@ -298,7 +298,7 @@ function ChatArea({ theme, chats, setChats, activeChat, activeChatId, user, cred
 
       {/* ── MESSAGES AREA — takes all space above input, scrolls independently ── */}
       <div className="flex-1 overflow-y-auto overscroll-contain" style={{ WebkitOverflowScrolling: "touch" }}>
-        <div className="max-w-2xl mx-auto w-full px-3 sm:px-4 pt-4">
+        <div className="max-w-3xl mx-auto w-full px-3 sm:px-4 pt-4">
 
             {/* Welcome View */}
             {!activeChat?.messages.length && (
@@ -329,7 +329,7 @@ function ChatArea({ theme, chats, setChats, activeChat, activeChatId, user, cred
                     : "Protected by Intelligence. Guided by Dharma. Ask anything to start your journey."}
                 </p>
                 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full max-w-2xl">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full max-w-3xl">
                   {(isDivine ? DIVINE_SUGGESTIONS : SUGGESTIONS).map((s, i) => (
                     <button
                       key={i}
@@ -344,10 +344,10 @@ function ChatArea({ theme, chats, setChats, activeChat, activeChatId, user, cred
                             : "bg-white border-amber-100 text-amber-900/70 hover:border-amber-400 hover:shadow-2xl shadow-amber-900/5"
                       }`}
                     >
-                      <p className={`text-[13px] font-bold tracking-wide uppercase opacity-40 mb-1`}>
+                      <p className={`text-[11px] font-black tracking-widest uppercase opacity-75 mb-1.5 ${isDivine ? "text-sky-400" : "text-amber-500"}`}>
                         {isDivine ? "Divine Wisdom" : "Knowledge Path"}
                       </p>
-                      <p className="text-sm font-black">{s}</p>
+                      <p className="text-sm font-black opacity-95">{s}</p>
                     </button>
                   ))}
                 </div>
@@ -377,7 +377,7 @@ function ChatArea({ theme, chats, setChats, activeChat, activeChatId, user, cred
               )}
 
               <div 
-                      className={`max-w-[85%] md:max-w-[75%] px-6 py-5 shadow-sm text-sm leading-relaxed transition-all duration-500 ${
+                      className={`max-w-[90%] md:max-w-[85%] px-7 py-6 md:px-8 md:py-6 shadow-sm text-base leading-relaxed transition-all duration-500 ${
                         isDivine ? "divine-bubble" : "rounded-[32px]"
                       } ${
                         msg.role === "user"
@@ -412,14 +412,14 @@ function ChatArea({ theme, chats, setChats, activeChat, activeChatId, user, cred
                 <ReactMarkdown
                   remarkPlugins={[remarkGfm]}
                   components={{
-                    h1: ({ children }) => <h1 className="text-lg font-bold mt-4 mb-2">{children}</h1>,
-                    h2: ({ children }) => <h2 className="text-base font-semibold mt-3 mb-1.5">{children}</h2>,
-                    h3: ({ children }) => <h3 className="text-sm font-semibold mt-2.5 mb-1">{children}</h3>,
-                    p:  ({ children }) => <p className="text-[14px] leading-7 mb-2.5">{children}</p>,
-                    ul: ({ children }) => <ul className="list-disc pl-5 mb-2.5 space-y-1">{children}</ul>,
-                    ol: ({ children }) => <ol className="list-decimal pl-5 mb-2.5 space-y-1">{children}</ol>,
-                    li: ({ children }) => <li className="text-[14px] leading-6">{children}</li>,
-                    strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
+                    h1: ({ children }) => <h1 className="text-xl md:text-2xl font-black mt-6 mb-3 tracking-tight">{children}</h1>,
+                    h2: ({ children }) => <h2 className="text-lg md:text-xl font-bold mt-5 mb-2.5 tracking-tight">{children}</h2>,
+                    h3: ({ children }) => <h3 className="text-base md:text-lg font-bold mt-4 mb-2 tracking-tight">{children}</h3>,
+                    p:  ({ children }) => <p className="text-[15px] md:text-base leading-[1.8] mb-3.5 font-medium">{children}</p>,
+                    ul: ({ children }) => <ul className="list-disc pl-5 mb-3.5 space-y-1.5 font-medium">{children}</ul>,
+                    ol: ({ children }) => <ol className="list-decimal pl-5 mb-3.5 space-y-1.5 font-medium">{children}</ol>,
+                    li: ({ children }) => <li className="text-[15px] md:text-base leading-[1.8] font-medium">{children}</li>,
+                    strong: ({ children }) => <strong className="font-extrabold">{children}</strong>,
                     blockquote: ({ children }) => (
                       <blockquote className={`border-l-4 pl-4 italic my-3 ${dark ? "border-amber-700 text-gray-400" : "border-amber-300 text-gray-600"}`}>
                         {children}
@@ -466,7 +466,7 @@ function ChatArea({ theme, chats, setChats, activeChat, activeChatId, user, cred
                               style={oneDark}
                               PreTag="div"
                               wrapLongLines={true}
-                              customStyle={{ margin: 0, padding: "14px 16px", background: "#0d1117", fontSize: "12.5px", lineHeight: "1.7" }}
+                              customStyle={{ margin: 0, padding: "16px 20px", background: "#0d1117", fontSize: "13.5px", lineHeight: "1.75" }}
                               {...props}
                             >
                               {codeString}
@@ -476,7 +476,7 @@ function ChatArea({ theme, chats, setChats, activeChat, activeChatId, user, cred
                       }
                       return (
                         <code
-                          className={`px-1.5 py-0.5 rounded-md text-[12.5px] font-mono ${dark ? "bg-gray-800 text-amber-400" : "bg-gray-100 text-amber-600"}`}
+                          className={`px-1.5 py-0.5 rounded-md text-[13.5px] font-mono ${dark ? "bg-gray-800 text-amber-400" : "bg-gray-100 text-amber-600"}`}
                           {...props}
                         >
                           {children}
