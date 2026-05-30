@@ -78,21 +78,21 @@ function Home() {
 
   // ── Warm up backend before fetching ────────────────────────────────────
   const warmUpBackend = async () => {
-    // Try pinging up to 12 times with 5s gaps = 60s total warm-up budget
-    // Railway cold starts can take 40-60s for first user
-    for (let i = 0; i < 12; i++) {
+    // Try pinging up to 20 times with 5s gaps = 100s total warm-up budget
+    // Railway cold starts with ML libraries (torch/chromadb) can take 60-90s
+    for (let i = 0; i < 20; i++) {
       try {
         await API.get("/ping", { timeout: 10000 });
         return true; // server is awake
       } catch {
-        if (i < 11) {
-          const secondsLeft = (11 - i) * 5;
+        if (i < 19) {
+          const secondsLeft = (19 - i) * 5;
           setAppError(`⏳ Waking up AI server... (${secondsLeft}s)`);
           await new Promise((r) => setTimeout(r, 5000));
         }
       }
     }
-    return false; // still not reachable after 60s
+    return false; // still not reachable after 100s
   };
 
   // ── Fetch chats with retry ──────────────────────────────────────────────

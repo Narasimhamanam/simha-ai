@@ -1,12 +1,10 @@
-from langchain_chroma import Chroma
-
-from langchain_huggingface import HuggingFaceEmbeddings
-
 from llm import generate_response
 
 def ask_pdf(question):
+    # Lazy imports — keeps server startup fast (torch/chromadb load only when PDF Q&A is used)
+    from langchain_chroma import Chroma
+    from langchain_huggingface import HuggingFaceEmbeddings
 
-    # Lazy init to avoid heavy downloads at import-time (Render-friendly)
     embedding_model = HuggingFaceEmbeddings(
         model_name="sentence-transformers/all-MiniLM-L6-v2"
     )

@@ -1,7 +1,8 @@
-from langchain_community.document_loaders import PyPDFLoader
-from langchain_text_splitters import RecursiveCharacterTextSplitter
-
 def process_pdf(pdf_path):
+    # Lazy imports — only load langchain when a PDF is actually uploaded
+    from langchain_community.document_loaders import PyPDFLoader
+    from langchain_text_splitters import RecursiveCharacterTextSplitter
+
 
     loader = PyPDFLoader(pdf_path)
 
