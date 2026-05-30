@@ -347,7 +347,7 @@ function Home() {
             {appError || "Loading your workspace..."}
           </p>
           <p className="text-[10px] text-amber-500/40 uppercase tracking-widest">
-            ☕ First load can take up to 60s while the server wakes up
+            ☕ First load can take up to 90s while the server wakes up
           </p>
 
           {/* Animated progress bar */}

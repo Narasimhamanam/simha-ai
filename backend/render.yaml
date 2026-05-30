@@ -2,12 +2,18 @@ services:
   - type: web
     name: simha-ai-backend
     env: python
+    plan: free
+    region: oregon
     buildCommand: pip install -r requirements.txt
-    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT --timeout-keep-alive 75
     envVars:
       - key: MONGO_URL
         sync: false
       - key: DATABASE_NAME
         sync: false
       - key: GROQ_API_KEY
+        sync: false
+      - key: RAZORPAY_KEY_ID
+        sync: false
+      - key: RAZORPAY_KEY_SECRET
         sync: false
