@@ -16,7 +16,7 @@ import { startKeepAlive, stopKeepAlive } from "../services/keepAlive";
 
 const BACKEND_URL =
   import.meta.env.VITE_BACKEND_URL ||
-  "https://simha-ai-production.up.railway.app";
+  "https://simha-ai-backend.onrender.com";
 
 // Pre-warm backend silently (fire and forget)
 const prewarm = () => fetch(`${BACKEND_URL}/ping`).catch(() => {});
