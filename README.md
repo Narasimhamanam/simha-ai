@@ -13,7 +13,7 @@ Chat with specialized agents, analyze PDFs, draft emails, schedule events, and s
 <br/>
 
 [![Live Demo](https://img.shields.io/badge/🚀_Live_Demo-Render-6366f1?style=for-the-badge)](https://simha-ai-frontend-production.onrender.com)
-[![Backend](https://img.shields.io/badge/⚙️_Backend-Railway-0f172a?style=for-the-badge&logo=railway)](https://railway.com)
+[![Backend](https://img.shields.io/badge/%E2%9A%99%EF%B8%8F%20Backend-Railway-0f172a?style=for-the-badge&logo=railway)](https://railway.com)
 [![License](https://img.shields.io/badge/License-MIT-22c55e?style=for-the-badge)](LICENSE)
 [![Python](https://img.shields.io/badge/Python-3.11-3b82f6?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
 [![React](https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev)
