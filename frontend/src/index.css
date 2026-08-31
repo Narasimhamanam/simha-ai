@@ -1,82 +1,79 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Playfair+Display:ital,wght@0,600;1,400;1,500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Lora:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Roboto+Mono:wght@400;500;600&family=Playfair+Display:ital,wght@0,600;1,400&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 /* ══════════════════════════════════════════════════════════════
-   ZERO-G SANCTUM — DESIGN TOKEN SYSTEM
+   SIMHA AI — PERPLEXITY PALETTE DESIGN SYSTEM
    ══════════════════════════════════════════════════════════════ */
 
 :root {
-  /* ── Void Canvas ── */
-  --void: #030304;
-  --void-surface: #0a0a0f;
-  --void-elevated: #111118;
+  /* ── Canvas Base (Perplexity Dark Slate-Teal) ── */
+  --void: #151c24;
+  --void-surface: #1a232c;
+  --void-elevated: #202b37;
 
-  /* ── Glass ── */
-  --glass: rgba(18, 16, 24, 0.55);
-  --glass-strong: rgba(18, 16, 24, 0.75);
+  /* ── Glass Surfaces ── */
+  --glass: rgba(26, 35, 44, 0.65);
+  --glass-strong: rgba(26, 35, 44, 0.85);
   --glass-blur: 20px;
 
-  /* ── Edges ── */
-  --edge: rgba(214, 168, 79, 0.14);
-  --edge-hover: rgba(214, 168, 79, 0.28);
-  --edge-subtle: rgba(255, 255, 255, 0.06);
+  /* ── Perplexity Edges ── */
+  --edge: rgba(45, 212, 191, 0.18);
+  --edge-hover: rgba(45, 212, 191, 0.35);
+  --edge-subtle: rgba(255, 255, 255, 0.07);
 
-  /* ── Mane Gold ── */
-  --mane-gold: #D6A84F;
-  --mane-gold-bright: #F0C66A;
-  --mane-gold-dim: #92400E;
-  --mane-gold-glow: rgba(214, 168, 79, 0.15);
+  /* ── Perplexity Signature Teal / Cyan Primary ── */
+  --mane-gold: #20B2AA;
+  --mane-gold-bright: #2DD4BF;
+  --mane-gold-dim: #0D9488;
+  --mane-gold-glow: rgba(45, 212, 191, 0.16);
 
-  /* ── Royal Violet ── */
-  --royal-violet: #7C5CFF;
-  --royal-violet-bright: #A78BFA;
-  --royal-violet-glow: rgba(124, 92, 255, 0.12);
+  /* ── Secondary Violet / Azure ── */
+  --royal-violet: #818CF8;
+  --royal-violet-bright: #A5B4FC;
+  --royal-violet-glow: rgba(129, 140, 248, 0.14);
 
   /* ── Divine Cyan ── */
-  --divine-cyan: #22D3EE;
-  --divine-cyan-bright: #67E8F9;
-  --divine-cyan-glow: rgba(34, 211, 238, 0.12);
+  --divine-cyan: #38BDF8;
+  --divine-cyan-bright: #7DD3FC;
+  --divine-cyan-glow: rgba(56, 189, 248, 0.14);
 
   /* ── Ink Tiers ── */
-  --ink-1: #F8FAFC;
-  --ink-2: #A7AFBF;
-  --ink-3: #5B6272;
+  --ink-1: #F1F5F9;
+  --ink-2: #CBD5E1;
+  --ink-3: #64748B;
 
   /* ── Semantic ── */
-  --success: #22C55E;
+  --success: #10B981;
   --warning: #F59E0B;
   --error: #EF4444;
 
-  /* ── Typography ── */
+  /* ── Typography (Perplexity signature: Inter + Lora) ── */
   --font-display: 'Inter', system-ui, -apple-system, sans-serif;
-  --font-body: 'Inter', system-ui, -apple-system, sans-serif;
-  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+  --font-body: 'Lora', Georgia, serif;
+  --font-mono: 'Roboto Mono', monospace;
   --font-divine: 'Playfair Display', Georgia, serif;
-
-  /* ── Spacing ── */
-  --float-margin: 16px;
-  --rail-width: 64px;
-  --rail-expanded: 260px;
 }
 
-/* ── Light mode overrides ── */
+/* ── Light Mode (Perplexity Ice-Mint Porcelain) ── */
 .light {
-  --void: #F5F5F7;
+  --void: #F4F7F6;
   --void-surface: #FFFFFF;
-  --void-elevated: #F0F0F3;
-  --glass: rgba(255, 255, 255, 0.65);
-  --glass-strong: rgba(255, 255, 255, 0.85);
-  --edge: rgba(214, 168, 79, 0.18);
-  --edge-hover: rgba(214, 168, 79, 0.35);
+  --void-elevated: #EAF0EE;
+  --glass: rgba(255, 255, 255, 0.75);
+  --glass-strong: rgba(255, 255, 255, 0.90);
+  --edge: rgba(20, 184, 166, 0.22);
+  --edge-hover: rgba(20, 184, 166, 0.40);
   --edge-subtle: rgba(0, 0, 0, 0.06);
-  --ink-1: #171717;
-  --ink-2: #5F6673;
+  --ink-1: #1E293B;
+  --ink-2: #475569;
   --ink-3: #94A3B8;
-  --mane-gold: #B8862B;
-  --mane-gold-bright: #D4A64A;
+  --mane-gold: #0D9488;
+  --mane-gold-bright: #14B8A6;
+  --mane-gold-dim: #0F766E;
+  --mane-gold-glow: rgba(20, 184, 166, 0.12);
 }
 
 @layer base {
@@ -85,20 +82,20 @@
     margin: 0;
     padding: 0;
     overflow: hidden;
-    font-family: var(--font-body);
+    font-family: var(--font-display);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
 
   ::selection {
-    background-color: rgba(214, 168, 79, 0.3);
+    background-color: rgba(45, 212, 191, 0.25);
     color: var(--mane-gold-bright);
   }
 
   ::-webkit-scrollbar { width: 4px; height: 4px; }
   ::-webkit-scrollbar-track { background: transparent; }
   ::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.1);
     border-radius: 9999px;
   }
   ::-webkit-scrollbar-thumb:hover {
@@ -108,7 +105,7 @@
   body {
     background-color: var(--void);
     color: var(--ink-1);
-    transition: background-color 0.4s ease, color 0.3s ease;
+    transition: background-color 0.3s ease, color 0.2s ease;
     -webkit-tap-highlight-color: transparent;
     overscroll-behavior: none;
   }
@@ -116,7 +113,7 @@
 
 @layer components {
 
-  /* ── GLASS PANEL — the fundamental floating surface ── */
+  /* ── GLASS PANEL ── */
   .glass-panel {
     background: var(--glass);
     backdrop-filter: blur(var(--glass-blur));
@@ -124,7 +121,7 @@
     border: 1px solid var(--edge);
     border-radius: 16px;
     box-shadow:
-      0 4px 24px -4px rgba(0, 0, 0, 0.5),
+      0 4px 24px -4px rgba(0, 0, 0, 0.4),
       0 0 0 0.5px var(--edge-subtle);
     transition: border-color 0.2s ease, box-shadow 0.2s ease;
   }
@@ -132,7 +129,7 @@
     border-color: var(--edge-hover);
   }
 
-  /* ── FLOAT CARD — glass panel with extra float margin ── */
+  /* ── FLOAT CARD ── */
   .float-card {
     background: var(--glass);
     backdrop-filter: blur(var(--glass-blur));
@@ -140,7 +137,7 @@
     border: 1px solid var(--edge-subtle);
     border-radius: 20px;
     box-shadow:
-      0 8px 32px -8px rgba(0, 0, 0, 0.6),
+      0 8px 32px -8px rgba(0, 0, 0, 0.5),
       0 0 0 0.5px var(--edge-subtle);
     transition: border-color 0.2s ease, transform 0.25s ease, box-shadow 0.25s ease;
   }
@@ -148,7 +145,7 @@
     border-color: var(--edge);
     transform: translateY(-2px);
     box-shadow:
-      0 12px 40px -8px rgba(0, 0, 0, 0.7),
+      0 12px 40px -8px rgba(0, 0, 0, 0.6),
       0 0 0 0.5px var(--edge);
   }
 
@@ -160,7 +157,7 @@
     border-bottom: 1px solid var(--edge-subtle);
   }
 
-  /* ── ZERO-G COMPOSER — the floating command capsule ── */
+  /* ── ZERO-G PERPLEXITY COMPOSER ── */
   .zero-g-composer {
     background: var(--glass-strong);
     backdrop-filter: blur(24px);
@@ -168,30 +165,30 @@
     border: 1px solid var(--edge);
     border-radius: 24px;
     box-shadow:
-      0 8px 40px -8px rgba(0, 0, 0, 0.7),
+      0 8px 40px -8px rgba(0, 0, 0, 0.6),
       0 0 60px -20px var(--mane-gold-glow),
       0 0 0 0.5px var(--edge-subtle);
     transition: border-color 0.2s ease, box-shadow 0.3s ease;
   }
   .zero-g-composer:focus-within {
-    border-color: var(--mane-gold);
+    border-color: var(--mane-gold-bright);
     box-shadow:
-      0 8px 40px -8px rgba(0, 0, 0, 0.7),
+      0 8px 40px -8px rgba(0, 0, 0, 0.6),
       0 0 80px -20px var(--mane-gold-glow),
-      0 0 0 1px rgba(214, 168, 79, 0.25);
+      0 0 0 1px rgba(45, 212, 191, 0.3);
   }
 
   /* ── BUTTONS ── */
   .btn-gold {
     @apply inline-flex items-center justify-center font-semibold text-xs tracking-wide rounded-xl px-4 py-2.5;
     background: linear-gradient(135deg, var(--mane-gold), var(--mane-gold-bright));
-    color: #000;
-    box-shadow: 0 2px 12px -2px var(--mane-gold-glow);
+    color: #062824;
+    box-shadow: 0 2px 14px -2px var(--mane-gold-glow);
     transition: all 0.2s ease;
   }
   .btn-gold:hover {
     filter: brightness(1.1);
-    box-shadow: 0 4px 20px -2px rgba(214, 168, 79, 0.3);
+    box-shadow: 0 4px 20px -2px rgba(45, 212, 191, 0.4);
   }
   .btn-gold:active { transform: scale(0.97); }
 
@@ -210,11 +207,11 @@
 }
 
 /* ══════════════════════════════════════════════════════════════
-   TYPOGRAPHY UTILITIES
+   TYPOGRAPHY & UTILITIES
    ══════════════════════════════════════════════════════════════ */
 
 .text-gold-gradient {
-  background: linear-gradient(135deg, #FDE68A 0%, #D6A84F 50%, #92400E 100%);
+  background: linear-gradient(135deg, #A7F3D0 0%, #2DD4BF 50%, #0D9488 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
@@ -224,7 +221,7 @@
 }
 
 .logo-mask {
-  filter: invert(1) hue-rotate(180deg) brightness(1.2) contrast(1.1);
+  filter: invert(1) hue-rotate(140deg) brightness(1.2) contrast(1.1);
   mix-blend-mode: screen;
 }
 .light .logo-mask {
@@ -233,13 +230,17 @@
 }
 
 /* ══════════════════════════════════════════════════════════════
-   MARKDOWN CONTENT
+   PERPLEXITY EDITORIAL MARKDOWN
    ══════════════════════════════════════════════════════════════ */
 
-.markdown-content { color: var(--ink-1); line-height: 1.8; }
-.markdown-content h1 { @apply text-xl font-bold tracking-tight mt-6 mb-3; color: var(--ink-1); }
-.markdown-content h2 { @apply text-lg font-semibold tracking-tight mt-5 mb-2.5; color: var(--ink-1); }
-.markdown-content h3 { @apply text-base font-semibold mt-4 mb-2; color: var(--ink-1); }
+.markdown-content {
+  font-family: var(--font-body);
+  color: var(--ink-1);
+  line-height: 1.85;
+}
+.markdown-content h1 { @apply text-xl font-bold tracking-tight mt-6 mb-3; font-family: var(--font-display); color: var(--ink-1); }
+.markdown-content h2 { @apply text-lg font-semibold tracking-tight mt-5 mb-2.5; font-family: var(--font-display); color: var(--ink-1); }
+.markdown-content h3 { @apply text-base font-semibold mt-4 mb-2; font-family: var(--font-display); color: var(--ink-1); }
 .markdown-content p { @apply text-sm leading-relaxed mb-3; color: var(--ink-2); }
 .markdown-content strong { font-weight: 600; color: var(--ink-1); }
 .markdown-content ul { @apply list-disc pl-5 mb-3 space-y-1.5 text-sm; color: var(--ink-2); }
@@ -255,11 +256,12 @@
 .markdown-content a {
   color: var(--mane-gold-bright);
   @apply underline underline-offset-4;
-  text-decoration-color: rgba(214, 168, 79, 0.3);
+  text-decoration-color: rgba(45, 212, 191, 0.35);
 }
 .markdown-content a:hover { text-decoration-color: var(--mane-gold); }
 .markdown-content code:not(pre code) {
   @apply px-1.5 py-0.5 rounded-md text-xs font-mono;
+  font-family: var(--font-mono);
   background: rgba(255, 255, 255, 0.06);
   color: var(--mane-gold-bright);
   border: 1px solid var(--edge-subtle);
@@ -269,20 +271,16 @@
   @apply overflow-x-auto my-4 rounded-xl;
   border: 1px solid var(--edge-subtle);
 }
-.markdown-content table { @apply w-full text-left text-sm border-collapse; }
+.markdown-content table { @apply w-full text-left text-sm border-collapse font-sans; }
 .markdown-content thead { background: rgba(255, 255, 255, 0.03); border-bottom: 1px solid var(--edge-subtle); }
 .markdown-content th { @apply px-4 py-2.5 text-xs font-semibold uppercase tracking-wider; color: var(--ink-3); }
 .markdown-content td { @apply px-4 py-2.5 text-sm; color: var(--ink-2); border-bottom: 1px solid rgba(255, 255, 255, 0.03); }
 .markdown-content tr:last-child td { border-bottom: none; }
 
-/* ══════════════════════════════════════════════════════════════
-   UTILITY CLASSES
-   ══════════════════════════════════════════════════════════════ */
-
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-/* Agent hairline gradient bar — left edge of AI messages */
+/* Perplexity teal-to-violet hairline bar */
 .agent-hairline {
   position: absolute;
   left: 0;

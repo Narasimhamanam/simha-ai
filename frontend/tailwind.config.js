@@ -7,15 +7,17 @@ export default {
       fontFamily: {
         sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
         display: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
-        mono: ['JetBrains Mono', 'Fira Code', 'monospace'],
+        serif: ['Lora', 'Georgia', 'serif'],
+        mono: ['Roboto Mono', 'JetBrains Mono', 'monospace'],
         divine: ['Playfair Display', 'Georgia', 'serif'],
       },
       colors: {
-        void: { DEFAULT: '#030304', surface: '#0a0a0f', elevated: '#111118' },
-        mane: { DEFAULT: '#D6A84F', bright: '#F0C66A', dim: '#92400E' },
-        violet: { DEFAULT: '#7C5CFF', bright: '#A78BFA' },
-        cyan: { DEFAULT: '#22D3EE', bright: '#67E8F9' },
-        ink: { 1: '#F8FAFC', 2: '#A7AFBF', 3: '#5B6272' },
+        void: { DEFAULT: '#151c24', surface: '#1a232c', elevated: '#202b37' },
+        mane: { DEFAULT: '#20B2AA', bright: '#2DD4BF', dim: '#0D9488' },
+        teal: { DEFAULT: '#20B2AA', bright: '#2DD4BF', dim: '#0D9488' },
+        violet: { DEFAULT: '#818CF8', bright: '#A5B4FC' },
+        cyan: { DEFAULT: '#38BDF8', bright: '#7DD3FC' },
+        ink: { 1: '#F1F5F9', 2: '#CBD5E1', 3: '#64748B' },
       },
       animation: {
         'fade-in': 'fadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards',

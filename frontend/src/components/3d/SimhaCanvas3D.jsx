@@ -2,16 +2,16 @@ import { useEffect, useRef } from "react";
 import * as THREE from "three";
 
 /**
- * SimhaCanvas3D — Zero-G Sanctum 3D Lion Guardian
+ * SimhaCanvas3D — Perplexity Edition
  *
  * mode="login"     → full-viewport, 600 particles, orchestrated intro, no agent nodes
  * mode="workspace" → compact, 300 particles, agent orbit nodes
  */
 
 const AGENT_NODES = [
-  { id: "study",        label: "Study",        color: 0xD6A84F, angle: 0 },
-  { id: "coding",       label: "Coding",       color: 0x7C5CFF, angle: Math.PI / 2 },
-  { id: "productivity", label: "Productivity", color: 0x22D3EE, angle: Math.PI },
+  { id: "study",        label: "Study",        color: 0x20B2AA, angle: 0 },
+  { id: "coding",       label: "Coding",       color: 0x818CF8, angle: Math.PI / 2 },
+  { id: "productivity", label: "Productivity", color: 0x2DD4BF, angle: Math.PI },
   { id: "divine",       label: "Krishna AI",   color: 0x38BDF8, angle: (3 * Math.PI) / 2 },
 ];
 
@@ -42,17 +42,17 @@ export default function SimhaCanvas3D({ selectedAgent = "study", onSelectAgent, 
     container.appendChild(renderer.domElement);
 
     // ── LIGHTING ──
-    scene.add(new THREE.AmbientLight(0xffffff, 0.4));
+    scene.add(new THREE.AmbientLight(0xffffff, 0.45));
 
-    const goldLight = new THREE.PointLight(0xD6A84F, isLogin ? 3.5 : 2.5, 25);
-    goldLight.position.set(4, 5, 6);
-    scene.add(goldLight);
+    const tealLight = new THREE.PointLight(0x2DD4BF, isLogin ? 3.5 : 2.5, 25);
+    tealLight.position.set(4, 5, 6);
+    scene.add(tealLight);
 
-    const violetLight = new THREE.PointLight(0x7C5CFF, 2.0, 18);
+    const violetLight = new THREE.PointLight(0x818CF8, 2.0, 18);
     violetLight.position.set(-5, -3, 4);
     scene.add(violetLight);
 
-    const cyanLight = new THREE.PointLight(0x22D3EE, 1.2, 14);
+    const cyanLight = new THREE.PointLight(0x38BDF8, 1.4, 14);
     cyanLight.position.set(0, -4, 3);
     scene.add(cyanLight);
 
@@ -60,12 +60,12 @@ export default function SimhaCanvas3D({ selectedAgent = "study", onSelectAgent, 
     const guardian = new THREE.Group();
     scene.add(guardian);
 
-    // Core: Faceted golden crystal head
+    // Core: Faceted teal crystal head
     const coreGeo = new THREE.IcosahedronGeometry(isLogin ? 1.5 : 1.2, 1);
     const coreMat = new THREE.MeshPhysicalMaterial({
-      color: 0xD6A84F,
-      metalness: 0.9,
-      roughness: 0.15,
+      color: 0x20B2AA,
+      metalness: 0.85,
+      roughness: 0.18,
       clearcoat: 0.8,
       clearcoatRoughness: 0.05,
       flatShading: true,
@@ -76,7 +76,7 @@ export default function SimhaCanvas3D({ selectedAgent = "study", onSelectAgent, 
     // Mane lattice (wireframe shell)
     const maneGeo = new THREE.IcosahedronGeometry(isLogin ? 1.7 : 1.35, 1);
     const maneMat = new THREE.MeshBasicMaterial({
-      color: 0xF0C66A, wireframe: true, transparent: true, opacity: 0.25,
+      color: 0x2DD4BF, wireframe: true, transparent: true, opacity: 0.3,
     });
     const mane = new THREE.Mesh(maneGeo, maneMat);
     guardian.add(mane);
@@ -84,7 +84,7 @@ export default function SimhaCanvas3D({ selectedAgent = "study", onSelectAgent, 
     // Eyes: dual emissive spheres
     const eyeGeo = new THREE.SphereGeometry(isLogin ? 0.15 : 0.12, 16, 16);
     const eyeMat = new THREE.MeshStandardMaterial({
-      color: 0xD6A84F, emissive: 0xD6A84F, emissiveIntensity: 0, roughness: 0.1,
+      color: 0x2DD4BF, emissive: 0x2DD4BF, emissiveIntensity: 0, roughness: 0.1,
     });
     const leftEye = new THREE.Mesh(eyeGeo, eyeMat.clone());
     leftEye.position.set(-0.42, 0.25, isLogin ? 1.2 : 0.95);
@@ -97,13 +97,13 @@ export default function SimhaCanvas3D({ selectedAgent = "study", onSelectAgent, 
     // Orbital energy rings
     const ringGeo = new THREE.TorusGeometry(isLogin ? 2.3 : 1.8, 0.015, 16, 100);
     const ring1 = new THREE.Mesh(ringGeo, new THREE.MeshStandardMaterial({
-      color: 0x7C5CFF, emissive: 0x7C5CFF, emissiveIntensity: 0.6, transparent: true, opacity: 0.5,
+      color: 0x818CF8, emissive: 0x818CF8, emissiveIntensity: 0.6, transparent: true, opacity: 0.5,
     }));
     ring1.rotation.x = Math.PI / 3;
     guardian.add(ring1);
 
     const ring2 = new THREE.Mesh(ringGeo, new THREE.MeshStandardMaterial({
-      color: 0xD6A84F, emissive: 0xB8862B, emissiveIntensity: 0.5, transparent: true, opacity: 0.35,
+      color: 0x2DD4BF, emissive: 0x20B2AA, emissiveIntensity: 0.5, transparent: true, opacity: 0.35,
     }));
     ring2.rotation.x = -Math.PI / 4;
     ring2.rotation.y = Math.PI / 6;
@@ -148,9 +148,9 @@ export default function SimhaCanvas3D({ selectedAgent = "study", onSelectAgent, 
     const pGeo = new THREE.BufferGeometry();
     const pPos = new Float32Array(pCount * 3);
     const pCol = new Float32Array(pCount * 3);
-    const goldC = new THREE.Color(0xD6A84F);
-    const violetC = new THREE.Color(0x7C5CFF);
-    const cyanC = new THREE.Color(0x22D3EE);
+    const tealC = new THREE.Color(0x2DD4BF);
+    const violetC = new THREE.Color(0x818CF8);
+    const cyanC = new THREE.Color(0x38BDF8);
 
     // Store initial positions for login intro convergence
     const pInitPos = new Float32Array(pCount * 3);
@@ -165,7 +165,6 @@ export default function SimhaCanvas3D({ selectedAgent = "study", onSelectAgent, 
       pInitPos[i3 + 1] = r * Math.sin(phi) * Math.sin(theta);
       pInitPos[i3 + 2] = r * Math.cos(phi);
 
-      // Start far away for login intro
       if (isLogin) {
         pStartPos[i3]     = pInitPos[i3] * 3 + (Math.random() - 0.5) * 10;
         pStartPos[i3 + 1] = pInitPos[i3 + 1] * 3 + (Math.random() - 0.5) * 10;
@@ -175,7 +174,7 @@ export default function SimhaCanvas3D({ selectedAgent = "study", onSelectAgent, 
         pPos[i3] = pInitPos[i3]; pPos[i3+1] = pInitPos[i3+1]; pPos[i3+2] = pInitPos[i3+2];
       }
 
-      const c = i % 3 === 0 ? goldC : i % 3 === 1 ? violetC : cyanC;
+      const c = i % 3 === 0 ? tealC : i % 3 === 1 ? violetC : cyanC;
       pCol[i3] = c.r; pCol[i3+1] = c.g; pCol[i3+2] = c.b;
     }
     pGeo.setAttribute("position", new THREE.BufferAttribute(pPos, 3));
@@ -196,7 +195,6 @@ export default function SimhaCanvas3D({ selectedAgent = "study", onSelectAgent, 
     };
     window.addEventListener("mousemove", onMouse);
 
-    // Raycaster for node clicks (workspace only)
     const raycaster = new THREE.Raycaster();
     const mouseVec = new THREE.Vector2();
     const onCanvasClick = (e) => {
@@ -213,7 +211,6 @@ export default function SimhaCanvas3D({ selectedAgent = "study", onSelectAgent, 
     };
     container.addEventListener("click", onCanvasClick);
 
-    // Resize
     const onResize = () => {
       const w = container.clientWidth || 400;
       const h = container.clientHeight || 400;
@@ -226,7 +223,7 @@ export default function SimhaCanvas3D({ selectedAgent = "study", onSelectAgent, 
     // ── ANIMATION ──
     let frameId;
     const clock = new THREE.Clock();
-    let introPhase = isLogin ? 0 : 2; // 0=converge, 1=eyeIgnite, 2=done
+    let introPhase = isLogin ? 0 : 2;
     let blinkTimer = 3 + Math.random() * 5;
     let isBlinking = false;
     let blinkProgress = 0;
@@ -239,7 +236,6 @@ export default function SimhaCanvas3D({ selectedAgent = "study", onSelectAgent, 
       // ── LOGIN INTRO SEQUENCE ──
       if (isLogin && introPhase < 2) {
         if (introPhase === 0) {
-          // Phase 0: particles converge, camera dollies in
           let allSettled = true;
           const posArr = particles.geometry.attributes.position.array;
           for (let i = 0; i < pCount; i++) {
@@ -256,7 +252,6 @@ export default function SimhaCanvas3D({ selectedAgent = "study", onSelectAgent, 
           if (allSettled || t > 4) introPhase = 1;
         }
         if (introPhase === 1) {
-          // Phase 1: eyes ignite
           const eyeIntensity = Math.min((t - 3) * 1.5, 3.0);
           leftEye.material.emissiveIntensity = eyeIntensity;
           rightEye.material.emissiveIntensity = eyeIntensity;
@@ -294,7 +289,7 @@ export default function SimhaCanvas3D({ selectedAgent = "study", onSelectAgent, 
       core.scale.setScalar(breath);
       mane.scale.setScalar(breath * 1.06);
 
-      // ── MANE SWAY (vertex noise offset) ──
+      // ── MANE SWAY ──
       const manePositions = mane.geometry.attributes.position;
       if (!mane.userData.origPositions) {
         mane.userData.origPositions = new Float32Array(manePositions.array);
@@ -314,22 +309,21 @@ export default function SimhaCanvas3D({ selectedAgent = "study", onSelectAgent, 
       ring1.rotation.z = t * 0.35;
       ring2.rotation.z = -t * 0.25;
 
-      // ── CURSOR PARALLAX (max ±12°) ──
+      // ── CURSOR PARALLAX ──
       const maxRot = (12 * Math.PI) / 180;
       targetRotY += (mouseX * maxRot - targetRotY) * 0.04;
       targetRotX += (-mouseY * maxRot * 0.8 - targetRotX) * 0.04;
       guardian.rotation.y = targetRotY + Math.sin(t * 0.4) * 0.06;
       guardian.rotation.x = targetRotX;
 
-      // Cursor-tracking light
-      goldLight.position.x = 4 + mouseX * 2;
-      goldLight.position.y = 5 - mouseY * 2;
+      tealLight.position.x = 4 + mouseX * 2;
+      tealLight.position.y = 5 - mouseY * 2;
 
       // ── PARTICLES DRIFT ──
       particles.rotation.y = t * 0.05;
       particles.rotation.x = Math.sin(t * 0.03) * 0.04;
 
-      // ── AGENT SATELLITES (workspace only) ──
+      // ── AGENT SATELLITES ──
       const selected = selectedAgentRef.current;
       nodeMeshes.forEach((n, idx) => {
         const isActive = selected === n.agent.id;
@@ -360,7 +354,6 @@ export default function SimhaCanvas3D({ selectedAgent = "study", onSelectAgent, 
     };
     animate();
 
-    // ── CLEANUP ──
     return () => {
       cancelAnimationFrame(frameId);
       window.removeEventListener("mousemove", onMouse);
