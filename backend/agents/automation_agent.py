@@ -67,7 +67,7 @@ async def summarize_url(url: str) -> dict:
         raise ValueError("Page has too little readable content.")
 
     completion = client.chat.completions.create(
-        model="llama-3.3-70b-versatile",
+        model="qwen/qwen3.8-27b",
         messages=[
             {"role": "system", "content": URL_SYSTEM_PROMPT},
             {"role": "user", "content": f"URL: {url}\n\nPage content:\n{text}"},
@@ -100,7 +100,7 @@ def generate_calendar_event(prompt: str, sender_name: str = "") -> dict:
     context = f"User name: {sender_name}\n\nRequest: {prompt}" if sender_name else f"Request: {prompt}"
 
     completion = client.chat.completions.create(
-        model="llama-3.3-70b-versatile",
+        model="qwen/qwen3.8-27b",
         messages=[
             {"role": "system", "content": CALENDAR_SYSTEM_PROMPT},
             {"role": "user", "content": context},

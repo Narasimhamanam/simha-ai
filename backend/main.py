@@ -198,7 +198,7 @@ async def analyze_image(request: ImageAnalysisRequest):
     try:
         _client = _Groq(api_key=_os.getenv("GROQ_API_KEY"))
         completion = _client.chat.completions.create(
-            model="meta-llama/llama-4-scout-17b-16e-instruct",
+            model="qwen/qwen3.8-27b",
             messages=[
                 {
                     "role": "user",

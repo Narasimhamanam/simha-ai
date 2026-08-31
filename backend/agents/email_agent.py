@@ -41,7 +41,7 @@ def generate_email_draft(prompt: str, sender_name: str = "") -> dict:
     user_context = f"Sender name: {sender_name}\n\nUser request: {prompt}" if sender_name else f"User request: {prompt}"
 
     completion = client.chat.completions.create(
-        model="llama-3.3-70b-versatile",
+        model="qwen/qwen3.8-27b",
         messages=[
             {"role": "system", "content": EMAIL_SYSTEM_PROMPT},
             {"role": "user", "content": user_context},
