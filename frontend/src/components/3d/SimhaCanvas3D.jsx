@@ -1,14 +1,21 @@
 import { useEffect, useRef } from "react";
 import * as THREE from "three";
 
+/**
+ * SimhaCanvas3D — Zero-G Sanctum 3D Lion Guardian
+ *
+ * mode="login"     → full-viewport, 600 particles, orchestrated intro, no agent nodes
+ * mode="workspace" → compact, 300 particles, agent orbit nodes
+ */
+
 const AGENT_NODES = [
-  { id: "study", label: "Study Agent", color: 0xD6A84F, icon: "📚", angle: 0 },
-  { id: "coding", label: "Coding Agent", color: 0x8B5CF6, icon: "💻", angle: Math.PI / 2 },
-  { id: "productivity", label: "Productivity Agent", color: 0x22D3EE, icon: "🚀", angle: Math.PI },
-  { id: "divine", label: "Krishna AI", color: 0x38BDF8, icon: "🦚", angle: (3 * Math.PI) / 2 },
+  { id: "study",        label: "Study",        color: 0xD6A84F, angle: 0 },
+  { id: "coding",       label: "Coding",       color: 0x7C5CFF, angle: Math.PI / 2 },
+  { id: "productivity", label: "Productivity", color: 0x22D3EE, angle: Math.PI },
+  { id: "divine",       label: "Krishna AI",   color: 0x38BDF8, angle: (3 * Math.PI) / 2 },
 ];
 
-export default function SimhaCanvas3D({ selectedAgent = "study", onSelectAgent, theme = "dark" }) {
+export default function SimhaCanvas3D({ selectedAgent = "study", onSelectAgent, mode = "workspace" }) {
   const mountRef = useRef(null);
   const selectedAgentRef = useRef(selectedAgent);
   selectedAgentRef.current = selectedAgent;
@@ -17,373 +24,362 @@ export default function SimhaCanvas3D({ selectedAgent = "study", onSelectAgent, 
     const container = mountRef.current;
     if (!container) return;
 
-    const width = container.clientWidth || 360;
-    const height = container.clientHeight || 280;
+    const isLogin = mode === "login";
+    const width = container.clientWidth || 400;
+    const height = container.clientHeight || 400;
 
-    // ── 1. SCENE & CAMERA ─────────────────────────────────────────
+    // ── SCENE ──
     const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 100);
-    camera.position.set(0, 0, 7);
+    const camera = new THREE.PerspectiveCamera(isLogin ? 40 : 45, width / height, 0.1, 120);
+    camera.position.set(0, 0, isLogin ? 9 : 7);
 
-    // ── 2. RENDERER ───────────────────────────────────────────────
-    const renderer = new THREE.WebGLRenderer({
-      antialias: true,
-      alpha: true,
-      powerPreference: "high-performance",
-    });
+    // ── RENDERER ──
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: "high-performance" });
     renderer.setSize(width, height);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.1;
+    renderer.toneMappingExposure = isLogin ? 1.3 : 1.1;
     container.appendChild(renderer.domElement);
 
-    // ── 3. LIGHTING ───────────────────────────────────────────────
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
-    scene.add(ambientLight);
+    // ── LIGHTING ──
+    scene.add(new THREE.AmbientLight(0xffffff, 0.4));
 
-    const mainGoldLight = new THREE.PointLight(0xD6A84F, 2.5, 20);
-    mainGoldLight.position.set(3, 4, 5);
-    scene.add(mainGoldLight);
+    const goldLight = new THREE.PointLight(0xD6A84F, isLogin ? 3.5 : 2.5, 25);
+    goldLight.position.set(4, 5, 6);
+    scene.add(goldLight);
 
-    const rimVioletLight = new THREE.PointLight(0x6D4AFF, 2.0, 15);
-    rimVioletLight.position.set(-4, -2, 3);
-    scene.add(rimVioletLight);
+    const violetLight = new THREE.PointLight(0x7C5CFF, 2.0, 18);
+    violetLight.position.set(-5, -3, 4);
+    scene.add(violetLight);
 
-    const cyanAccentLight = new THREE.PointLight(0x22D3EE, 1.5, 12);
-    cyanAccentLight.position.set(0, -3, 2);
-    scene.add(cyanAccentLight);
+    const cyanLight = new THREE.PointLight(0x22D3EE, 1.2, 14);
+    cyanLight.position.set(0, -4, 3);
+    scene.add(cyanLight);
 
-    // ── 4. SIMHA GUARDIAN 3D CORE MESHES ──────────────────────────
-    const guardianGroup = new THREE.Group();
-    scene.add(guardianGroup);
+    // ── GUARDIAN GROUP ──
+    const guardian = new THREE.Group();
+    scene.add(guardian);
 
-    // Core 1: Faceted Golden Crystal Core (Head / Emblem)
-    const coreGeo = new THREE.IcosahedronGeometry(1.2, 1);
+    // Core: Faceted golden crystal head
+    const coreGeo = new THREE.IcosahedronGeometry(isLogin ? 1.5 : 1.2, 1);
     const coreMat = new THREE.MeshPhysicalMaterial({
       color: 0xD6A84F,
-      metalness: 0.85,
-      roughness: 0.2,
-      reflectivity: 0.9,
-      clearcoat: 0.6,
-      clearcoatRoughness: 0.1,
-      wireframe: false,
+      metalness: 0.9,
+      roughness: 0.15,
+      clearcoat: 0.8,
+      clearcoatRoughness: 0.05,
       flatShading: true,
     });
-    const simhaCore = new THREE.Mesh(coreGeo, coreMat);
-    guardianGroup.add(simhaCore);
+    const core = new THREE.Mesh(coreGeo, coreMat);
+    guardian.add(core);
 
-    // Core 2: Wireframe Radiant Shield (Mane Lattice)
-    const wireGeo = new THREE.IcosahedronGeometry(1.35, 1);
-    const wireMat = new THREE.MeshBasicMaterial({
-      color: 0xF0C66A,
-      wireframe: true,
-      transparent: true,
-      opacity: 0.35,
+    // Mane lattice (wireframe shell)
+    const maneGeo = new THREE.IcosahedronGeometry(isLogin ? 1.7 : 1.35, 1);
+    const maneMat = new THREE.MeshBasicMaterial({
+      color: 0xF0C66A, wireframe: true, transparent: true, opacity: 0.25,
     });
-    const simhaWire = new THREE.Mesh(wireGeo, wireMat);
-    guardianGroup.add(simhaWire);
+    const mane = new THREE.Mesh(maneGeo, maneMat);
+    guardian.add(mane);
 
-    // Core 3: Luminous Eyes (Dual Emissive Spheres)
-    const eyeGeo = new THREE.SphereGeometry(0.12, 16, 16);
+    // Eyes: dual emissive spheres
+    const eyeGeo = new THREE.SphereGeometry(isLogin ? 0.15 : 0.12, 16, 16);
     const eyeMat = new THREE.MeshStandardMaterial({
-      color: 0x22D3EE,
-      emissive: 0x22D3EE,
-      emissiveIntensity: 2.5,
-      roughness: 0.1,
+      color: 0xD6A84F, emissive: 0xD6A84F, emissiveIntensity: 0, roughness: 0.1,
     });
+    const leftEye = new THREE.Mesh(eyeGeo, eyeMat.clone());
+    leftEye.position.set(-0.42, 0.25, isLogin ? 1.2 : 0.95);
+    guardian.add(leftEye);
 
-    const leftEye = new THREE.Mesh(eyeGeo, eyeMat);
-    leftEye.position.set(-0.38, 0.22, 0.95);
-    guardianGroup.add(leftEye);
+    const rightEye = new THREE.Mesh(eyeGeo, eyeMat.clone());
+    rightEye.position.set(0.42, 0.25, isLogin ? 1.2 : 0.95);
+    guardian.add(rightEye);
 
-    const rightEye = new THREE.Mesh(eyeGeo, eyeMat);
-    rightEye.position.set(0.38, 0.22, 0.95);
-    guardianGroup.add(rightEye);
-
-    // Core 4: Orbital Rings (Energy Mantle)
-    const ringGeo = new THREE.TorusGeometry(1.8, 0.02, 16, 100);
-    const ringMat = new THREE.MeshStandardMaterial({
-      color: 0x8B5CF6,
-      emissive: 0x6D4AFF,
-      emissiveIntensity: 0.8,
-      transparent: true,
-      opacity: 0.6,
-    });
-    const orbitalRing1 = new THREE.Mesh(ringGeo, ringMat);
-    orbitalRing1.rotation.x = Math.PI / 3;
-    guardianGroup.add(orbitalRing1);
-
-    const orbitalRing2 = new THREE.Mesh(ringGeo, new THREE.MeshStandardMaterial({
-      color: 0xD6A84F,
-      emissive: 0xB8862B,
-      emissiveIntensity: 0.8,
-      transparent: true,
-      opacity: 0.45,
+    // Orbital energy rings
+    const ringGeo = new THREE.TorusGeometry(isLogin ? 2.3 : 1.8, 0.015, 16, 100);
+    const ring1 = new THREE.Mesh(ringGeo, new THREE.MeshStandardMaterial({
+      color: 0x7C5CFF, emissive: 0x7C5CFF, emissiveIntensity: 0.6, transparent: true, opacity: 0.5,
     }));
-    orbitalRing2.rotation.x = -Math.PI / 4;
-    orbitalRing2.rotation.y = Math.PI / 6;
-    guardianGroup.add(orbitalRing2);
+    ring1.rotation.x = Math.PI / 3;
+    guardian.add(ring1);
 
-    // ── 5. AGENT SATELLITE NODES & BEAMS ──────────────────────────
-    const orbitRadius = 2.7;
+    const ring2 = new THREE.Mesh(ringGeo, new THREE.MeshStandardMaterial({
+      color: 0xD6A84F, emissive: 0xB8862B, emissiveIntensity: 0.5, transparent: true, opacity: 0.35,
+    }));
+    ring2.rotation.x = -Math.PI / 4;
+    ring2.rotation.y = Math.PI / 6;
+    guardian.add(ring2);
+
+    // ── AGENT SATELLITES (workspace mode only) ──
     const nodeMeshes = [];
     const beamLines = [];
+    const orbitRadius = 2.7;
 
-    AGENT_NODES.forEach((agent) => {
-      // Node Group
-      const nodeGroup = new THREE.Group();
+    if (!isLogin) {
+      AGENT_NODES.forEach((agent) => {
+        const grp = new THREE.Group();
+        const nGeo = new THREE.SphereGeometry(0.22, 20, 20);
+        const nMat = new THREE.MeshStandardMaterial({
+          color: agent.color, emissive: agent.color, emissiveIntensity: 1.0, metalness: 0.5, roughness: 0.2,
+        });
+        const nMesh = new THREE.Mesh(nGeo, nMat);
+        grp.add(nMesh);
 
-      // Node Sphere
-      const nodeGeo = new THREE.SphereGeometry(0.25, 20, 20);
-      const nodeMat = new THREE.MeshStandardMaterial({
-        color: agent.color,
-        emissive: agent.color,
-        emissiveIntensity: 1.2,
-        metalness: 0.5,
-        roughness: 0.2,
+        const hGeo = new THREE.RingGeometry(0.28, 0.34, 32);
+        const hMat = new THREE.MeshBasicMaterial({ color: agent.color, side: THREE.DoubleSide, transparent: true, opacity: 0.5 });
+        const halo = new THREE.Mesh(hGeo, hMat);
+        grp.add(halo);
+
+        scene.add(grp);
+        nodeMeshes.push({ group: grp, mesh: nMesh, halo, agent });
+
+        // Beam
+        const lGeo = new THREE.BufferGeometry();
+        const lPos = new Float32Array(6);
+        lGeo.setAttribute("position", new THREE.BufferAttribute(lPos, 3));
+        const lMat = new THREE.LineBasicMaterial({ color: agent.color, transparent: true, opacity: 0.3 });
+        const beam = new THREE.Line(lGeo, lMat);
+        scene.add(beam);
+        beamLines.push({ line: beam, agent });
       });
-      const nodeMesh = new THREE.Mesh(nodeGeo, nodeMat);
-      nodeGroup.add(nodeMesh);
-
-      // Node Halo Ring
-      const haloGeo = new THREE.RingGeometry(0.32, 0.38, 32);
-      const haloMat = new THREE.MeshBasicMaterial({
-        color: agent.color,
-        side: THREE.DoubleSide,
-        transparent: true,
-        opacity: 0.6,
-      });
-      const halo = new THREE.Mesh(haloGeo, haloMat);
-      nodeGroup.add(halo);
-
-      scene.add(nodeGroup);
-      nodeMeshes.push({ group: nodeGroup, mesh: nodeMesh, halo, agent });
-
-      // Energy Beam from Core to Node
-      const lineGeo = new THREE.BufferGeometry();
-      const linePositions = new Float32Array(6);
-      lineGeo.setAttribute("position", new THREE.BufferAttribute(linePositions, 3));
-      const lineMat = new THREE.LineBasicMaterial({
-        color: agent.color,
-        transparent: true,
-        opacity: 0.4,
-      });
-      const beamLine = new THREE.Line(lineGeo, lineMat);
-      scene.add(beamLine);
-      beamLines.push({ line: beamLine, agent });
-    });
-
-    // ── 6. AMBIENT PARTICLE CONSTELLATION ─────────────────────────
-    const particleCount = 450;
-    const particleGeo = new THREE.BufferGeometry();
-    const particlePositions = new Float32Array(particleCount * 3);
-    const particleColors = new Float32Array(particleCount * 3);
-
-    const goldColor = new THREE.Color(0xD6A84F);
-    const violetColor = new THREE.Color(0x8B5CF6);
-    const cyanColor = new THREE.Color(0x22D3EE);
-
-    for (let i = 0; i < particleCount; i++) {
-      const i3 = i * 3;
-      const radius = 2.5 + Math.random() * 4.5;
-      const theta = Math.random() * Math.PI * 2;
-      const phi = Math.acos(Math.random() * 2 - 1);
-
-      particlePositions[i3] = radius * Math.sin(phi) * Math.cos(theta);
-      particlePositions[i3 + 1] = radius * Math.sin(phi) * Math.sin(theta);
-      particlePositions[i3 + 2] = radius * Math.cos(phi);
-
-      const chosenColor = i % 3 === 0 ? goldColor : i % 3 === 1 ? violetColor : cyanColor;
-      particleColors[i3] = chosenColor.r;
-      particleColors[i3 + 1] = chosenColor.g;
-      particleColors[i3 + 2] = chosenColor.b;
     }
 
-    particleGeo.setAttribute("position", new THREE.BufferAttribute(particlePositions, 3));
-    particleGeo.setAttribute("color", new THREE.BufferAttribute(particleColors, 3));
+    // ── PARTICLE CONSTELLATION ──
+    const pCount = isLogin ? 600 : 300;
+    const pGeo = new THREE.BufferGeometry();
+    const pPos = new Float32Array(pCount * 3);
+    const pCol = new Float32Array(pCount * 3);
+    const goldC = new THREE.Color(0xD6A84F);
+    const violetC = new THREE.Color(0x7C5CFF);
+    const cyanC = new THREE.Color(0x22D3EE);
 
-    const particleMat = new THREE.PointsMaterial({
-      size: 0.05,
-      vertexColors: true,
-      transparent: true,
-      opacity: 0.7,
-      blending: THREE.AdditiveBlending,
+    // Store initial positions for login intro convergence
+    const pInitPos = new Float32Array(pCount * 3);
+    const pStartPos = new Float32Array(pCount * 3);
+
+    for (let i = 0; i < pCount; i++) {
+      const i3 = i * 3;
+      const r = (isLogin ? 3 : 2.5) + Math.random() * (isLogin ? 6 : 4.5);
+      const theta = Math.random() * Math.PI * 2;
+      const phi = Math.acos(Math.random() * 2 - 1);
+      pInitPos[i3]     = r * Math.sin(phi) * Math.cos(theta);
+      pInitPos[i3 + 1] = r * Math.sin(phi) * Math.sin(theta);
+      pInitPos[i3 + 2] = r * Math.cos(phi);
+
+      // Start far away for login intro
+      if (isLogin) {
+        pStartPos[i3]     = pInitPos[i3] * 3 + (Math.random() - 0.5) * 10;
+        pStartPos[i3 + 1] = pInitPos[i3 + 1] * 3 + (Math.random() - 0.5) * 10;
+        pStartPos[i3 + 2] = pInitPos[i3 + 2] * 3 + (Math.random() - 0.5) * 10;
+        pPos[i3] = pStartPos[i3]; pPos[i3+1] = pStartPos[i3+1]; pPos[i3+2] = pStartPos[i3+2];
+      } else {
+        pPos[i3] = pInitPos[i3]; pPos[i3+1] = pInitPos[i3+1]; pPos[i3+2] = pInitPos[i3+2];
+      }
+
+      const c = i % 3 === 0 ? goldC : i % 3 === 1 ? violetC : cyanC;
+      pCol[i3] = c.r; pCol[i3+1] = c.g; pCol[i3+2] = c.b;
+    }
+    pGeo.setAttribute("position", new THREE.BufferAttribute(pPos, 3));
+    pGeo.setAttribute("color", new THREE.BufferAttribute(pCol, 3));
+    const pMat = new THREE.PointsMaterial({
+      size: isLogin ? 0.06 : 0.045, vertexColors: true, transparent: true,
+      opacity: isLogin ? 0 : 0.7, blending: THREE.AdditiveBlending,
     });
-    const particleField = new THREE.Points(particleGeo, particleMat);
-    scene.add(particleField);
+    const particles = new THREE.Points(pGeo, pMat);
+    scene.add(particles);
 
-    // ── 7. INTERACTION & ANIMATION LOOP ───────────────────────────
-    let mouseX = 0;
-    let mouseY = 0;
-    let targetRotX = 0;
-    let targetRotY = 0;
-
-    const onMouseMove = (e) => {
+    // ── INTERACTION ──
+    let mouseX = 0, mouseY = 0, targetRotX = 0, targetRotY = 0;
+    const onMouse = (e) => {
       const rect = container.getBoundingClientRect();
-      const x = (e.clientX - rect.left) / rect.width - 0.5;
-      const y = (e.clientY - rect.top) / rect.height - 0.5;
-      mouseX = x * 2;
-      mouseY = y * 2;
+      mouseX = ((e.clientX - rect.left) / rect.width - 0.5) * 2;
+      mouseY = ((e.clientY - rect.top) / rect.height - 0.5) * 2;
     };
+    window.addEventListener("mousemove", onMouse);
 
-    window.addEventListener("mousemove", onMouseMove);
-
-    // Raycaster for 3D node clicking
+    // Raycaster for node clicks (workspace only)
     const raycaster = new THREE.Raycaster();
-    const mouseVector = new THREE.Vector2();
-
+    const mouseVec = new THREE.Vector2();
     const onCanvasClick = (e) => {
+      if (isLogin || !onSelectAgent) return;
       const rect = container.getBoundingClientRect();
-      mouseVector.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
-      mouseVector.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
-
-      raycaster.setFromCamera(mouseVector, camera);
-      const interactiveMeshes = nodeMeshes.map((n) => n.mesh);
-      const intersects = raycaster.intersectObjects(interactiveMeshes);
-
-      if (intersects.length > 0) {
-        const hitMesh = intersects[0].object;
-        const clickedNode = nodeMeshes.find((n) => n.mesh === hitMesh);
-        if (clickedNode && onSelectAgent) {
-          onSelectAgent(clickedNode.agent.id);
-        }
+      mouseVec.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+      mouseVec.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+      raycaster.setFromCamera(mouseVec, camera);
+      const hits = raycaster.intersectObjects(nodeMeshes.map(n => n.mesh));
+      if (hits.length > 0) {
+        const found = nodeMeshes.find(n => n.mesh === hits[0].object);
+        if (found) onSelectAgent(found.agent.id);
       }
     };
-
     container.addEventListener("click", onCanvasClick);
 
-    // Resize Handler
-    const handleResize = () => {
-      if (!container) return;
-      const w = container.clientWidth || 360;
-      const h = container.clientHeight || 280;
+    // Resize
+    const onResize = () => {
+      const w = container.clientWidth || 400;
+      const h = container.clientHeight || 400;
       camera.aspect = w / h;
       camera.updateProjectionMatrix();
       renderer.setSize(w, h);
     };
+    window.addEventListener("resize", onResize);
 
-    window.addEventListener("resize", handleResize);
-
-    // ── ANIMATION FRAME ───────────────────────────────────────────
-    let animationFrameId;
-    let clock = new THREE.Clock();
+    // ── ANIMATION ──
+    let frameId;
+    const clock = new THREE.Clock();
+    let introPhase = isLogin ? 0 : 2; // 0=converge, 1=eyeIgnite, 2=done
+    let blinkTimer = 3 + Math.random() * 5;
+    let isBlinking = false;
+    let blinkProgress = 0;
 
     const animate = () => {
-      animationFrameId = requestAnimationFrame(animate);
+      frameId = requestAnimationFrame(animate);
+      const t = clock.getElapsedTime();
+      const dt = clock.getDelta();
 
-      const elapsedTime = clock.getElapsedTime();
+      // ── LOGIN INTRO SEQUENCE ──
+      if (isLogin && introPhase < 2) {
+        if (introPhase === 0) {
+          // Phase 0: particles converge, camera dollies in
+          let allSettled = true;
+          const posArr = particles.geometry.attributes.position.array;
+          for (let i = 0; i < pCount; i++) {
+            const i3 = i * 3;
+            for (let a = 0; a < 3; a++) {
+              posArr[i3+a] += (pInitPos[i3+a] - posArr[i3+a]) * 0.025;
+              if (Math.abs(posArr[i3+a] - pInitPos[i3+a]) > 0.1) allSettled = false;
+            }
+          }
+          particles.geometry.attributes.position.needsUpdate = true;
+          pMat.opacity = Math.min(pMat.opacity + 0.008, 0.75);
 
-      // Breathing geometry pulse
-      const breathScale = 1 + Math.sin(elapsedTime * 1.8) * 0.04;
-      simhaCore.scale.set(breathScale, breathScale, breathScale);
-      simhaWire.scale.set(breathScale * 1.05, breathScale * 1.05, breathScale * 1.05);
+          if (camera.position.z > 9) camera.position.z -= 0.02;
+          if (allSettled || t > 4) introPhase = 1;
+        }
+        if (introPhase === 1) {
+          // Phase 1: eyes ignite
+          const eyeIntensity = Math.min((t - 3) * 1.5, 3.0);
+          leftEye.material.emissiveIntensity = eyeIntensity;
+          rightEye.material.emissiveIntensity = eyeIntensity;
+          if (eyeIntensity >= 3.0) introPhase = 2;
+        }
+      }
 
-      // Orbital rings rotation
-      orbitalRing1.rotation.z = elapsedTime * 0.4;
-      orbitalRing2.rotation.z = -elapsedTime * 0.3;
+      // ── IDLE BLINK ──
+      blinkTimer -= dt;
+      if (blinkTimer <= 0 && !isBlinking) {
+        isBlinking = true;
+        blinkProgress = 0;
+      }
+      if (isBlinking) {
+        blinkProgress += dt * 6;
+        const blinkVal = blinkProgress < 0.5
+          ? 1 - blinkProgress * 2
+          : (blinkProgress - 0.5) * 2;
+        const baseIntensity = introPhase >= 2 ? 3.0 : leftEye.material.emissiveIntensity;
+        leftEye.material.emissiveIntensity = baseIntensity * Math.max(0.1, blinkVal);
+        rightEye.material.emissiveIntensity = baseIntensity * Math.max(0.1, blinkVal);
+        if (blinkProgress >= 1) {
+          isBlinking = false;
+          blinkTimer = 3 + Math.random() * 6;
+          leftEye.material.emissiveIntensity = baseIntensity;
+          rightEye.material.emissiveIntensity = baseIntensity;
+        }
+      } else if (introPhase >= 2) {
+        leftEye.material.emissiveIntensity = 3.0;
+        rightEye.material.emissiveIntensity = 3.0;
+      }
 
-      // Mouse Parallax with smooth Damping (lerp)
-      targetRotY += (mouseX * 0.55 - targetRotY) * 0.05;
-      targetRotX += (-mouseY * 0.4 - targetRotX) * 0.05;
+      // ── BREATHING PULSE ──
+      const breath = 1 + Math.sin(t * 1.5) * 0.035;
+      core.scale.setScalar(breath);
+      mane.scale.setScalar(breath * 1.06);
 
-      guardianGroup.rotation.y = targetRotY + Math.sin(elapsedTime * 0.5) * 0.08;
-      guardianGroup.rotation.x = targetRotX;
+      // ── MANE SWAY (vertex noise offset) ──
+      const manePositions = mane.geometry.attributes.position;
+      if (!mane.userData.origPositions) {
+        mane.userData.origPositions = new Float32Array(manePositions.array);
+      }
+      const orig = mane.userData.origPositions;
+      for (let i = 0; i < manePositions.count; i++) {
+        const i3 = i * 3;
+        const noiseVal = Math.sin(t * 1.2 + orig[i3] * 3) * 0.03 +
+                         Math.cos(t * 0.8 + orig[i3+1] * 4) * 0.025;
+        manePositions.array[i3]     = orig[i3] + noiseVal;
+        manePositions.array[i3 + 1] = orig[i3 + 1] + noiseVal * 0.8;
+        manePositions.array[i3 + 2] = orig[i3 + 2] + noiseVal * 0.5;
+      }
+      manePositions.needsUpdate = true;
 
-      // Cursor light tracking
-      mainGoldLight.position.x = 3 + mouseX * 2;
-      mainGoldLight.position.y = 4 - mouseY * 2;
+      // ── RING ROTATION ──
+      ring1.rotation.z = t * 0.35;
+      ring2.rotation.z = -t * 0.25;
 
-      // Rotate particle field slowly
-      particleField.rotation.y = elapsedTime * 0.06;
-      particleField.rotation.x = Math.sin(elapsedTime * 0.04) * 0.05;
+      // ── CURSOR PARALLAX (max ±12°) ──
+      const maxRot = (12 * Math.PI) / 180;
+      targetRotY += (mouseX * maxRot - targetRotY) * 0.04;
+      targetRotX += (-mouseY * maxRot * 0.8 - targetRotX) * 0.04;
+      guardian.rotation.y = targetRotY + Math.sin(t * 0.4) * 0.06;
+      guardian.rotation.x = targetRotX;
 
-      // Update Satellite Nodes position in Orbit
-      const currentSelected = selectedAgentRef.current;
+      // Cursor-tracking light
+      goldLight.position.x = 4 + mouseX * 2;
+      goldLight.position.y = 5 - mouseY * 2;
 
-      nodeMeshes.forEach((nodeItem, idx) => {
-        const isSelected = currentSelected === nodeItem.agent.id;
-        const currentAngle = nodeItem.agent.angle + elapsedTime * 0.35;
+      // ── PARTICLES DRIFT ──
+      particles.rotation.y = t * 0.05;
+      particles.rotation.x = Math.sin(t * 0.03) * 0.04;
 
-        // Position on 3D elliptical tilted plane
-        const nodeX = Math.cos(currentAngle) * orbitRadius;
-        const nodeY = Math.sin(currentAngle) * (orbitRadius * 0.45) + Math.sin(elapsedTime * 2 + idx) * 0.15;
-        const nodeZ = Math.sin(currentAngle) * (orbitRadius * 0.85);
+      // ── AGENT SATELLITES (workspace only) ──
+      const selected = selectedAgentRef.current;
+      nodeMeshes.forEach((n, idx) => {
+        const isActive = selected === n.agent.id;
+        const angle = n.agent.angle + t * 0.3;
+        const nx = Math.cos(angle) * orbitRadius;
+        const ny = Math.sin(angle) * (orbitRadius * 0.4) + Math.sin(t * 1.8 + idx) * 0.12;
+        const nz = Math.sin(angle) * (orbitRadius * 0.8);
 
-        nodeItem.group.position.set(nodeX, nodeY, nodeZ);
-        nodeItem.halo.lookAt(camera.position);
+        n.group.position.set(nx, ny, nz);
+        n.halo.lookAt(camera.position);
 
-        // Highlight selected active agent node
-        const targetScale = isSelected ? 1.4 : 1.0;
-        nodeItem.group.scale.lerp(new THREE.Vector3(targetScale, targetScale, targetScale), 0.1);
-        nodeItem.mesh.material.emissiveIntensity = isSelected ? 2.5 : 1.0;
-        nodeItem.halo.material.opacity = isSelected ? 0.9 : 0.4;
+        const ts = isActive ? 1.5 : 1.0;
+        n.group.scale.lerp(new THREE.Vector3(ts, ts, ts), 0.08);
+        n.mesh.material.emissiveIntensity = isActive ? 2.8 : 0.8;
+        n.halo.material.opacity = isActive ? 0.85 : 0.3;
 
-        // Update connected energy beam positions
         const beam = beamLines[idx];
         if (beam) {
-          const positions = beam.line.geometry.attributes.position.array;
-          // Start point (Core)
-          positions[0] = 0;
-          positions[1] = 0;
-          positions[2] = 0;
-          // End point (Satellite node)
-          positions[3] = nodeX;
-          positions[4] = nodeY;
-          positions[5] = nodeZ;
+          const p = beam.line.geometry.attributes.position.array;
+          p[0] = 0; p[1] = 0; p[2] = 0;
+          p[3] = nx; p[4] = ny; p[5] = nz;
           beam.line.geometry.attributes.position.needsUpdate = true;
-          beam.line.material.opacity = isSelected ? 0.8 : 0.25;
+          beam.line.material.opacity = isActive ? 0.7 : 0.15;
         }
       });
 
       renderer.render(scene, camera);
     };
-
     animate();
 
-    // ── CLEANUP ───────────────────────────────────────────────────
+    // ── CLEANUP ──
     return () => {
-      cancelAnimationFrame(animationFrameId);
-      window.removeEventListener("mousemove", onMouseMove);
-      window.removeEventListener("resize", handleResize);
+      cancelAnimationFrame(frameId);
+      window.removeEventListener("mousemove", onMouse);
+      window.removeEventListener("resize", onResize);
       container.removeEventListener("click", onCanvasClick);
-
-      // Dispose Three.js resources
-      coreGeo.dispose();
-      coreMat.dispose();
-      wireGeo.dispose();
-      wireMat.dispose();
-      eyeGeo.dispose();
-      eyeMat.dispose();
-      ringGeo.dispose();
-      ringMat.dispose();
-      particleGeo.dispose();
-      particleMat.dispose();
-
-      nodeMeshes.forEach((n) => {
-        n.mesh.geometry.dispose();
-        n.mesh.material.dispose();
-        n.halo.geometry.dispose();
-        n.halo.material.dispose();
-      });
-
-      beamLines.forEach((b) => {
-        b.line.geometry.dispose();
-        b.line.material.dispose();
-      });
-
-      if (renderer.domElement && container.contains(renderer.domElement)) {
-        container.removeChild(renderer.domElement);
-      }
+      [coreGeo, coreMat, maneGeo, maneMat, eyeGeo, ringGeo, pGeo, pMat].forEach(r => r?.dispose());
+      [leftEye.material, rightEye.material, ring1.material, ring2.material].forEach(m => m?.dispose());
+      nodeMeshes.forEach(n => { n.mesh.geometry.dispose(); n.mesh.material.dispose(); n.halo.geometry.dispose(); n.halo.material.dispose(); });
+      beamLines.forEach(b => { b.line.geometry.dispose(); b.line.material.dispose(); });
+      if (renderer.domElement && container.contains(renderer.domElement)) container.removeChild(renderer.domElement);
       renderer.dispose();
     };
-  }, [onSelectAgent]);
+  }, [mode, onSelectAgent]);
+
+  const h = mode === "login" ? "h-full" : "h-[240px] sm:h-[300px] md:h-[340px]";
 
   return (
-    <div className="relative w-full h-[260px] sm:h-[320px] md:h-[360px] flex items-center justify-center pointer-events-auto select-none">
+    <div className={`relative w-full ${h} flex items-center justify-center select-none`}>
       <div ref={mountRef} className="w-full h-full cursor-grab active:cursor-grabbing" />
-      
-      {/* Subtle depth lighting overlay */}
-      <div className="absolute inset-0 pointer-events-none bg-radial-gradient from-transparent via-transparent to-dark-base/40" />
     </div>
   );
 }

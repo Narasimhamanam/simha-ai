@@ -1,126 +1,96 @@
 import { useState } from "react";
 import { History, MessageSquare, Search, ArrowRight, Clock, Plus } from "lucide-react";
 
-export default function ChatHistoryPage({
-  theme,
-  chats,
-  setActiveChatId,
-  setCurrentPage,
-}) {
-  const dark = theme === "dark";
+export default function ChatHistoryPage({ theme, chats, setActiveChatId, setCurrentPage }) {
   const [search, setSearch] = useState("");
 
-  const filtered = chats.filter((c) =>
-    (c.title || "New Chat").toLowerCase().includes(search.toLowerCase())
+  const filtered = chats.filter(c =>
+    c.title?.toLowerCase().includes(search.toLowerCase())
   );
 
-  const handleSelect = (chatId) => {
+  const openChat = (chatId) => {
     setActiveChatId(chatId);
     setCurrentPage("chat");
   };
 
+  const formatDate = (chat) => {
+    const ts = chat.messages?.[chat.messages.length - 1]?.timestamp || chat.created_at;
+    if (!ts) return "";
+    const d = new Date(ts);
+    return d.toLocaleDateString("en-US", { day: "2-digit", month: "short" }) +
+      " · " + d.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" });
+  };
+
   return (
-    <div className="flex-1 flex flex-col h-full overflow-hidden bg-[#f8fafc] dark:bg-[#09090b]">
+    <div className="flex-1 flex flex-col h-full overflow-hidden" style={{ background: "var(--void)", color: "var(--ink-1)" }}>
       
-      {/* ── HEADER ── */}
-      <div className="px-6 py-6 border-b border-slate-200/80 dark:border-white/[0.07] shrink-0 bg-white/50 dark:bg-[#0c0c0e]/50 backdrop-blur-sm">
-        <div className="max-w-4xl mx-auto flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <h1 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
-              <History size={20} className="text-amber-500" />
-              Conversation History
-            </h1>
-            <p className="text-xs text-slate-500 dark:text-zinc-400 mt-1">
-              Browse and resume past AI problem-solving sessions and agent dialogues
-            </p>
-          </div>
+      {/* Header */}
+      <div className="px-6 py-6 border-b border-[var(--edge-subtle)] shrink-0" style={{ background: "var(--glass)" }}>
+        <div className="max-w-3xl mx-auto">
+          <h1 className="text-xl font-bold tracking-tight flex items-center gap-2">
+            <History size={20} style={{ color: "var(--mane-gold)" }} /> Conversation Archive
+          </h1>
+          <p className="text-xs mt-1" style={{ color: "var(--ink-3)" }}>
+            Browse and resume past AI sessions
+          </p>
 
-          <button
-            onClick={() => setCurrentPage("chat")}
-            className="btn-primary flex items-center gap-1.5 self-start sm:self-auto"
-          >
-            <Plus size={14} strokeWidth={2.5} />
-            <span>New Chat</span>
-          </button>
-        </div>
-
-        {/* Search Bar */}
-        <div className="max-w-4xl mx-auto mt-4">
-          <div className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-100/80 dark:bg-white/[0.04] border border-slate-200/80 dark:border-white/[0.06]">
-            <Search size={14} className="text-slate-400 dark:text-zinc-500" />
-            <input
-              type="text"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search conversations by title..."
-              className="flex-1 bg-transparent text-xs text-slate-900 dark:text-zinc-100 placeholder:text-slate-400 dark:placeholder:text-zinc-500 outline-none"
-            />
-            {search && (
-              <button onClick={() => setSearch("")} className="text-slate-400 hover:text-slate-600 dark:hover:text-white text-xs">
-                Clear
-              </button>
-            )}
+          <div className="mt-4 flex items-center gap-2 px-3.5 py-2 rounded-xl border border-[var(--edge-subtle)]" style={{ background: "rgba(255,255,255,0.03)" }}>
+            <Search size={14} style={{ color: "var(--ink-3)" }} />
+            <input type="text" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search conversations..."
+              className="flex-1 bg-transparent text-xs outline-none" style={{ color: "var(--ink-1)" }} />
+            {search && <button onClick={() => setSearch("")} className="text-xs" style={{ color: "var(--ink-3)" }}>Clear</button>}
           </div>
         </div>
       </div>
 
-      {/* ── CONVERSATION LIST ── */}
       <div className="flex-1 overflow-y-auto px-6 py-6">
-        <div className="max-w-4xl mx-auto space-y-2.5">
+        <div className="max-w-3xl mx-auto space-y-2">
           {filtered.length === 0 ? (
-            <div className="py-16 text-center rounded-3xl bg-white dark:bg-[#121215] border border-slate-200/80 dark:border-white/[0.06] p-8">
-              <div className="w-14 h-14 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center mx-auto mb-4 text-amber-500">
+            <div className="py-16 text-center glass-panel p-8">
+              <div className="w-14 h-14 rounded-2xl bg-[var(--mane-gold-glow)] border border-[rgba(214,168,79,0.2)] flex items-center justify-center mx-auto mb-4" style={{ color: "var(--mane-gold)" }}>
                 <MessageSquare size={22} />
               </div>
-              <h3 className="text-sm font-bold text-slate-800 dark:text-zinc-200">
-                {search ? "No conversations match your search" : "No conversation history"}
-              </h3>
-              <p className="text-xs text-slate-500 dark:text-zinc-400 mt-1 max-w-sm mx-auto leading-relaxed">
-                {search
-                  ? "Try searching for a different phrase or start a new workspace."
-                  : "All your future conversations and multi-agent workflows will be archived here automatically."}
+              <h3 className="text-sm font-bold">{search ? "No matching conversations" : "No conversations yet"}</h3>
+              <p className="text-xs mt-1" style={{ color: "var(--ink-3)" }}>
+                {search ? "Try a different search term." : "Start a new workspace to begin."}
               </p>
               {!search && (
-                <button
-                  onClick={() => setCurrentPage("chat")}
-                  className="btn-primary mt-5"
-                >
-                  Start Your First Chat
+                <button onClick={() => setCurrentPage("chat")} className="btn-gold mt-5 flex items-center gap-2 mx-auto">
+                  <Plus size={14} /><span>New Workspace</span>
                 </button>
               )}
             </div>
           ) : (
             filtered.map((chat) => {
-              const msgCount = (chat.messages || []).length;
-              return (
-                <div
-                  key={chat.id}
-                  onClick={() => handleSelect(chat.id)}
-                  className="group flex items-center justify-between p-4 rounded-2xl bg-white dark:bg-[#121215] border border-slate-200/80 dark:border-white/[0.06] hover:border-amber-500/40 dark:hover:border-amber-500/30 hover:shadow-sm cursor-pointer transition-all duration-150"
-                >
-                  <div className="flex items-center gap-3.5 min-w-0 pr-4">
-                    <div className="w-9 h-9 rounded-xl bg-slate-100 dark:bg-white/[0.05] border border-slate-200/60 dark:border-white/[0.06] flex items-center justify-center text-slate-600 dark:text-zinc-400 group-hover:text-amber-500 transition shrink-0">
-                      <MessageSquare size={16} />
-                    </div>
+              const msgCount = chat.messages?.length || 0;
+              const lastMsg = chat.messages?.[chat.messages.length - 1];
+              const preview = lastMsg?.content?.substring(0, 100) || "Empty conversation";
 
-                    <div className="flex flex-col min-w-0">
-                      <span className="text-xs font-semibold text-slate-800 dark:text-zinc-200 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition truncate">
-                        {chat.title || "Untitled Conversation"}
-                      </span>
-                      <div className="flex items-center gap-2 mt-0.5 text-[10px] text-slate-400 dark:text-zinc-500">
-                        <span>{msgCount} message{msgCount !== 1 ? "s" : ""}</span>
-                        <span>•</span>
-                        <span className="font-mono">Chat ID: {chat.id?.substring(0, 8)}...</span>
-                      </div>
-                    </div>
+              return (
+                <button
+                  key={chat.id}
+                  onClick={() => openChat(chat.id)}
+                  className="w-full text-left float-card !rounded-2xl p-4 group flex items-center gap-4"
+                >
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border border-[var(--edge-subtle)]" style={{ background: "var(--mane-gold-glow)" }}>
+                    <MessageSquare size={16} style={{ color: "var(--mane-gold)" }} />
                   </div>
 
-                  <div className="flex items-center gap-2 shrink-0">
-                    <span className="text-xs font-semibold text-slate-400 group-hover:text-slate-700 dark:group-hover:text-zinc-200 flex items-center gap-1 transition">
-                      Resume <ArrowRight size={13} />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-xs font-bold truncate pr-3">{chat.title || "Untitled"}</span>
+                      <span className="text-[10px] font-mono shrink-0 flex items-center gap-1" style={{ color: "var(--ink-3)" }}>
+                        <Clock size={10} />{formatDate(chat)}
+                      </span>
+                    </div>
+                    <p className="text-[11px] truncate leading-relaxed" style={{ color: "var(--ink-3)" }}>{preview}</p>
+                    <span className="text-[10px] font-mono mt-1 inline-block px-1.5 py-0.5 rounded" style={{ background: "rgba(255,255,255,0.04)", color: "var(--ink-3)" }}>
+                      {msgCount} messages
                     </span>
                   </div>
-                </div>
+
+                  <ArrowRight size={14} style={{ color: "var(--ink-3)" }} className="opacity-0 group-hover:opacity-100 transition shrink-0" />
+                </button>
               );
             })
           )}

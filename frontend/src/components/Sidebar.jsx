@@ -1,8 +1,8 @@
 import {
   MessageSquare, History, FileText, Settings, Plus, Trash2,
-  Sparkles, X, Mail, Globe, CalendarDays, LogOut, ChevronRight,
-  ShieldCheck, Zap, Layers, Compass
+  X, Mail, Globe, CalendarDays, LogOut, ChevronRight, Zap, Layers
 } from "lucide-react";
+import { useState } from "react";
 import API from "../services/api";
 
 const NAV_ITEMS = [
@@ -10,7 +10,7 @@ const NAV_ITEMS = [
   { id: "email",     icon: Mail,          label: "Email Composer" },
   { id: "calendar",  icon: CalendarDays,  label: "AI Scheduler" },
   { id: "url",       icon: Globe,         label: "URL Reader" },
-  { id: "documents", icon: FileText,       label: "Documents" },
+  { id: "documents", icon: FileText,      label: "Documents" },
   { id: "history",   icon: History,       label: "Chat History" },
   { id: "settings",  icon: Settings,      label: "Settings" },
 ];
@@ -19,10 +19,11 @@ function Sidebar({
   theme, chats, setChats, activeChatId, setActiveChatId,
   createNewChat, currentPage, setCurrentPage,
   profile, handleLogout, isSidebarOpen, setIsSidebarOpen, isPro,
-  selectedAgent, setSelectedAgent
+  selectedAgent, setSelectedAgent,
 }) {
-  const dark = theme === "dark";
   const isDivine = selectedAgent === "divine";
+  const [hovered, setHovered] = useState(false);
+  const expanded = isSidebarOpen || hovered;
 
   const deleteChat = async (chatId) => {
     try {
@@ -30,316 +31,202 @@ function Sidebar({
       const updated = chats.filter((c) => c.id !== chatId);
       setChats(updated);
       if (updated.length > 0) setActiveChatId(updated[0].id);
-    } catch (error) { 
-      console.error("Failed to delete chat:", error); 
-    }
+    } catch (e) { console.error("Delete failed:", e); }
   };
 
-  const loadRazorpayScript = () => {
-    return new Promise((resolve) => {
-      const script = document.createElement("script");
-      script.src = "https://checkout.razorpay.com/v1/checkout.js";
-      script.onload = () => resolve(true);
-      script.onerror = () => resolve(false);
-      document.body.appendChild(script);
+  const loadRazorpayScript = () =>
+    new Promise((resolve) => {
+      const s = document.createElement("script");
+      s.src = "https://checkout.razorpay.com/v1/checkout.js";
+      s.onload = () => resolve(true);
+      s.onerror = () => resolve(false);
+      document.body.appendChild(s);
     });
-  };
 
   const handleUpgrade = async () => {
-    const isLoaded = await loadRazorpayScript();
-    if (!isLoaded) {
-      alert("Failed to load Razorpay SDK. Please check your internet connection.");
-      return;
-    }
-
+    const ok = await loadRazorpayScript();
+    if (!ok) { alert("Failed to load Razorpay."); return; }
     try {
       const orderRes = await API.post("/create-razorpay-order", { email: profile?.email });
       const order = orderRes.data;
-
-      const options = {
+      const opts = {
         key: import.meta.env.VITE_RAZORPAY_KEY_ID || "rzp_test_dummy",
-        amount: order.amount,
-        currency: order.currency,
-        name: "Simha AI",
-        description: "Upgrade to PRO (Unlimited Access)",
+        amount: order.amount, currency: order.currency,
+        name: "Simha AI", description: "Upgrade to PRO",
         order_id: order.id !== "order_dummy" ? order.id : undefined,
-        handler: async function (response) {
+        handler: async (res) => {
           try {
             await API.post("/verify-razorpay-payment", {
               email: profile?.email,
-              razorpay_order_id: response.razorpay_order_id || "dummy_order",
-              razorpay_payment_id: response.razorpay_payment_id || "dummy_payment",
-              razorpay_signature: response.razorpay_signature || "dummy_signature",
+              razorpay_order_id: res.razorpay_order_id || "dummy",
+              razorpay_payment_id: res.razorpay_payment_id || "dummy",
+              razorpay_signature: res.razorpay_signature || "dummy",
             });
-            alert("Payment Successful! You are now a PRO user.");
-            window.location.reload();
-          } catch (e) {
-            alert("Payment verification failed.");
-          }
+            alert("You are now a PRO user!"); window.location.reload();
+          } catch { alert("Payment verification failed."); }
         },
-        prefill: {
-          name: profile?.nickname || "",
-          email: profile?.email || "",
-        },
+        prefill: { name: profile?.nickname || "", email: profile?.email || "" },
         theme: { color: "#D6A84F" },
       };
-
-      const rzp = new window.Razorpay(options);
-      rzp.on("payment.failed", function (response) {
-        alert("Payment failed: " + response.error.description);
-      });
+      const rzp = new window.Razorpay(opts);
+      rzp.on("payment.failed", (r) => alert("Payment failed: " + r.error.description));
       rzp.open();
-    } catch (error) {
-      console.error("Upgrade error:", error);
-      alert("Failed to initiate upgrade. Please try again later.");
-    }
+    } catch (e) { console.error("Upgrade error:", e); alert("Failed to initiate upgrade."); }
   };
 
-  const handleChatSelect = (chatId) => {
-    setActiveChatId(chatId);
-    setCurrentPage("chat");
-    if (window.innerWidth < 1024) setIsSidebarOpen(false);
-  };
-
-  const handleNavSelect = (pageId) => {
-    setCurrentPage(pageId);
-    if (window.innerWidth < 1024) setIsSidebarOpen(false);
-  };
+  const navTo = (id) => { setCurrentPage(id); if (window.innerWidth < 1024) setIsSidebarOpen(false); };
+  const selectChat = (id) => { setActiveChatId(id); setCurrentPage("chat"); if (window.innerWidth < 1024) setIsSidebarOpen(false); };
 
   return (
     <>
-      {/* ── MOBILE DRAWER BACKDROP ── */}
+      {/* Mobile backdrop */}
       <div
         className={`fixed inset-0 bg-black/70 backdrop-blur-sm z-40 lg:hidden transition-opacity duration-300 ${
-          isSidebarOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+          isSidebarOpen ? "opacity-100" : "opacity-0 pointer-events-none"
         }`}
         onClick={() => setIsSidebarOpen(false)}
       />
 
-      {/* ── SIDEBAR ASIDE ── */}
+      {/* Rail / Drawer */}
       <aside
+        onMouseEnter={() => setHovered(true)}
+        onMouseLeave={() => setHovered(false)}
         className={`
-          fixed top-0 left-0
-          h-screen h-[100dvh]
-          w-[270px]
-          flex flex-col shrink-0
-          z-50
-          transition-transform duration-300 ease-out
+          fixed top-0 left-0 h-[100dvh] z-50 flex flex-col shrink-0
+          transition-all duration-300 ease-out
+          ${expanded ? "w-[260px]" : "w-[64px]"}
           ${isSidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
-          bg-light-surface dark:bg-dark-surface
-          border-r border-slate-200/80 dark:border-white/[0.07]
-          shadow-xl lg:shadow-none
+          bg-void-surface/90 backdrop-blur-xl
+          border-r border-[rgba(255,255,255,0.06)]
         `}
+        style={{ willChange: "width" }}
       >
-        {/* ── BRAND HEADER ── */}
-        <div className="flex items-center justify-between px-5 h-16 border-b border-slate-200/80 dark:border-white/[0.07] shrink-0">
-          <div className="flex items-center gap-3">
-            <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 shadow-sm ${
-              isDivine 
-                ? "bg-cyan-500/15 border border-cyan-500/30" 
-                : "bg-gold-500/15 border border-gold-500/30"
-            }`}>
-              {isDivine ? (
-                <span className="text-base">🦚</span>
-              ) : (
-                <img src="/logo-lion.png" alt="Simha Logo" className="w-5 h-5 object-contain logo-mask" />
-              )}
-            </div>
-            <div className="flex flex-col">
-              <div className="flex items-center gap-1.5">
-                <span className="text-sm font-bold tracking-tight text-slate-900 dark:text-white">
-                  {isDivine ? "Krishna AI" : "Simha AI"}
-                </span>
-                <span className={`text-[9px] px-1.5 py-0.2 rounded font-mono font-bold tracking-wider ${
-                  isDivine
-                    ? "bg-cyan-500/20 text-cyan-600 dark:text-cyan-400"
-                    : "bg-gold-500/20 text-gold-600 dark:text-gold-400"
-                }`}>
-                  PRO 3D
-                </span>
-              </div>
-              <span className="text-[10px] text-slate-400 dark:text-zinc-500 font-medium tracking-wide">
-                {isDivine ? "Wisdom & Dharma" : "Autonomous Intelligence"}
-              </span>
-            </div>
+        {/* Brand */}
+        <div className={`flex items-center h-14 border-b border-[rgba(255,255,255,0.06)] shrink-0 ${expanded ? "px-4 gap-3" : "justify-center px-0"}`}>
+          <div className="w-8 h-8 rounded-xl bg-[rgba(214,168,79,0.12)] border border-[rgba(214,168,79,0.25)] flex items-center justify-center shrink-0">
+            <img src="/logo-lion.png" alt="Simha" className="w-5 h-5 object-contain logo-mask" />
           </div>
-
-          <button
-            onClick={() => setIsSidebarOpen(false)}
-            className="lg:hidden p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:text-zinc-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/[0.06] transition"
-            aria-label="Close sidebar"
-          >
-            <X size={16} />
-          </button>
-        </div>
-
-        {/* ── NEW CHAT TRIGGER ── */}
-        <div className="p-3.5 pb-2">
-          <button
-            onClick={() => { createNewChat(); if (window.innerWidth < 1024) setIsSidebarOpen(false); }}
-            className="w-full btn-gold flex items-center justify-between shadow-gold-500/20"
-          >
-            <span className="flex items-center gap-2">
-              <Plus size={15} strokeWidth={2.5} />
-              New Workspace
-            </span>
-            <kbd className="hidden sm:inline-block px-1.5 py-0.5 text-[10px] font-mono rounded bg-black/15 text-black/90">
-              ⌘N
-            </kbd>
-          </button>
-        </div>
-
-        {/* ── NAVIGATION & RECENT CHATS ── */}
-        <div className="flex-1 overflow-y-auto no-scrollbar px-3 space-y-5 py-2">
-          
-          {/* NAVIGATION */}
-          <div>
-            <div className="px-3 mb-1.5">
-              <span className="text-[10px] uppercase font-bold tracking-widest text-slate-400 dark:text-zinc-500">
-                Workspace Tools
-              </span>
+          {expanded && (
+            <div className="flex flex-col min-w-0 animate-fade-in">
+              <span className="text-sm font-bold text-[var(--ink-1)] tracking-tight truncate">Simha AI</span>
+              <span className="text-[10px] text-[var(--ink-3)]">Zero-G Sanctum</span>
             </div>
-            <nav className="space-y-0.5">
-              {NAV_ITEMS.map(({ id, icon: Icon, label }) => {
-                const isActive = currentPage === id;
-                return (
-                  <button
-                    key={id}
-                    onClick={() => handleNavSelect(id)}
-                    className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition-all duration-150 ${
-                      isActive
-                        ? "bg-slate-100 dark:bg-white/[0.08] text-slate-900 dark:text-white font-bold shadow-sm border border-slate-200/80 dark:border-white/[0.08]"
-                        : "text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-zinc-200 hover:bg-slate-100/60 dark:hover:bg-white/[0.04]"
-                    }`}
-                  >
-                    <div className="flex items-center gap-2.5 min-w-0">
-                      <Icon
-                        size={15}
-                        className={isActive ? (isDivine ? "text-cyan-500" : "text-gold-500") : "text-slate-400 dark:text-zinc-500"}
-                        strokeWidth={isActive ? 2.4 : 1.8}
-                      />
-                      <span className="truncate">{label}</span>
-                    </div>
-                    {isActive && (
-                      <div className={`w-1.5 h-1.5 rounded-full ${isDivine ? "bg-cyan-500" : "bg-gold-500"}`} />
-                    )}
-                  </button>
-                );
-              })}
-            </nav>
-          </div>
-
-          {/* RECENT CONVERSATIONS */}
-          <div>
-            <div className="flex items-center justify-between px-3 mb-1.5">
-              <span className="text-[10px] uppercase font-bold tracking-widest text-slate-400 dark:text-zinc-500">
-                Recent Chats
-              </span>
-              <span className="text-[10px] font-mono text-slate-400 dark:text-zinc-500">
-                {chats.length}
-              </span>
-            </div>
-
-            <div className="space-y-0.5">
-              {chats.length === 0 ? (
-                <div className="px-3 py-6 text-center">
-                  <p className="text-xs text-slate-400 dark:text-zinc-500">No previous conversations</p>
-                </div>
-              ) : (
-                chats.map((chat) => {
-                  const isActive = currentPage === "chat" && activeChatId === chat.id;
-                  return (
-                    <div
-                      key={chat.id}
-                      onClick={() => handleChatSelect(chat.id)}
-                      className={`group flex items-center justify-between px-3 py-2 rounded-xl text-xs cursor-pointer transition-all duration-150 ${
-                        isActive
-                          ? "bg-slate-100 dark:bg-white/[0.08] text-slate-900 dark:text-white font-medium border border-slate-200/80 dark:border-white/[0.08]"
-                          : "text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-zinc-200 hover:bg-slate-100/60 dark:hover:bg-white/[0.04]"
-                      }`}
-                    >
-                      <div className="flex items-center gap-2.5 min-w-0 pr-1">
-                        <MessageSquare
-                          size={13}
-                          className={`shrink-0 ${isActive ? (isDivine ? "text-cyan-500" : "text-gold-500") : "opacity-40"}`}
-                        />
-                        <span className="truncate">{chat.title || "Untitled Conversation"}</span>
-                      </div>
-
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          deleteChat(chat.id);
-                        }}
-                        className="opacity-0 group-hover:opacity-100 p-1 rounded-md text-slate-400 hover:text-red-500 dark:text-zinc-500 dark:hover:text-red-400 hover:bg-slate-200/60 dark:hover:bg-white/[0.08] transition"
-                        title="Delete chat"
-                      >
-                        <Trash2 size={12} />
-                      </button>
-                    </div>
-                  );
-                })
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* ── PROFILE & UPGRADE FOOTER ── */}
-        <div className="p-3 border-t border-slate-200/80 dark:border-white/[0.07] shrink-0 bg-slate-50/50 dark:bg-black/30">
-          {!isPro && (
-            <button
-              onClick={handleUpgrade}
-              className="w-full mb-3 flex items-center justify-between px-3 py-2 rounded-xl text-xs font-bold
-                         bg-gold-500/10 hover:bg-gold-500/15 border border-gold-500/25 text-gold-700 dark:text-gold-400 transition"
-            >
-              <span className="flex items-center gap-1.5">
-                <Zap size={14} className="text-gold-500" />
-                Upgrade to Pro
-              </span>
-              <ChevronRight size={14} />
+          )}
+          {expanded && (
+            <button onClick={() => setIsSidebarOpen(false)} className="lg:hidden ml-auto p-1 rounded text-[var(--ink-3)] hover:text-[var(--ink-1)]">
+              <X size={15} />
             </button>
           )}
+        </div>
 
-          <div className="flex items-center justify-between p-2 rounded-xl depth-level-1">
-            <div className="flex items-center gap-2.5 min-w-0">
-              {profile?.avatar ? (
-                <img
-                  src={profile.avatar}
-                  alt="avatar"
-                  className="w-8 h-8 rounded-lg object-cover ring-1 ring-slate-200 dark:ring-white/[0.1] shrink-0"
-                />
-              ) : (
-                <div className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-white/[0.08] flex items-center justify-center shrink-0">
-                  <span className="text-xs font-bold text-slate-700 dark:text-zinc-300">
-                    {profile?.nickname?.charAt(0)?.toUpperCase() || "U"}
-                  </span>
-                </div>
-              )}
+        {/* New Chat */}
+        <div className={`${expanded ? "p-3" : "p-2"}`}>
+          <button
+            onClick={() => { createNewChat(); if (window.innerWidth < 1024) setIsSidebarOpen(false); }}
+            className={`btn-gold w-full flex items-center justify-center gap-2 ${expanded ? "" : "!px-0"}`}
+          >
+            <Plus size={15} strokeWidth={2.5} />
+            {expanded && <span>New Workspace</span>}
+          </button>
+        </div>
 
-              <div className="flex flex-col min-w-0">
-                <div className="flex items-center gap-1.5">
-                  <span className="text-xs font-bold truncate text-slate-800 dark:text-zinc-200">
-                    {profile?.nickname?.split(" ")[0] || "User"}
-                  </span>
-                  {isPro && (
-                    <span className="text-[9px] px-1 py-0.2 rounded font-bold bg-gold-500/20 text-gold-600 dark:text-gold-400">
-                      PRO
-                    </span>
-                  )}
-                </div>
-                <span className="text-[10px] text-slate-400 dark:text-zinc-500 truncate">
-                  {profile?.email || "Signed in"}
-                </span>
+        {/* Nav + Chats */}
+        <div className="flex-1 overflow-y-auto no-scrollbar px-2 py-1 space-y-4">
+          {/* Navigation */}
+          <nav className="space-y-0.5">
+            {NAV_ITEMS.map(({ id, icon: Icon, label }) => {
+              const active = currentPage === id;
+              return (
+                <button
+                  key={id}
+                  onClick={() => navTo(id)}
+                  title={!expanded ? label : undefined}
+                  className={`w-full flex items-center rounded-xl transition-all duration-150 ${
+                    expanded ? "px-3 py-2 gap-2.5" : "px-0 py-2 justify-center"
+                  } text-xs font-medium ${
+                    active
+                      ? "glass-panel !rounded-xl text-[var(--ink-1)] font-bold"
+                      : "text-[var(--ink-3)] hover:text-[var(--ink-1)] hover:bg-[rgba(255,255,255,0.04)]"
+                  }`}
+                >
+                  <Icon size={16} className={active ? "text-[var(--mane-gold)]" : ""} strokeWidth={active ? 2.2 : 1.7} />
+                  {expanded && <span className="truncate">{label}</span>}
+                  {active && expanded && <div className="w-1.5 h-1.5 rounded-full bg-[var(--mane-gold)] ml-auto" />}
+                </button>
+              );
+            })}
+          </nav>
+
+          {/* Recent Chats */}
+          {expanded && (
+            <div className="animate-fade-in">
+              <div className="flex items-center justify-between px-3 mb-1">
+                <span className="text-[10px] uppercase font-bold tracking-widest text-[var(--ink-3)]">Recent</span>
+                <span className="text-[10px] font-mono text-[var(--ink-3)]">{chats.length}</span>
+              </div>
+              <div className="space-y-0.5">
+                {chats.length === 0 ? (
+                  <p className="px-3 py-4 text-center text-xs text-[var(--ink-3)]">No chats yet</p>
+                ) : (
+                  chats.map((chat) => {
+                    const active = currentPage === "chat" && activeChatId === chat.id;
+                    return (
+                      <div
+                        key={chat.id}
+                        onClick={() => selectChat(chat.id)}
+                        className={`group flex items-center gap-2 px-3 py-2 rounded-xl text-xs cursor-pointer transition-all ${
+                          active
+                            ? "glass-panel !rounded-xl text-[var(--ink-1)] font-medium"
+                            : "text-[var(--ink-3)] hover:text-[var(--ink-2)] hover:bg-[rgba(255,255,255,0.03)]"
+                        }`}
+                      >
+                        <MessageSquare size={13} className={`shrink-0 ${active ? "text-[var(--mane-gold)]" : "opacity-40"}`} />
+                        <span className="truncate flex-1">{chat.title || "Untitled"}</span>
+                        <button
+                          onClick={(e) => { e.stopPropagation(); deleteChat(chat.id); }}
+                          className="opacity-0 group-hover:opacity-100 p-0.5 rounded text-[var(--ink-3)] hover:text-red-400 transition"
+                        >
+                          <Trash2 size={12} />
+                        </button>
+                      </div>
+                    );
+                  })
+                )}
               </div>
             </div>
+          )}
+        </div>
 
-            <button
-              onClick={handleLogout}
-              className="p-1.5 rounded-lg text-slate-400 hover:text-red-500 dark:text-zinc-500 dark:hover:text-red-400 hover:bg-slate-100 dark:hover:bg-white/[0.06] transition"
-              title="Sign out"
-            >
-              <LogOut size={14} />
+        {/* Footer */}
+        <div className={`border-t border-[rgba(255,255,255,0.06)] shrink-0 ${expanded ? "p-3" : "p-2"}`}>
+          {!isPro && expanded && (
+            <button onClick={handleUpgrade} className="w-full mb-2 flex items-center justify-between px-3 py-2 rounded-xl text-xs font-bold bg-[var(--mane-gold-glow)] border border-[rgba(214,168,79,0.2)] text-[var(--mane-gold-bright)] hover:bg-[rgba(214,168,79,0.12)] transition">
+              <span className="flex items-center gap-1.5"><Zap size={13} /> Upgrade to Pro</span>
+              <ChevronRight size={13} />
             </button>
+          )}
+          <div className={`flex items-center glass-panel !rounded-xl ${expanded ? "p-2 gap-2.5" : "p-1.5 justify-center"}`}>
+            {profile?.avatar ? (
+              <img src={profile.avatar} alt="" className="w-7 h-7 rounded-lg object-cover shrink-0 ring-1 ring-[rgba(255,255,255,0.08)]" />
+            ) : (
+              <div className="w-7 h-7 rounded-lg bg-[rgba(255,255,255,0.06)] flex items-center justify-center shrink-0 text-xs font-bold text-[var(--ink-2)]">
+                {profile?.nickname?.charAt(0)?.toUpperCase() || "U"}
+              </div>
+            )}
+            {expanded && (
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-xs font-bold truncate text-[var(--ink-1)]">{profile?.nickname?.split(" ")[0] || "User"}</span>
+                  {isPro && <span className="text-[9px] px-1 rounded font-bold bg-[var(--mane-gold-glow)] text-[var(--mane-gold)]">PRO</span>}
+                </div>
+                <span className="text-[10px] text-[var(--ink-3)] truncate block">{profile?.email || ""}</span>
+              </div>
+            )}
+            {expanded && (
+              <button onClick={handleLogout} className="p-1 rounded text-[var(--ink-3)] hover:text-red-400 transition" title="Sign out">
+                <LogOut size={14} />
+              </button>
+            )}
           </div>
         </div>
       </aside>
