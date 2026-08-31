@@ -13,7 +13,7 @@ import { signInWithPopup, signOut, onAuthStateChanged } from "firebase/auth";
 import { auth, provider } from "../firebase";
 import API from "../services/api";
 import { startKeepAlive, stopKeepAlive } from "../services/keepAlive";
-import { Sparkles, AlertCircle, RefreshCw, LogOut, ArrowRight, Shield } from "lucide-react";
+import { Sparkles, AlertCircle, RefreshCw, ShieldCheck, ArrowRight } from "lucide-react";
 
 const BACKEND_URL =
   import.meta.env.VITE_BACKEND_URL ||
@@ -29,7 +29,6 @@ function Home() {
   const [selectedAgent, setSelectedAgent] = useState("study");
   const [isMusicPlaying, setIsMusicPlaying] = useState(false);
 
-  // Auto-play ambient music when switching to Krishna AI
   useEffect(() => {
     if (selectedAgent === "divine") {
       setIsMusicPlaying(true);
@@ -85,7 +84,7 @@ function Home() {
       } catch {
         if (i < 19) {
           const secondsLeft = (19 - i) * 5;
-          setAppError(`⏳ Waking up AI inference server... (${secondsLeft}s)`);
+          setAppError(`⏳ Waking up AI inference cluster... (${secondsLeft}s)`);
           await new Promise((r) => setTimeout(r, 5000));
         }
       }
@@ -98,7 +97,7 @@ function Home() {
 
   const fetchChats = useCallback(async (email) => {
     setAppLoading(true);
-    setAppError("Connecting to Simha AI infrastructure...");
+    setAppError("Connecting to Simha Autonomous Multi-Agent OS...");
 
     const alive = await warmUpBackend();
     if (!alive) {
@@ -118,7 +117,7 @@ function Home() {
       return;
     }
 
-    setAppError("Loading your workspace...");
+    setAppError("Mounting vector stores and workspace...");
 
     const DELAYS = [0, 4000, 7000, 10000, 15000];
     for (let attempt = 0; attempt < DELAYS.length; attempt++) {
@@ -222,39 +221,39 @@ function Home() {
 
   const activeChat = chats.find((c) => c.id === activeChatId);
 
-  // ── 1. LOGIN SCREEN ──
+  // ── 1. LUXURY 3D LOGIN SCREEN ──
   if (!user) {
     prewarm();
 
     return (
-      <div className="fixed inset-0 flex items-center justify-center bg-[#070605] overflow-hidden text-slate-100">
+      <div className="fixed inset-0 flex items-center justify-center bg-dark-base overflow-hidden text-slate-100">
         
-        {/* Background Cinematic Overlays */}
+        {/* Cinematic Backdrop with Subtle Mesh */}
         <div className="absolute inset-0 pointer-events-none overflow-hidden select-none">
           <img
             src="/narasimha-hero.png"
             alt="Simha"
-            className="w-full h-full object-cover object-center opacity-40 scale-105 filter blur-[0.5px]"
+            className="w-full h-full object-cover object-center opacity-30 scale-105 filter blur-[1px]"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#070605] via-[#070605]/80 to-transparent" />
-          <div className="absolute inset-0 bg-radial-gradient from-transparent via-[#070605]/60 to-[#070605]" />
+          <div className="absolute inset-0 bg-gradient-to-t from-dark-base via-dark-base/80 to-transparent" />
+          <div className="absolute inset-0 bg-radial-gradient from-transparent via-dark-base/60 to-dark-base" />
         </div>
 
-        {/* Login Card */}
-        <div className="relative z-10 w-full max-w-[420px] mx-4 sm:mx-6 p-8 sm:p-10 rounded-3xl bg-[#12100d]/90 backdrop-blur-2xl border border-amber-500/20 shadow-2xl shadow-black/80 animate-fade-in">
+        {/* Floating 3D Login Card */}
+        <div className="relative z-10 w-full max-w-[420px] mx-4 sm:mx-6 p-8 sm:p-10 rounded-3xl depth-level-4 animate-fade-in">
           
           {/* Logo */}
-          <div className="w-14 h-14 rounded-2xl bg-amber-500/10 border border-amber-500/25 flex items-center justify-center mb-6 shadow-lg shadow-amber-500/5">
+          <div className="w-14 h-14 rounded-2xl bg-gold-500/15 border border-gold-500/30 flex items-center justify-center mb-6 shadow-lg shadow-gold-500/10">
             <img src="/logo-lion.png" alt="Simha Logo" className="w-8 h-8 object-contain logo-mask" />
           </div>
 
           <div className="mb-8">
             <div className="flex items-center gap-2 mb-1.5">
-              <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white">
+              <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white">
                 Simha AI
               </h1>
-              <span className="text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider bg-amber-500/20 text-amber-400 border border-amber-500/30">
-                PRO V2
+              <span className="text-[10px] px-2 py-0.5 rounded-full font-mono font-bold tracking-wider bg-gold-500/20 text-gold-400 border border-gold-500/30">
+                PRO 3D
               </span>
             </div>
             <p className="text-xs sm:text-sm text-slate-400 leading-relaxed">
@@ -262,13 +261,10 @@ function Home() {
             </p>
           </div>
 
-          {/* Google OAuth Action Button */}
+          {/* Google Sign-in Trigger */}
           <button
             onClick={handleGoogleLogin}
-            className="w-full group flex items-center justify-center gap-3 py-3.5 px-6 rounded-2xl 
-                       bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 
-                       text-black font-bold text-xs tracking-wide shadow-lg shadow-amber-500/20 
-                       active:scale-[0.98] transition-all duration-200"
+            className="w-full group btn-gold flex items-center justify-center gap-3 py-3.5 px-6 rounded-2xl shadow-xl shadow-gold-500/20"
           >
             <svg className="w-4 h-4 shrink-0 transition-transform group-hover:scale-110" viewBox="0 0 24 24">
               <path fill="#000" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -279,12 +275,12 @@ function Home() {
             <span>CONTINUE WITH GOOGLE</span>
           </button>
 
-          {/* Inspirational Quote */}
+          {/* Inspirational Bhagavad Gita quote */}
           <div className="mt-8 pt-6 border-t border-white/[0.08] text-center">
-            <p className="font-['Playfair_Display'] italic text-amber-200/70 text-xs leading-relaxed">
-              “Action is greater than inaction. Perform your duty with clarity and courage.”
+            <p className="font-['Playfair_Display'] italic text-gold-300/75 text-xs leading-relaxed">
+              “Perform your prescribed duty, for action is indeed better than inaction.”
             </p>
-            <span className="text-[10px] text-amber-500/50 uppercase tracking-widest font-bold block mt-1">
+            <span className="text-[10px] text-gold-500/50 uppercase tracking-widest font-bold block mt-1">
               — Bhagavad Gita 3.8
             </span>
           </div>
@@ -293,31 +289,31 @@ function Home() {
     );
   }
 
-  // ── 2. APP COLD-START LOADING SCREEN ──
+  // ── 2. INITIALIZING LOADING SKELETON ──
   if (appLoading && chats.length === 0) {
     return (
-      <div className="fixed inset-0 flex items-center justify-center bg-[#09090b] px-4 text-white">
-        <div className="text-center w-full max-w-sm p-8 rounded-3xl bg-[#121215] border border-white/[0.08] shadow-2xl">
+      <div className="fixed inset-0 flex items-center justify-center bg-dark-base px-4 text-white">
+        <div className="text-center w-full max-w-sm p-8 rounded-3xl depth-level-3">
           
-          <div className="w-14 h-14 rounded-2xl bg-amber-500/10 border border-amber-500/25 flex items-center justify-center mx-auto mb-6 shadow-lg shadow-amber-500/10">
+          <div className="w-14 h-14 rounded-2xl bg-gold-500/15 border border-gold-500/30 flex items-center justify-center mx-auto mb-6 shadow-lg shadow-gold-500/10">
             <img src="/logo-lion.png" alt="Simha Logo" className="w-7 h-7 object-contain logo-mask" />
           </div>
 
           <div className="flex items-center justify-center gap-2 mb-4">
-            <div className="w-2 h-2 rounded-full bg-amber-500 animate-bounce" style={{ animationDelay: "0ms" }} />
-            <div className="w-2 h-2 rounded-full bg-amber-500 animate-bounce" style={{ animationDelay: "150ms" }} />
-            <div className="w-2 h-2 rounded-full bg-amber-500 animate-bounce" style={{ animationDelay: "300ms" }} />
+            <div className="w-2 h-2 rounded-full bg-gold-500 animate-bounce" style={{ animationDelay: "0ms" }} />
+            <div className="w-2 h-2 rounded-full bg-gold-500 animate-bounce" style={{ animationDelay: "150ms" }} />
+            <div className="w-2 h-2 rounded-full bg-gold-500 animate-bounce" style={{ animationDelay: "300ms" }} />
           </div>
 
           <h3 className="text-sm font-bold text-slate-200 mb-1">
-            {appError || "Initializing Simha Workspace..."}
+            {appError || "Initializing Simha 3D OS..."}
           </h3>
           <p className="text-[11px] text-slate-400 max-w-xs mx-auto leading-relaxed">
-            First load may take a moment while inference servers and vector databases initialize.
+            First boot may take a few moments while server clusters and vector indices wake up.
           </p>
 
           <div className="mt-6 h-1 w-full rounded-full bg-white/[0.06] overflow-hidden">
-            <div className="h-full w-1/2 rounded-full bg-gradient-to-r from-amber-500 to-amber-600 animate-pulse" />
+            <div className="h-full w-1/2 rounded-full bg-gradient-to-r from-gold-600 via-gold-500 to-gold-400 animate-pulse" />
           </div>
         </div>
       </div>
@@ -327,8 +323,8 @@ function Home() {
   // ── 3. CONNECTION ERROR SCREEN ──
   if (appError && chats.length === 0) {
     return (
-      <div className="fixed inset-0 flex items-center justify-center bg-[#09090b] px-4 text-white">
-        <div className="text-center max-w-sm w-full p-8 rounded-3xl bg-[#121215] border border-white/[0.08] shadow-2xl">
+      <div className="fixed inset-0 flex items-center justify-center bg-dark-base px-4 text-white">
+        <div className="text-center max-w-sm w-full p-8 rounded-3xl depth-level-3">
           
           <div className="w-14 h-14 rounded-2xl bg-red-500/10 border border-red-500/25 flex items-center justify-center mx-auto mb-5 text-red-500">
             <AlertCircle size={24} />
@@ -342,7 +338,7 @@ function Home() {
           </p>
 
           {retryCountdown > 0 && (
-            <p className="text-amber-500 text-xs font-mono font-semibold mb-4">
+            <p className="text-gold-500 text-xs font-mono font-semibold mb-4">
               Auto-retrying in {retryCountdown}s...
             </p>
           )}
@@ -350,16 +346,16 @@ function Home() {
           <div className="space-y-2">
             <button
               onClick={retryInit}
-              className="btn-primary w-full flex items-center justify-center gap-2"
+              className="btn-gold w-full flex items-center justify-center gap-2"
             >
               <RefreshCw size={14} />
               <span>Retry Connection</span>
             </button>
             <button
               onClick={handleLogout}
-              className="btn-ghost w-full text-xs text-slate-400"
+              className="btn-secondary w-full text-xs"
             >
-              Sign out and try another account
+              Sign out
             </button>
           </div>
         </div>
@@ -367,9 +363,9 @@ function Home() {
     );
   }
 
-  // ── 4. MAIN PRODUCT WORKSPACE ──
+  // ── 4. MAIN 3D WORKSPACE LAYOUT ──
   return (
-    <div className="fixed inset-0 flex overflow-hidden text-sm bg-[#f8fafc] dark:bg-[#09090b] text-slate-900 dark:text-zinc-100">
+    <div className="fixed inset-0 flex overflow-hidden text-sm bg-light-base dark:bg-dark-base text-slate-900 dark:text-zinc-100">
       <ConnectionStatus theme={theme} />
 
       <Sidebar
@@ -423,7 +419,7 @@ function Home() {
           />
         )}
 
-        {/* Ambient YouTube Audio iframe for Krishna AI */}
+        {/* Ambient YouTube Audio for Krishna AI */}
         {selectedAgent === "divine" && isMusicPlaying && (
           <div className="hidden pointer-events-none opacity-0 invisible" aria-hidden="true">
             <iframe

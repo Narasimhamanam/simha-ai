@@ -12,18 +12,47 @@ export default {
         mono: ['JetBrains Mono', 'Fira Code', 'SF Mono', 'Menlo', 'monospace'],
       },
       colors: {
+        dark: {
+          base: '#050505',
+          surface: '#08090B',
+          elevated: '#0D0F12',
+          card: '#121418',
+        },
+        light: {
+          base: '#F7F8FA',
+          surface: '#FFFFFF',
+          elevated: '#F1F3F6',
+          card: '#FFFFFF',
+        },
+        gold: {
+          300: '#FDE68A',
+          400: '#F0C66A',
+          500: '#D6A84F',
+          600: '#B8862B',
+          700: '#92400E',
+        },
+        violet: {
+          400: '#A78BFA',
+          500: '#8B5CF6',
+          600: '#6D4AFF',
+          700: '#5B21B6',
+        },
+        cyan: {
+          400: '#38BDF8',
+          500: '#22D3EE',
+          600: '#0891B2',
+        },
         brand: {
           50: '#fffbeb',
           100: '#fef3c7',
           200: '#fde68a',
           300: '#fcd34d',
-          400: '#fbbf24',
-          500: '#f59e0b',
-          600: '#d97706',
-          700: '#b45309',
-          800: '#92400e',
-          900: '#78350f',
-          950: '#451a03',
+          400: '#F0C66A',
+          500: '#D6A84F',
+          600: '#B8862B',
+          700: '#92400e',
+          800: '#78350f',
+          900: '#451a03',
         },
         divine: {
           50: '#f0f9ff',
@@ -36,7 +65,6 @@ export default {
           700: '#0369a1',
           800: '#075985',
           900: '#0c4a6e',
-          950: '#082f49',
         },
       },
       animation: {
@@ -45,6 +73,7 @@ export default {
         'scale-in': 'scaleIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards',
         'pulse-subtle': 'pulseSubtle 3s infinite ease-in-out',
         'float-gentle': 'floatGentle 6s infinite ease-in-out',
+        'orbit-spin': 'orbitSpin 20s infinite linear',
       },
       keyframes: {
         shimmer: {
@@ -67,8 +96,12 @@ export default {
           '0%, 100%': { transform: 'translateY(0px)' },
           '50%': { transform: 'translateY(-6px)' },
         },
+        orbitSpin: {
+          '0%': { transform: 'rotate(0deg)' },
+          '100%': { transform: 'rotate(360deg)' },
+        },
       },
     },
   },
   plugins: [],
-}
+}

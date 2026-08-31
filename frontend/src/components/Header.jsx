@@ -3,12 +3,12 @@ import ThemeToggle from "./ThemeToggle";
 
 const PAGE_META = {
   chat: null,
-  email: { title: "Email Composer", desc: "Professional AI Email Assistant" },
+  email: { title: "Email Composer", desc: "Autonomous AI Email Assistant" },
   calendar: { title: "AI Scheduler", desc: "Smart Calendar Event Parsing" },
-  url: { title: "URL Reader", desc: "Web Page Analysis & Summaries" },
-  history: { title: "Chat History", desc: "Past Conversations & Insights" },
-  documents: { title: "Knowledge Base", desc: "Document & PDF RAG Store" },
-  settings: { title: "Preferences", desc: "Account Settings & Profile" },
+  url: { title: "URL Reader", desc: "Web Page Analysis & Insights" },
+  history: { title: "Chat History", desc: "Conversation Archive & Analytics" },
+  documents: { title: "Knowledge Base", desc: "Vector RAG Repository" },
+  settings: { title: "Preferences", desc: "Account Settings & LLM Specs" },
 };
 
 function Header({
@@ -43,11 +43,11 @@ function Header({
           <Menu size={18} />
         </button>
 
-        {/* Dynamic Title / Breadcrumb */}
+        {/* Dynamic Context Breadcrumb */}
         <div className="hidden sm:flex items-center gap-2">
           {pageMeta ? (
             <div className="flex items-center gap-2">
-              <span className="text-xs font-semibold text-slate-800 dark:text-zinc-200">
+              <span className="text-xs font-bold text-slate-800 dark:text-zinc-200">
                 {pageMeta.title}
               </span>
               <span className="text-slate-300 dark:text-zinc-700">•</span>
@@ -57,54 +57,54 @@ function Header({
             </div>
           ) : (
             <div className="flex items-center gap-2">
-              <div className={`w-2 h-2 rounded-full ${isDivine ? "bg-sky-500" : "bg-emerald-500"} animate-pulse`} />
-              <span className="text-xs font-semibold text-slate-800 dark:text-zinc-200 max-w-[200px] truncate">
-                {chatTitle || (isDivine ? "Krishna AI" : "Simha AI Workspace")}
+              <div className={`w-2 h-2 rounded-full ${isDivine ? "bg-cyan-500" : "bg-gold-500"} animate-pulse`} />
+              <span className="text-xs font-bold text-slate-800 dark:text-zinc-200 max-w-[220px] truncate">
+                {chatTitle || (isDivine ? "Krishna AI Workspace" : "Simha AI OS")}
               </span>
-              <span className="text-[10px] px-1.5 py-0.2 rounded font-mono text-slate-400 dark:text-zinc-500 bg-slate-100 dark:bg-white/[0.04] border border-slate-200/50 dark:border-white/[0.06]">
-                {isDivine ? "Gita 18.78" : "Groq Qwen-27B"}
+              <span className="text-[10px] px-1.5 py-0.2 rounded font-mono font-semibold text-slate-400 dark:text-zinc-400 bg-slate-100 dark:bg-white/[0.05] border border-slate-200/50 dark:border-white/[0.06]">
+                {isDivine ? "Gita Wisdom" : "Qwen-27B"}
               </span>
             </div>
           )}
         </div>
       </div>
 
-      {/* ── RIGHT: METRICS & CONTROLS ── */}
+      {/* ── RIGHT: CREDITS & CONTROLS ── */}
       <div className="flex items-center gap-2">
-        {/* Credits Balance Indicator */}
+        {/* Credits Balance Pill */}
         <div
-          title={isPro ? "Pro Plan: Unlimited credits" : "Current AI Credits balance"}
-          className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold tracking-tight transition ${
+          title={isPro ? "Pro Plan: Unlimited inference credits" : "Current AI Credits balance"}
+          className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold tracking-tight transition ${
             credits <= 0 && !isPro
               ? "bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20"
               : isPro
-              ? "bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20"
+              ? "bg-gold-500/15 text-gold-600 dark:text-gold-400 border border-gold-500/30"
               : "bg-slate-100 dark:bg-white/[0.06] text-slate-700 dark:text-zinc-300 border border-slate-200/60 dark:border-white/[0.06]"
           }`}
         >
           {isPro ? (
-            <Crown size={12} className="text-amber-500" />
+            <Crown size={12} className="text-gold-500" />
           ) : (
-            <Zap size={12} className={credits > 0 ? "text-amber-500" : "text-red-500"} />
+            <Zap size={12} className={credits > 0 ? "text-gold-500" : "text-red-500"} />
           )}
           <span>{isPro ? "Unlimited" : `${Number(credits || 0).toFixed(1)} cr`}</span>
         </div>
 
-        {/* Ambient Divine Flute Audio Toggle */}
+        {/* Krishna AI Ambient Flute Toggle */}
         {isDivine && (
           <button
             onClick={() => setIsMusicPlaying(!isMusicPlaying)}
-            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium transition ${
+            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold transition ${
               isMusicPlaying
-                ? "bg-sky-500/15 text-sky-600 dark:text-sky-400 border border-sky-500/30 shadow-xs"
+                ? "bg-cyan-500/20 text-cyan-600 dark:text-cyan-400 border border-cyan-500/30 shadow-sm"
                 : "text-slate-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/[0.06]"
             }`}
-            title={isMusicPlaying ? "Pause ambient sound" : "Play ambient flute"}
+            title={isMusicPlaying ? "Pause ambient flute" : "Play ambient flute"}
           >
             {isMusicPlaying ? (
               <>
-                <Volume2 size={13} className="text-sky-500 animate-pulse" />
-                <span className="hidden sm:inline text-[11px]">Ambient On</span>
+                <Volume2 size={13} className="text-cyan-500 animate-pulse" />
+                <span className="hidden sm:inline text-[11px]">Flute On</span>
               </>
             ) : (
               <VolumeX size={13} />
@@ -117,14 +117,14 @@ function Header({
           <button
             onClick={createNewChat}
             className="p-1.5 rounded-lg text-slate-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/[0.06] transition"
-            title="Create new chat (⌘N)"
+            title="Create new workspace (⌘N)"
             aria-label="New chat"
           >
             <SquarePen size={16} />
           </button>
         )}
 
-        {/* Dark / Light Mode Toggle */}
+        {/* Theme Switcher */}
         <ThemeToggle theme={theme} setTheme={setTheme} />
       </div>
     </header>

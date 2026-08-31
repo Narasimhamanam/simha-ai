@@ -1,7 +1,7 @@
 import {
   MessageSquare, History, FileText, Settings, Plus, Trash2,
   Sparkles, X, Mail, Globe, CalendarDays, LogOut, ChevronRight,
-  ShieldCheck, Zap
+  ShieldCheck, Zap, Layers, Compass
 } from "lucide-react";
 import API from "../services/api";
 
@@ -81,7 +81,7 @@ function Sidebar({
           name: profile?.nickname || "",
           email: profile?.email || "",
         },
-        theme: { color: "#f59e0b" },
+        theme: { color: "#D6A84F" },
       };
 
       const rzp = new window.Razorpay(options);
@@ -108,15 +108,15 @@ function Sidebar({
 
   return (
     <>
-      {/* ── MOBILE BACKDROP ── */}
+      {/* ── MOBILE DRAWER BACKDROP ── */}
       <div
-        className={`fixed inset-0 bg-black/60 backdrop-blur-sm z-40 lg:hidden transition-opacity duration-300 ${
+        className={`fixed inset-0 bg-black/70 backdrop-blur-sm z-40 lg:hidden transition-opacity duration-300 ${
           isSidebarOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
         }`}
         onClick={() => setIsSidebarOpen(false)}
       />
 
-      {/* ── SIDEBAR PANEL ── */}
+      {/* ── SIDEBAR ASIDE ── */}
       <aside
         className={`
           fixed top-0 left-0
@@ -126,7 +126,7 @@ function Sidebar({
           z-50
           transition-transform duration-300 ease-out
           ${isSidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
-          bg-white dark:bg-[#0c0c0e]
+          bg-light-surface dark:bg-dark-surface
           border-r border-slate-200/80 dark:border-white/[0.07]
           shadow-xl lg:shadow-none
         `}
@@ -134,13 +134,13 @@ function Sidebar({
         {/* ── BRAND HEADER ── */}
         <div className="flex items-center justify-between px-5 h-16 border-b border-slate-200/80 dark:border-white/[0.07] shrink-0">
           <div className="flex items-center gap-3">
-            <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${
+            <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 shadow-sm ${
               isDivine 
-                ? "bg-sky-500/10 border border-sky-500/20 divine-breathing" 
-                : "bg-amber-500/10 border border-amber-500/20 shadow-sm"
+                ? "bg-cyan-500/15 border border-cyan-500/30" 
+                : "bg-gold-500/15 border border-gold-500/30"
             }`}>
               {isDivine ? (
-                <span className="text-lg">🦚</span>
+                <span className="text-base">🦚</span>
               ) : (
                 <img src="/logo-lion.png" alt="Simha Logo" className="w-5 h-5 object-contain logo-mask" />
               )}
@@ -150,16 +150,16 @@ function Sidebar({
                 <span className="text-sm font-bold tracking-tight text-slate-900 dark:text-white">
                   {isDivine ? "Krishna AI" : "Simha AI"}
                 </span>
-                <span className={`text-[9px] px-1.5 py-0.2 rounded font-semibold uppercase tracking-wider ${
+                <span className={`text-[9px] px-1.5 py-0.2 rounded font-mono font-bold tracking-wider ${
                   isDivine
-                    ? "bg-sky-500/15 text-sky-600 dark:text-sky-400"
-                    : "bg-amber-500/15 text-amber-600 dark:text-amber-400"
+                    ? "bg-cyan-500/20 text-cyan-600 dark:text-cyan-400"
+                    : "bg-gold-500/20 text-gold-600 dark:text-gold-400"
                 }`}>
-                  v2.0
+                  PRO 3D
                 </span>
               </div>
               <span className="text-[10px] text-slate-400 dark:text-zinc-500 font-medium tracking-wide">
-                {isDivine ? "Wisdom & Clarity" : "Autonomous Intelligence"}
+                {isDivine ? "Wisdom & Dharma" : "Autonomous Intelligence"}
               </span>
             </div>
           </div>
@@ -173,32 +173,30 @@ function Sidebar({
           </button>
         </div>
 
-        {/* ── ACTION: NEW CHAT ── */}
+        {/* ── NEW CHAT TRIGGER ── */}
         <div className="p-3.5 pb-2">
           <button
             onClick={() => { createNewChat(); if (window.innerWidth < 1024) setIsSidebarOpen(false); }}
-            className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold
-                       bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500
-                       text-black shadow-sm shadow-amber-500/20 active:scale-[0.98] transition-all duration-150"
+            className="w-full btn-gold flex items-center justify-between shadow-gold-500/20"
           >
             <span className="flex items-center gap-2">
               <Plus size={15} strokeWidth={2.5} />
               New Workspace
             </span>
-            <kbd className="hidden sm:inline-block px-1.5 py-0.5 text-[10px] font-mono rounded bg-black/15 text-black/80">
+            <kbd className="hidden sm:inline-block px-1.5 py-0.5 text-[10px] font-mono rounded bg-black/15 text-black/90">
               ⌘N
             </kbd>
           </button>
         </div>
 
-        {/* ── SCROLLABLE NAVIGATION & RECENT CHATS ── */}
+        {/* ── NAVIGATION & RECENT CHATS ── */}
         <div className="flex-1 overflow-y-auto no-scrollbar px-3 space-y-5 py-2">
           
-          {/* NAVIGATION ITEMS */}
+          {/* NAVIGATION */}
           <div>
             <div className="px-3 mb-1.5">
               <span className="text-[10px] uppercase font-bold tracking-widest text-slate-400 dark:text-zinc-500">
-                Workspace
+                Workspace Tools
               </span>
             </div>
             <nav className="space-y-0.5">
@@ -210,20 +208,20 @@ function Sidebar({
                     onClick={() => handleNavSelect(id)}
                     className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition-all duration-150 ${
                       isActive
-                        ? "bg-slate-100 dark:bg-white/[0.08] text-slate-900 dark:text-white font-semibold shadow-xs"
+                        ? "bg-slate-100 dark:bg-white/[0.08] text-slate-900 dark:text-white font-bold shadow-sm border border-slate-200/80 dark:border-white/[0.08]"
                         : "text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-zinc-200 hover:bg-slate-100/60 dark:hover:bg-white/[0.04]"
                     }`}
                   >
                     <div className="flex items-center gap-2.5 min-w-0">
                       <Icon
                         size={15}
-                        className={isActive ? (isDivine ? "text-sky-500" : "text-amber-500") : "text-slate-400 dark:text-zinc-500"}
-                        strokeWidth={isActive ? 2.2 : 1.8}
+                        className={isActive ? (isDivine ? "text-cyan-500" : "text-gold-500") : "text-slate-400 dark:text-zinc-500"}
+                        strokeWidth={isActive ? 2.4 : 1.8}
                       />
                       <span className="truncate">{label}</span>
                     </div>
                     {isActive && (
-                      <div className={`w-1.5 h-1.5 rounded-full ${isDivine ? "bg-sky-500" : "bg-amber-500"}`} />
+                      <div className={`w-1.5 h-1.5 rounded-full ${isDivine ? "bg-cyan-500" : "bg-gold-500"}`} />
                     )}
                   </button>
                 );
@@ -256,14 +254,14 @@ function Sidebar({
                       onClick={() => handleChatSelect(chat.id)}
                       className={`group flex items-center justify-between px-3 py-2 rounded-xl text-xs cursor-pointer transition-all duration-150 ${
                         isActive
-                          ? "bg-slate-100 dark:bg-white/[0.08] text-slate-900 dark:text-white font-medium"
+                          ? "bg-slate-100 dark:bg-white/[0.08] text-slate-900 dark:text-white font-medium border border-slate-200/80 dark:border-white/[0.08]"
                           : "text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-zinc-200 hover:bg-slate-100/60 dark:hover:bg-white/[0.04]"
                       }`}
                     >
                       <div className="flex items-center gap-2.5 min-w-0 pr-1">
                         <MessageSquare
                           size={13}
-                          className={`shrink-0 ${isActive ? (isDivine ? "text-sky-500" : "text-amber-500") : "opacity-40"}`}
+                          className={`shrink-0 ${isActive ? (isDivine ? "text-cyan-500" : "text-gold-500") : "opacity-40"}`}
                         />
                         <span className="truncate">{chat.title || "Untitled Conversation"}</span>
                       </div>
@@ -286,23 +284,23 @@ function Sidebar({
           </div>
         </div>
 
-        {/* ── FOOTER: USER PROFILE & UPGRADE ── */}
-        <div className="p-3 border-t border-slate-200/80 dark:border-white/[0.07] shrink-0 bg-slate-50/50 dark:bg-black/20">
+        {/* ── PROFILE & UPGRADE FOOTER ── */}
+        <div className="p-3 border-t border-slate-200/80 dark:border-white/[0.07] shrink-0 bg-slate-50/50 dark:bg-black/30">
           {!isPro && (
             <button
               onClick={handleUpgrade}
-              className="w-full mb-3 flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold
-                         bg-amber-500/10 hover:bg-amber-500/15 border border-amber-500/20 text-amber-700 dark:text-amber-400 transition"
+              className="w-full mb-3 flex items-center justify-between px-3 py-2 rounded-xl text-xs font-bold
+                         bg-gold-500/10 hover:bg-gold-500/15 border border-gold-500/25 text-gold-700 dark:text-gold-400 transition"
             >
               <span className="flex items-center gap-1.5">
-                <Zap size={14} className="text-amber-500" />
+                <Zap size={14} className="text-gold-500" />
                 Upgrade to Pro
               </span>
               <ChevronRight size={14} />
             </button>
           )}
 
-          <div className="flex items-center justify-between p-2 rounded-xl bg-white dark:bg-[#141417] border border-slate-200/80 dark:border-white/[0.06] shadow-xs">
+          <div className="flex items-center justify-between p-2 rounded-xl depth-level-1">
             <div className="flex items-center gap-2.5 min-w-0">
               {profile?.avatar ? (
                 <img
@@ -320,11 +318,11 @@ function Sidebar({
 
               <div className="flex flex-col min-w-0">
                 <div className="flex items-center gap-1.5">
-                  <span className="text-xs font-semibold truncate text-slate-800 dark:text-zinc-200">
+                  <span className="text-xs font-bold truncate text-slate-800 dark:text-zinc-200">
                     {profile?.nickname?.split(" ")[0] || "User"}
                   </span>
                   {isPro && (
-                    <span className="text-[9px] px-1 py-0.2 rounded font-bold bg-amber-500/20 text-amber-600 dark:text-amber-400">
+                    <span className="text-[9px] px-1 py-0.2 rounded font-bold bg-gold-500/20 text-gold-600 dark:text-gold-400">
                       PRO
                     </span>
                   )}
