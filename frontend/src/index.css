@@ -1,15 +1,24 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Playfair+Display:italic,wght@400;700&family=Outfit:wght@300;400;600;700;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,600;1,400&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  --gold-primary: #f59e0b;
-  --gold-secondary: #d97706;
-  --gold-glow: rgba(245, 158, 11, 0.5);
-  --obsidian: #080502;
-  --ivory: #fffbeb;
+  --font-sans: 'Outfit', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+  
+  /* Simha Brand Accents */
+  --brand-primary: #f59e0b;
+  --brand-hover: #d97706;
+  --brand-subtle: rgba(245, 158, 11, 0.12);
+  --brand-border: rgba(245, 158, 11, 0.25);
+  
+  /* Divine (Krishna) Accents */
+  --divine-primary: #0ea5e9;
+  --divine-hover: #0284c7;
+  --divine-subtle: rgba(14, 165, 233, 0.12);
+  --divine-border: rgba(14, 165, 233, 0.25);
 }
 
 @layer base {
@@ -17,251 +26,211 @@
     height: 100%;
     margin: 0;
     padding: 0;
-    overflow-x: hidden;
-    @apply font-sans antialiased;
+    overflow: hidden;
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
   /* Custom Selection */
   ::selection {
-    @apply bg-amber-500/30 text-amber-200;
+    background-color: rgba(245, 158, 11, 0.25);
+    color: #fbbf24;
   }
 
-  /* Scrollbar - Premium Gold */
+  /* Refined Scrollbar */
   ::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
+    width: 5px;
+    height: 5px;
   }
   ::-webkit-scrollbar-track {
-    @apply bg-transparent;
+    background: transparent;
   }
   ::-webkit-scrollbar-thumb {
-    @apply bg-amber-500/20 rounded-full hover:bg-amber-500/40 transition-colors;
+    background: rgba(148, 163, 184, 0.2);
+    border-radius: 9999px;
+    transition: background-color 0.2s ease;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(148, 163, 184, 0.4);
+  }
+
+  .dark ::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.12);
+  }
+  .dark ::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.25);
   }
 
   body {
-    @apply bg-slate-50 text-slate-900 transition-colors duration-300;
+    background-color: #f8fafc;
+    color: #0f172a;
+    transition: background-color 0.25s ease, color 0.25s ease;
     -webkit-tap-highlight-color: transparent;
     overscroll-behavior: none;
-    position: fixed;
-    width: 100%;
   }
 
   .dark body {
-    @apply bg-[#030303] text-slate-100;
+    background-color: #09090b;
+    color: #f4f4f5;
   }
 }
 
 @layer components {
-  .premium-card {
-    @apply bg-white dark:bg-[#0a0a0a] border border-slate-200 dark:border-white/5 shadow-xl shadow-slate-200/50 dark:shadow-none transition-all duration-300;
+  /* Surface styles */
+  .surface-card {
+    @apply bg-white dark:bg-[#121215] border border-slate-200/80 dark:border-white/[0.07] shadow-sm transition-all duration-200;
   }
 
-  .glass-effect {
-    @apply bg-white/80 dark:bg-black/40 backdrop-blur-xl border border-white/20 dark:border-white/10;
+  .surface-elevated {
+    @apply bg-white dark:bg-[#18181b] border border-slate-200 dark:border-white/[0.09] shadow-md dark:shadow-2xl dark:shadow-black/60 transition-all duration-200;
   }
 
-  .neon-border {
-    @apply relative overflow-hidden;
+  .glass-panel {
+    @apply bg-white/80 dark:bg-[#0c0c0e]/85 backdrop-blur-xl border border-slate-200/70 dark:border-white/[0.08];
   }
 
-  .neon-border::after {
-    content: '';
-    @apply absolute inset-0 border border-purple-500/20 dark:border-purple-500/40 rounded-[inherit] pointer-events-none;
-    box-shadow: inset 0 0 20px rgba(168, 85, 247, 0.05);
+  .glass-header {
+    @apply bg-white/80 dark:bg-[#09090b]/80 backdrop-blur-2xl border-b border-slate-200/80 dark:border-white/[0.07];
+  }
+
+  /* Buttons */
+  .btn-primary {
+    @apply inline-flex items-center justify-center font-semibold text-xs tracking-wide rounded-xl px-4 py-2.5 
+           bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 
+           text-black shadow-md shadow-amber-500/20 active:scale-[0.98] transition-all duration-200;
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center justify-center font-medium text-xs rounded-xl px-3.5 py-2 
+           bg-slate-100 dark:bg-white/[0.06] hover:bg-slate-200 dark:hover:bg-white/[0.1] 
+           text-slate-700 dark:text-slate-200 border border-slate-200/60 dark:border-white/[0.06] 
+           active:scale-[0.98] transition-all duration-200;
+  }
+
+  .btn-ghost {
+    @apply inline-flex items-center justify-center rounded-xl p-2 
+           text-slate-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white 
+           hover:bg-slate-100 dark:hover:bg-white/[0.06] transition-all duration-150;
+  }
+
+  /* Badge Tokens */
+  .badge-brand {
+    @apply inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold
+           bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20;
+  }
+
+  .badge-divine {
+    @apply inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold
+           bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-sky-500/20;
   }
 }
 
-/* Animations */
-@keyframes shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
+/* ── Typography & Gradients ── */
+.text-brand-gradient {
+  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 50%, #d97706 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
-@keyframes gold-float {
-  0%, 100% { transform: translateY(0) scale(1); }
-  50% { transform: translateY(-20px) scale(1.05); opacity: 0.8; }
+.text-divine-gradient {
+  background: linear-gradient(135deg, #38bdf8 0%, #0ea5e9 50%, #0284c7 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
-@keyframes glow-pulse {
-  0%, 100% { opacity: 0.4; }
-  50% { opacity: 0.8; }
-}
-
-@keyframes border-rotate {
-  0% { border-image-source: conic-gradient(from 0deg, transparent, var(--gold-primary), transparent); }
-  100% { border-image-source: conic-gradient(from 360deg, transparent, var(--gold-primary), transparent); }
-}
-
-.animate-shimmer {
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
-  background-size: 200% 100%;
-  animation: shimmer 3s infinite;
-}
-
-.text-gold-gradient {
-  @apply bg-clip-text text-transparent bg-gradient-to-br from-amber-200 via-amber-500 to-amber-700;
-  filter: drop-shadow(0 0 8px rgba(245, 158, 11, 0.3));
-}
-
+/* ── Logo Masking ── */
 .logo-mask {
-  /* This trick works perfectly with a Gold-on-White logo to make it Gold-on-Transparent in Dark mode */
-  filter: invert(1) hue-rotate(180deg) brightness(1.2) contrast(1.2);
+  filter: invert(1) hue-rotate(180deg) brightness(1.2) contrast(1.1);
   mix-blend-mode: screen;
 }
 
 [data-theme='light'] .logo-mask, .light .logo-mask {
-  /* In light mode, we use the original Gold-on-White and multiply it to make white transparent */
   filter: none;
   mix-blend-mode: multiply;
 }
 
-.glass-luxury {
-  @apply bg-black/40 backdrop-blur-2xl border border-amber-500/10 shadow-[0_0_50px_-12px_rgba(245,158,11,0.2)];
-  position: relative;
-  overflow: hidden;
+/* ── Markdown Content Styling ── */
+.markdown-content {
+  color: inherit;
+  line-height: 1.75;
 }
 
-.btn-gold-primary {
-  @apply bg-gradient-to-r from-amber-600 to-amber-500 text-black font-black shadow-xl shadow-amber-900/20 hover:from-amber-500 hover:to-amber-400 active:scale-95 transition-all duration-300;
+.markdown-content h1 {
+  @apply text-xl md:text-2xl font-bold tracking-tight mt-6 mb-3 text-slate-900 dark:text-zinc-100;
+}
+.markdown-content h2 {
+  @apply text-lg md:text-xl font-semibold tracking-tight mt-5 mb-2.5 text-slate-800 dark:text-zinc-200;
+}
+.markdown-content h3 {
+  @apply text-base font-semibold tracking-tight mt-4 mb-2 text-slate-800 dark:text-zinc-200;
+}
+.markdown-content p {
+  @apply text-[15px] leading-relaxed mb-3.5 text-slate-700 dark:text-zinc-300;
+}
+.markdown-content strong {
+  @apply font-semibold text-slate-900 dark:text-zinc-100;
+}
+.markdown-content ul {
+  @apply list-disc pl-5 mb-3.5 space-y-1.5 text-slate-700 dark:text-zinc-300 text-[15px];
+}
+.markdown-content ol {
+  @apply list-decimal pl-5 mb-3.5 space-y-1.5 text-slate-700 dark:text-zinc-300 text-[15px];
+}
+.markdown-content li {
+  @apply leading-relaxed;
+}
+.markdown-content blockquote {
+  @apply border-l-2 border-amber-500/60 dark:border-amber-500/40 pl-4 py-0.5 italic my-3.5 text-slate-600 dark:text-zinc-400 bg-amber-500/[0.03] dark:bg-amber-500/[0.04] rounded-r-lg;
+}
+.markdown-content a {
+  @apply text-amber-600 dark:text-amber-400 underline underline-offset-4 decoration-amber-500/40 hover:decoration-amber-500 transition-colors;
 }
 
-.card-luxury-dark {
-  @apply bg-[#0c0906] border border-amber-500/10 shadow-xl shadow-black/40 rounded-3xl;
+/* ── Code Blocks & Inline Code ── */
+.markdown-content code:not(pre code) {
+  @apply px-1.5 py-0.5 rounded-md text-[13px] font-mono bg-slate-100 dark:bg-white/[0.08] text-amber-700 dark:text-amber-300 border border-slate-200/60 dark:border-white/[0.08];
 }
 
-.card-luxury-light {
-  @apply bg-white border border-amber-100 shadow-xl shadow-amber-900/5 rounded-3xl;
+/* ── Tables ── */
+.markdown-table-wrapper {
+  @apply overflow-x-auto my-4 rounded-xl border border-slate-200 dark:border-white/[0.08] shadow-sm;
+}
+.markdown-content table {
+  @apply w-full text-left text-sm border-collapse;
+}
+.markdown-content thead {
+  @apply bg-slate-100/70 dark:bg-white/[0.04] border-b border-slate-200 dark:border-white/[0.08];
+}
+.markdown-content th {
+  @apply px-4 py-2.5 text-xs font-semibold text-slate-600 dark:text-zinc-300 uppercase tracking-wider;
+}
+.markdown-content td {
+  @apply px-4 py-2.5 text-[13px] border-b border-slate-100 dark:border-white/[0.04] text-slate-700 dark:text-zinc-300;
+}
+.markdown-content tr:last-child td {
+  @apply border-b-0;
 }
 
-.glass-luxury::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, transparent 50%, rgba(0,0,0,0.1) 100%);
-  pointer-events: none;
+/* ── Divine Mode Breathing Animation ── */
+@keyframes divine-pulse {
+  0%, 100% { transform: scale(1); filter: drop-shadow(0 0 8px rgba(14, 165, 233, 0.35)); }
+  50% { transform: scale(1.05); filter: drop-shadow(0 0 16px rgba(14, 165, 233, 0.7)); }
 }
 
-.btn-gold-shine {
-  @apply relative overflow-hidden transition-all duration-500;
-}
-
-.btn-gold-shine::after {
-  content: "";
-  position: absolute;
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
-  background: linear-gradient(45deg, transparent, rgba(255,255,255,0.2), transparent);
-  transform: rotate(45deg);
-  transition: 0.5s;
-  left: -150%;
-}
-
-.btn-gold-shine:hover::after {
-  left: 150%;
-}
-
-.particles-bg {
-  background-image: radial-gradient(circle, rgba(245, 158, 11, 0.1) 1px, transparent 1px);
-  background-size: 30px 30px;
-}
-
-/* ── DIVINE MODE (Krishna Inspired) ── */
-.divine-mode-active {
-  --divine-blue: #0ea5e9;
-  --divine-gold: #f59e0b;
-}
-
-.text-divine-gradient {
-  @apply bg-clip-text text-transparent bg-gradient-to-br from-sky-400 via-blue-500 to-amber-400;
-  filter: drop-shadow(0 0 12px rgba(14, 165, 233, 0.4));
-}
-
-.bg-divine-gradient {
-  @apply bg-gradient-to-br from-sky-600/90 via-blue-700/90 to-amber-500/90;
-}
-
-.divine-glow {
-  box-shadow: 0 0 30px -5px rgba(14, 165, 233, 0.3), 0 0 15px -3px rgba(245, 158, 11, 0.2);
-}
-
-.divine-aura {
-  @apply relative;
-}
-
-.divine-aura::before {
-  content: "";
-  @apply absolute -inset-4 bg-sky-500/10 blur-3xl rounded-full opacity-0 transition-opacity duration-1000;
-}
-
-.divine-mode-active .divine-aura::before {
-  @apply opacity-100 animate-pulse;
-}
-
-@keyframes divine-shimmer {
-  0% { transform: translateY(0) scale(1); opacity: 0.3; }
-  50% { transform: translateY(-10px) scale(1.1); opacity: 0.6; }
-  100% { transform: translateY(0) scale(1); opacity: 0.3; }
-}
-
-.animate-divine-float {
-  animation: divine-shimmer 4s infinite ease-in-out;
-}
-
-/* ── DIVINE UI ENHANCEMENTS ── */
 .divine-breathing {
-  animation: divine-breath 3s infinite ease-in-out;
+  animation: divine-pulse 3s infinite ease-in-out;
 }
 
-@keyframes divine-breath {
-  0%, 100% { transform: scale(1); filter: drop-shadow(0 0 10px rgba(14, 165, 233, 0.4)); }
-  50% { transform: scale(1.1); filter: drop-shadow(0 0 25px rgba(14, 165, 233, 0.8)); }
-}
-
-.divine-cursor {
-  display: inline-block;
-  width: 8px;
-  height: 18px;
-  background: var(--divine-blue);
-  margin-left: 4px;
-  border-radius: 2px;
-  box-shadow: 0 0 10px var(--divine-blue);
-  animation: divine-cursor-blink 1s infinite;
-}
-
-@keyframes divine-cursor-blink {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0; }
-}
-
-.divine-bubble {
-  @apply rounded-[40px] px-8 py-6;
-}
-
-/* Safe area for iPhone notch / home bar */
+/* Safe area for mobile iOS home indicator */
 .pb-safe {
-  padding-bottom: max(12px, env(safe-area-inset-bottom));
+  padding-bottom: max(16px, env(safe-area-inset-bottom));
 }
 
-.scroll-smooth {
-  scroll-behavior: smooth;
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
 }
-
-::-webkit-scrollbar {
-  width: 5px;
-}
-
-::-webkit-scrollbar-track {
-  @apply bg-transparent;
-}
-
-::-webkit-scrollbar-thumb {
-  @apply bg-slate-200 dark:bg-white/10 rounded-full hover:bg-slate-300 dark:hover:bg-white/20 transition-colors;
-}
-
-@keyframes loading-bar {
-  0%   { transform: translateX(-100%); }
-  50%  { transform: translateX(150%); }
-  100% { transform: translateX(-100%); }
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }

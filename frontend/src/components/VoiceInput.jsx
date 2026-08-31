@@ -20,48 +20,53 @@ export default function VoiceInput({ onTranscript, theme, disabled }) {
   const startListening = () => {
     if (!isSupported || disabled) return;
 
-    const recognition = new SpeechRecognition();
-    recognitionRef.current = recognition;
+    try {
+      const recognition = new SpeechRecognition();
+      recognitionRef.current = recognition;
 
-    recognition.lang = "en-US";
-    recognition.interimResults = true;
-    recognition.continuous = false;
-    recognition.maxAlternatives = 1;
+      recognition.lang = "en-US";
+      recognition.interimResults = true;
+      recognition.continuous = false;
+      recognition.maxAlternatives = 1;
 
-    recognition.onstart = () => setListening(true);
-    recognition.onend = () => {
-      setListening(false);
-      setInterim("");
-    };
-
-    recognition.onresult = (event) => {
-      let finalText = "";
-      let interimText = "";
-
-      for (let i = event.resultIndex; i < event.results.length; i++) {
-        const result = event.results[i];
-        if (result.isFinal) {
-          finalText += result[0].transcript;
-        } else {
-          interimText += result[0].transcript;
-        }
-      }
-
-      setInterim(interimText);
-
-      if (finalText) {
-        onTranscript(finalText.trim());
+      recognition.onstart = () => setListening(true);
+      recognition.onend = () => {
+        setListening(false);
         setInterim("");
-      }
-    };
+      };
 
-    recognition.onerror = (event) => {
-      console.error("Speech recognition error:", event.error);
+      recognition.onresult = (event) => {
+        let finalText = "";
+        let interimText = "";
+
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          const result = event.results[i];
+          if (result.isFinal) {
+            finalText += result[0].transcript;
+          } else {
+            interimText += result[0].transcript;
+          }
+        }
+
+        setInterim(interimText);
+
+        if (finalText) {
+          onTranscript(finalText.trim());
+          setInterim("");
+        }
+      };
+
+      recognition.onerror = (event) => {
+        console.error("Speech recognition error:", event.error);
+        setListening(false);
+        setInterim("");
+      };
+
+      recognition.start();
+    } catch (e) {
+      console.error("Speech start error:", e);
       setListening(false);
-      setInterim("");
-    };
-
-    recognition.start();
+    }
   };
 
   const stopListening = () => {
@@ -81,24 +86,23 @@ export default function VoiceInput({ onTranscript, theme, disabled }) {
         onTouchStart={(e) => { e.preventDefault(); startListening(); }}
         onTouchEnd={(e) => { e.preventDefault(); stopListening(); }}
         disabled={disabled}
-        title="Hold to speak"
-        className={`p-2 rounded-xl transition-all touch-manipulation ${
+        title={listening ? "Listening... (Release to stop)" : "Hold to speak"}
+        className={`p-1.5 rounded-lg transition duration-150 ${
           listening
-            ? "bg-red-500 text-white scale-110 shadow-lg shadow-red-500/30 animate-pulse"
-            : dark
-            ? "text-gray-500 hover:text-amber-400 hover:bg-amber-500/10"
-            : "text-gray-400 hover:text-amber-600 hover:bg-amber-50"
+            ? "bg-red-500 text-white shadow-md shadow-red-500/30 scale-105 animate-pulse"
+            : "text-slate-400 dark:text-zinc-500 hover:text-slate-700 dark:hover:text-zinc-200 hover:bg-slate-100 dark:hover:bg-white/[0.06]"
         }`}
       >
         {listening ? <MicOff size={16} /> : <Mic size={16} />}
       </button>
 
-      {/* Interim transcript tooltip */}
+      {/* Interim live speech tooltip */}
       {interim && (
-        <div className={`absolute bottom-12 left-1/2 -translate-x-1/2 whitespace-nowrap px-3 py-1.5 rounded-lg text-xs shadow-lg border ${
-          dark ? "bg-[#1a1a1a] border-gray-700 text-gray-300" : "bg-white border-gray-200 text-gray-700"
-        }`}>
-          <span className="italic text-amber-500">{interim}</span>
+        <div className="absolute bottom-11 left-1/2 -translate-x-1/2 whitespace-nowrap px-3 py-1.5 rounded-xl text-xs font-medium shadow-xl border bg-white dark:bg-[#18181b] border-slate-200 dark:border-white/[0.1] text-slate-800 dark:text-zinc-200 animate-fade-in z-50">
+          <div className="flex items-center gap-1.5">
+            <span className="w-2 h-2 rounded-full bg-red-500 animate-ping" />
+            <span className="italic">{interim}</span>
+          </div>
         </div>
       )}
     </div>

@@ -1,16 +1,17 @@
 import {
   MessageSquare, History, FileText, Settings, Plus, Trash2,
-  Sparkles, X, Mail, Globe, CalendarDays, LogOut
+  Sparkles, X, Mail, Globe, CalendarDays, LogOut, ChevronRight,
+  ShieldCheck, Zap
 } from "lucide-react";
 import API from "../services/api";
 
 const NAV_ITEMS = [
-  { id: "chat",      icon: MessageSquare, label: "AI Chats" },
+  { id: "chat",      icon: MessageSquare, label: "AI Workspace" },
   { id: "email",     icon: Mail,          label: "Email Composer" },
   { id: "calendar",  icon: CalendarDays,  label: "AI Scheduler" },
-  { id: "url",       icon: Globe,         label: "URL Summarizer" },
-  { id: "history",   icon: History,       label: "History" },
+  { id: "url",       icon: Globe,         label: "URL Reader" },
   { id: "documents", icon: FileText,       label: "Documents" },
+  { id: "history",   icon: History,       label: "Chat History" },
   { id: "settings",  icon: Settings,      label: "Settings" },
 ];
 
@@ -29,7 +30,9 @@ function Sidebar({
       const updated = chats.filter((c) => c.id !== chatId);
       setChats(updated);
       if (updated.length > 0) setActiveChatId(updated[0].id);
-    } catch (error) { console.log(error); }
+    } catch (error) { 
+      console.error("Failed to delete chat:", error); 
+    }
   };
 
   const loadRazorpayScript = () => {
@@ -95,222 +98,253 @@ function Sidebar({
   const handleChatSelect = (chatId) => {
     setActiveChatId(chatId);
     setCurrentPage("chat");
-    setIsSidebarOpen(false);
+    if (window.innerWidth < 1024) setIsSidebarOpen(false);
   };
 
   const handleNavSelect = (pageId) => {
     setCurrentPage(pageId);
-    setIsSidebarOpen(false);
+    if (window.innerWidth < 1024) setIsSidebarOpen(false);
   };
 
   return (
     <>
       {/* ── MOBILE BACKDROP ── */}
       <div
-        className={`fixed inset-0 bg-black/80 backdrop-blur-md z-40 md:hidden transition-opacity duration-500 ${
+        className={`fixed inset-0 bg-black/60 backdrop-blur-sm z-40 lg:hidden transition-opacity duration-300 ${
           isSidebarOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
         }`}
         onClick={() => setIsSidebarOpen(false)}
       />
 
       {/* ── SIDEBAR PANEL ── */}
-      <div
+      <aside
         className={`
           fixed top-0 left-0
-          h-full h-[100dvh]
-          w-[280px] md:w-[260px]
+          h-screen h-[100dvh]
+          w-[270px]
           flex flex-col shrink-0
           z-50
-          transition-all duration-500 ease-in-out
-          ${isSidebarOpen ? "translate-x-0 opacity-100" : "-translate-x-full opacity-0 pointer-events-none"}
-          ${dark 
-            ? isDivine ? "bg-[#06090c] border-r border-sky-500/10" : "bg-[#080502] border-r border-amber-500/10" 
-            : isDivine ? "bg-[#f0f9ff] border-r border-sky-200" : "bg-[#fffbeb] border-r border-amber-200"}
-          shadow-2xl
+          transition-transform duration-300 ease-out
+          ${isSidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
+          bg-white dark:bg-[#0c0c0e]
+          border-r border-slate-200/80 dark:border-white/[0.07]
+          shadow-xl lg:shadow-none
         `}
       >
-        <div className="flex items-center justify-between px-5 pt-7 pb-5">
+        {/* ── BRAND HEADER ── */}
+        <div className="flex items-center justify-between px-5 h-16 border-b border-slate-200/80 dark:border-white/[0.07] shrink-0">
           <div className="flex items-center gap-3">
-            <div className={`w-9 h-9 flex-shrink-0 ${isDivine ? "divine-breathing" : ""}`}>
+            <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${
+              isDivine 
+                ? "bg-sky-500/10 border border-sky-500/20 divine-breathing" 
+                : "bg-amber-500/10 border border-amber-500/20 shadow-sm"
+            }`}>
               {isDivine ? (
-                <div className="w-full h-full flex items-center justify-center text-2xl">🦚</div>
+                <span className="text-lg">🦚</span>
               ) : (
-                <img src="/logo-lion.png" alt="Logo" className="w-full h-full object-contain logo-mask filter drop-shadow-[0_0_8px_rgba(245,158,11,0.4)]" />
+                <img src="/logo-lion.png" alt="Simha Logo" className="w-5 h-5 object-contain logo-mask" />
               )}
             </div>
-            <div>
-              <p className={`text-base font-black leading-none tracking-tight ${dark ? "text-white" : isDivine ? "text-sky-950" : "text-amber-950"}`}>
-                {isDivine ? "Krishna AI" : "Simha AI"}
-              </p>
-              <p className={`text-[9px] uppercase tracking-[0.2em] font-black mt-1 ${isDivine ? "text-sky-500/60" : "text-amber-500/60"}`}>
-                {isDivine ? "Wisdom & Peace" : "Dharma & AI"}
-              </p>
+            <div className="flex flex-col">
+              <div className="flex items-center gap-1.5">
+                <span className="text-sm font-bold tracking-tight text-slate-900 dark:text-white">
+                  {isDivine ? "Krishna AI" : "Simha AI"}
+                </span>
+                <span className={`text-[9px] px-1.5 py-0.2 rounded font-semibold uppercase tracking-wider ${
+                  isDivine
+                    ? "bg-sky-500/15 text-sky-600 dark:text-sky-400"
+                    : "bg-amber-500/15 text-amber-600 dark:text-amber-400"
+                }`}>
+                  v2.0
+                </span>
+              </div>
+              <span className="text-[10px] text-slate-400 dark:text-zinc-500 font-medium tracking-wide">
+                {isDivine ? "Wisdom & Clarity" : "Autonomous Intelligence"}
+              </span>
             </div>
           </div>
+
           <button
             onClick={() => setIsSidebarOpen(false)}
-            className={`md:hidden p-2 rounded-xl transition-all ${
-              dark 
-                ? isDivine ? "text-sky-500/40 hover:text-sky-500 hover:bg-white/5" : "text-amber-500/40 hover:text-amber-500 hover:bg-white/5" 
-                : isDivine ? "text-sky-900/40 hover:text-sky-900 hover:bg-sky-100" : "text-amber-900/40 hover:text-amber-900 hover:bg-amber-100"
-            }`}
+            className="lg:hidden p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:text-zinc-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/[0.06] transition"
+            aria-label="Close sidebar"
           >
-            <X size={18} />
+            <X size={16} />
           </button>
         </div>
 
-        {/* ── SCROLLABLE CONTENT ── */}
-        <div className="flex-1 overflow-y-auto no-scrollbar px-3 space-y-6">
+        {/* ── ACTION: NEW CHAT ── */}
+        <div className="p-3.5 pb-2">
+          <button
+            onClick={() => { createNewChat(); if (window.innerWidth < 1024) setIsSidebarOpen(false); }}
+            className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold
+                       bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500
+                       text-black shadow-sm shadow-amber-500/20 active:scale-[0.98] transition-all duration-150"
+          >
+            <span className="flex items-center gap-2">
+              <Plus size={15} strokeWidth={2.5} />
+              New Workspace
+            </span>
+            <kbd className="hidden sm:inline-block px-1.5 py-0.5 text-[10px] font-mono rounded bg-black/15 text-black/80">
+              ⌘N
+            </kbd>
+          </button>
+        </div>
+
+        {/* ── SCROLLABLE NAVIGATION & RECENT CHATS ── */}
+        <div className="flex-1 overflow-y-auto no-scrollbar px-3 space-y-5 py-2">
           
-          {/* NEW CHAT */}
+          {/* NAVIGATION ITEMS */}
           <div>
-            <button
-              onClick={() => { createNewChat(); setIsSidebarOpen(false); }}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-[12px] font-black tracking-wide transition-all duration-300 border ${
-                dark
-                  ? isDivine 
-                    ? "bg-sky-500/5 border-sky-500/20 text-sky-500 hover:bg-sky-500/10 shadow-lg shadow-sky-500/5"
-                    : "bg-amber-500/5 border-amber-500/20 text-amber-500 hover:bg-amber-500/10 shadow-lg shadow-amber-500/5"
-                  : isDivine
-                    ? "bg-white border-sky-200 text-sky-700 hover:border-sky-400 shadow-sm"
-                    : "bg-white border-amber-200 text-amber-700 hover:border-amber-400 shadow-sm"
-              }`}
-            >
-              <Plus size={16} strokeWidth={3} />
-              NEW WORKSPACE
-            </button>
-          </div>
-
-          {/* ELITE TOOLS */}
-          <div>
-            <p className={`text-[10px] uppercase tracking-[0.3em] font-black px-3 mb-3 ${
-              dark 
-                ? isDivine ? "text-sky-400 font-extrabold" : "text-amber-400 font-extrabold" 
-                : isDivine ? "text-sky-700 font-black" : "text-amber-800 font-black"
-            }`}>
-              Elite Tools
-            </p>
-            <div className="space-y-0.5">
-              {NAV_ITEMS.filter(i => i.id !== "chat").map(({ id, icon: Icon, label }) => (
-                <button
-                  key={id}
-                  onClick={() => handleNavSelect(id)}
-                  className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-[12px] font-bold tracking-tight transition-all duration-300 ${
-                    currentPage === id
-                      ? dark
-                        ? isDivine ? "bg-sky-500/10 text-sky-500 shadow-lg border border-sky-500/20" : "bg-amber-500/10 text-amber-500 shadow-lg border border-amber-500/20"
-                        : isDivine ? "bg-white text-sky-900 shadow-md border border-sky-200" : "bg-white text-amber-900 shadow-md border border-amber-200"
-                      : dark
-                      ? isDivine ? "text-sky-200/75 hover:text-sky-100 hover:bg-white/5" : "text-amber-200/75 hover:text-amber-100 hover:bg-white/5"
-                      : isDivine ? "text-sky-950/75 hover:text-sky-900 hover:bg-sky-100/50" : "text-amber-950/75 hover:text-amber-900 hover:bg-amber-100/50"
-                  }`}
-                >
-                  <Icon size={15} strokeWidth={currentPage === id ? 3 : 2} className="flex-shrink-0" />
-                  <span>{label}</span>
-                </button>
-              ))}
+            <div className="px-3 mb-1.5">
+              <span className="text-[10px] uppercase font-bold tracking-widest text-slate-400 dark:text-zinc-500">
+                Workspace
+              </span>
             </div>
-          </div>
-
-          {/* RECENT PATH */}
-          <div>
-            <p className={`text-[10px] uppercase tracking-[0.3em] font-black px-3 mb-3 ${
-              dark 
-                ? isDivine ? "text-sky-400 font-extrabold" : "text-amber-400 font-extrabold" 
-                : isDivine ? "text-sky-700 font-black" : "text-amber-800 font-black"
-            }`}>
-              Recent Path
-            </p>
-            <div className="space-y-0.5">
-              {chats.length === 0 && (
-                <p className={`text-xs px-3 py-6 text-center italic ${dark ? "text-amber-500/20" : "text-amber-900/30"}`}>
-                  Journey begins here.
-                </p>
-              )}
-              {chats.map((chat) => {
-                const isActive = activeChatId === chat.id;
+            <nav className="space-y-0.5">
+              {NAV_ITEMS.map(({ id, icon: Icon, label }) => {
+                const isActive = currentPage === id;
                 return (
-                  <div
-                    key={chat.id}
-                    onClick={() => handleChatSelect(chat.id)}
-                    className={`group flex items-center justify-between px-4 py-2.5 rounded-xl cursor-pointer transition-all duration-300 ${
+                  <button
+                    key={id}
+                    onClick={() => handleNavSelect(id)}
+                    className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition-all duration-150 ${
                       isActive
-                        ? dark 
-                          ? isDivine ? "bg-sky-500/10 text-sky-500 shadow-lg border border-sky-500/20" : "bg-amber-500/10 text-amber-500 shadow-lg border border-amber-500/20" 
-                          : isDivine ? "bg-white text-sky-900 shadow-md border border-sky-200" : "bg-white text-amber-900 shadow-md border border-amber-200"
-                        : dark 
-                          ? isDivine ? "text-sky-200/75 hover:text-sky-100 hover:bg-white/5" : "text-amber-200/75 hover:text-amber-100 hover:bg-white/5" 
-                          : isDivine ? "text-sky-950/75 hover:text-sky-900 hover:bg-sky-100/50" : "text-amber-950/75 hover:text-amber-900 hover:bg-amber-100/50"
+                        ? "bg-slate-100 dark:bg-white/[0.08] text-slate-900 dark:text-white font-semibold shadow-xs"
+                        : "text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-zinc-200 hover:bg-slate-100/60 dark:hover:bg-white/[0.04]"
                     }`}
                   >
-                    <div className="flex items-center gap-3 min-w-0">
-                      <MessageSquare size={13} strokeWidth={isActive ? 3 : 2} className="flex-shrink-0 opacity-60" />
-                      <p className="text-[12px] truncate font-bold">{chat.title}</p>
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <Icon
+                        size={15}
+                        className={isActive ? (isDivine ? "text-sky-500" : "text-amber-500") : "text-slate-400 dark:text-zinc-500"}
+                        strokeWidth={isActive ? 2.2 : 1.8}
+                      />
+                      <span className="truncate">{label}</span>
                     </div>
-                    <button
-                      onClick={(e) => { e.stopPropagation(); deleteChat(chat.id); }}
-                      className={`flex-shrink-0 p-1.5 rounded-lg transition-all duration-300
-                        md:opacity-0 md:group-hover:opacity-100 opacity-40 hover:opacity-100
-                        ${dark ? "hover:bg-red-500/20 text-amber-500/40 hover:text-red-400" : "hover:bg-red-50 text-amber-900/30 hover:text-red-500"}`}
-                    >
-                      <Trash2 size={12} />
-                    </button>
-                  </div>
+                    {isActive && (
+                      <div className={`w-1.5 h-1.5 rounded-full ${isDivine ? "bg-sky-500" : "bg-amber-500"}`} />
+                    )}
+                  </button>
                 );
               })}
+            </nav>
+          </div>
+
+          {/* RECENT CONVERSATIONS */}
+          <div>
+            <div className="flex items-center justify-between px-3 mb-1.5">
+              <span className="text-[10px] uppercase font-bold tracking-widest text-slate-400 dark:text-zinc-500">
+                Recent Chats
+              </span>
+              <span className="text-[10px] font-mono text-slate-400 dark:text-zinc-500">
+                {chats.length}
+              </span>
+            </div>
+
+            <div className="space-y-0.5">
+              {chats.length === 0 ? (
+                <div className="px-3 py-6 text-center">
+                  <p className="text-xs text-slate-400 dark:text-zinc-500">No previous conversations</p>
+                </div>
+              ) : (
+                chats.map((chat) => {
+                  const isActive = currentPage === "chat" && activeChatId === chat.id;
+                  return (
+                    <div
+                      key={chat.id}
+                      onClick={() => handleChatSelect(chat.id)}
+                      className={`group flex items-center justify-between px-3 py-2 rounded-xl text-xs cursor-pointer transition-all duration-150 ${
+                        isActive
+                          ? "bg-slate-100 dark:bg-white/[0.08] text-slate-900 dark:text-white font-medium"
+                          : "text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-zinc-200 hover:bg-slate-100/60 dark:hover:bg-white/[0.04]"
+                      }`}
+                    >
+                      <div className="flex items-center gap-2.5 min-w-0 pr-1">
+                        <MessageSquare
+                          size={13}
+                          className={`shrink-0 ${isActive ? (isDivine ? "text-sky-500" : "text-amber-500") : "opacity-40"}`}
+                        />
+                        <span className="truncate">{chat.title || "Untitled Conversation"}</span>
+                      </div>
+
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          deleteChat(chat.id);
+                        }}
+                        className="opacity-0 group-hover:opacity-100 p-1 rounded-md text-slate-400 hover:text-red-500 dark:text-zinc-500 dark:hover:text-red-400 hover:bg-slate-200/60 dark:hover:bg-white/[0.08] transition"
+                        title="Delete chat"
+                      >
+                        <Trash2 size={12} />
+                      </button>
+                    </div>
+                  );
+                })
+              )}
             </div>
           </div>
         </div>
 
-        {/* ── BOTTOM: PROFILE ── */}
-        <div className={`p-4 border-t ${dark ? isDivine ? "border-sky-500/10" : "border-amber-500/10" : isDivine ? "border-sky-200" : "border-amber-200"}`}>
+        {/* ── FOOTER: USER PROFILE & UPGRADE ── */}
+        <div className="p-3 border-t border-slate-200/80 dark:border-white/[0.07] shrink-0 bg-slate-50/50 dark:bg-black/20">
           {!isPro && (
             <button
               onClick={handleUpgrade}
-              className="w-full btn-gold-primary py-3 mb-4 rounded-2xl text-[11px] uppercase tracking-[0.2em] font-black shadow-xl"
+              className="w-full mb-3 flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold
+                         bg-amber-500/10 hover:bg-amber-500/15 border border-amber-500/20 text-amber-700 dark:text-amber-400 transition"
             >
-              UPGRADE TO PRO
+              <span className="flex items-center gap-1.5">
+                <Zap size={14} className="text-amber-500" />
+                Upgrade to Pro
+              </span>
+              <ChevronRight size={14} />
             </button>
           )}
-          <div className={`flex items-center gap-3 p-3 rounded-2xl ${
-            dark 
-              ? "bg-white/5 border border-white/5 shadow-2xl" 
-              : isDivine 
-                ? "bg-white border border-sky-100 shadow-xl shadow-sky-900/5" 
-                : "bg-white border border-amber-100 shadow-xl shadow-amber-900/5"
-          }`}>
-            {profile?.avatar ? (
-              <img src={profile.avatar} alt="avatar" className={`w-8 h-8 rounded-xl object-cover ring-2 ${isDivine ? "ring-sky-500/20" : "ring-amber-500/20"} flex-shrink-0`} />
-            ) : (
-              <div className={`w-8 h-8 flex-shrink-0 ${isDivine ? "divine-breathing" : ""}`}>
-                {isDivine ? (
-                  <div className="w-full h-full flex items-center justify-center text-xl">🦚</div>
-                ) : (
-                  <img src="/logo-lion.png" alt="U" className="w-full h-full object-contain logo-mask" />
-                )}
+
+          <div className="flex items-center justify-between p-2 rounded-xl bg-white dark:bg-[#141417] border border-slate-200/80 dark:border-white/[0.06] shadow-xs">
+            <div className="flex items-center gap-2.5 min-w-0">
+              {profile?.avatar ? (
+                <img
+                  src={profile.avatar}
+                  alt="avatar"
+                  className="w-8 h-8 rounded-lg object-cover ring-1 ring-slate-200 dark:ring-white/[0.1] shrink-0"
+                />
+              ) : (
+                <div className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-white/[0.08] flex items-center justify-center shrink-0">
+                  <span className="text-xs font-bold text-slate-700 dark:text-zinc-300">
+                    {profile?.nickname?.charAt(0)?.toUpperCase() || "U"}
+                  </span>
+                </div>
+              )}
+
+              <div className="flex flex-col min-w-0">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-xs font-semibold truncate text-slate-800 dark:text-zinc-200">
+                    {profile?.nickname?.split(" ")[0] || "User"}
+                  </span>
+                  {isPro && (
+                    <span className="text-[9px] px-1 py-0.2 rounded font-bold bg-amber-500/20 text-amber-600 dark:text-amber-400">
+                      PRO
+                    </span>
+                  )}
+                </div>
+                <span className="text-[10px] text-slate-400 dark:text-zinc-500 truncate">
+                  {profile?.email || "Signed in"}
+                </span>
               </div>
-            )}
-            <div className="flex-1 min-w-0">
-              <p className={`text-[12px] font-black truncate leading-none ${dark ? "text-white" : isDivine ? "text-sky-950" : "text-amber-950"}`}>
-                {profile?.nickname?.split(" ")[0] || "User"}
-              </p>
-              <p className={`text-[9px] truncate mt-1 font-bold ${dark ? isDivine ? "text-sky-500/40" : "text-amber-500/40" : isDivine ? "text-sky-900/40" : "text-amber-900/40"}`}>
-                {profile?.email}
-              </p>
             </div>
+
             <button
               onClick={handleLogout}
-              className={`p-2 rounded-lg transition-all duration-300 shrink-0 ${
-                dark 
-                  ? isDivine ? "text-sky-500/20 hover:text-red-400 hover:bg-red-500/10" : "text-amber-500/20 hover:text-red-400 hover:bg-red-500/10" 
-                  : isDivine ? "text-sky-900/20 hover:text-red-500 hover:bg-red-50" : "text-amber-900/20 hover:text-red-500 hover:bg-red-50"
-              }`}
+              className="p-1.5 rounded-lg text-slate-400 hover:text-red-500 dark:text-zinc-500 dark:hover:text-red-400 hover:bg-slate-100 dark:hover:bg-white/[0.06] transition"
+              title="Sign out"
             >
-              <LogOut size={14} strokeWidth={3} />
+              <LogOut size={14} />
             </button>
           </div>
         </div>
-      </div>
+      </aside>
     </>
   );
 }

@@ -1,18 +1,32 @@
 import { useState } from "react";
 import {
   CalendarDays, X, Loader2, Sparkles, CheckCircle2,
-  AlertCircle, RefreshCw, Lock, Users, MapPin, Clock, Calendar
+  AlertCircle, RefreshCw, Lock, Users, MapPin, Clock, Calendar,
+  ArrowRight, ExternalLink
 } from "lucide-react";
 import { signInWithPopup, GoogleAuthProvider } from "firebase/auth";
-import { auth, gmailProvider } from "../firebase";
+import { auth } from "../firebase";
 import API from "../services/api";
 
-// Add Google Calendar scope to gmailProvider dynamically
 const calendarProvider = new GoogleAuthProvider();
 calendarProvider.addScope("https://www.googleapis.com/auth/calendar.events");
 calendarProvider.setCustomParameters({ prompt: "consent" });
 
-const STEP = { PROMPT: "prompt", DRAFT: "draft", PERMISSION: "permission", SAVING: "saving", SUCCESS: "success", ERROR: "error" };
+const STEP = {
+  PROMPT: "prompt",
+  DRAFT: "draft",
+  PERMISSION: "permission",
+  SAVING: "saving",
+  SUCCESS: "success",
+  ERROR: "error",
+};
+
+const SUGGESTED_EVENTS = [
+  "Team Architecture Review next Monday from 3:00 PM to 4:00 PM on Google Meet",
+  "Design Sprint kickoff on Friday at 10 AM with dev team",
+  "Client demonstration and roadmap presentation tomorrow at 2 PM",
+  "1-on-1 performance review sync next Wednesday at 11:30 AM",
+];
 
 export default function CalendarComposer({ theme, profile, onClose, credits, fetchCredits, isPro }) {
   const dark = theme === "dark";
@@ -21,7 +35,16 @@ export default function CalendarComposer({ theme, profile, onClose, credits, fet
   const [step, setStep] = useState(STEP.PROMPT);
   const [prompt, setPrompt] = useState("");
   const [generating, setGenerating] = useState(false);
-  const [event, setEvent] = useState({ title: "", description: "", date: "", start_time: "10:00", end_time: "11:00", attendees: [], location: "", suggestions: "" });
+  const [event, setEvent] = useState({
+    title: "",
+    description: "",
+    date: "",
+    start_time: "10:00",
+    end_time: "11:00",
+    attendees: [],
+    location: "",
+    suggestions: "",
+  });
   const [accessToken, setAccessToken] = useState(null);
   const [errorMsg, setErrorMsg] = useState("");
   const [attendeeInput, setAttendeeInput] = useState("");
@@ -30,6 +53,7 @@ export default function CalendarComposer({ theme, profile, onClose, credits, fet
   const handleGenerate = async () => {
     if (!prompt.trim()) return;
     setGenerating(true);
+    setErrorMsg("");
     try {
       const res = await API.post("/generate-calendar-event", {
         prompt: prompt.trim(),
@@ -40,7 +64,7 @@ export default function CalendarComposer({ theme, profile, onClose, credits, fet
       setAttendeeInput(res.data.attendees?.join(", ") || "");
       setStep(STEP.DRAFT);
     } catch {
-      setErrorMsg("AI couldn't parse your event. Please try again.");
+      setErrorMsg("AI couldn't parse your scheduling request. Please try again.");
       setStep(STEP.ERROR);
     } finally {
       setGenerating(false);
@@ -49,6 +73,12 @@ export default function CalendarComposer({ theme, profile, onClose, credits, fet
   };
 
   const handleCreateEvent = async (token) => {
+    const activeToken = token || accessToken;
+    if (!activeToken) {
+      setStep(STEP.PERMISSION);
+      return;
+    }
+
     setStep(STEP.SAVING);
     try {
       const attendees = attendeeInput
@@ -73,7 +103,7 @@ export default function CalendarComposer({ theme, profile, onClose, credits, fet
       const res = await fetch("https://www.googleapis.com/calendar/v3/calendars/primary/events?sendUpdates=all", {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${token || accessToken}`,
+          Authorization: `Bearer ${activeToken}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify(body),
@@ -88,235 +118,336 @@ export default function CalendarComposer({ theme, profile, onClose, credits, fet
       setCreatedLink(data.htmlLink || "");
       setStep(STEP.SUCCESS);
     } catch (err) {
-      setErrorMsg(err.message || "Failed to create event.");
+      console.error("Calendar save error:", err);
+      setErrorMsg(err.message || "Failed to create Google Calendar event.");
       setStep(STEP.ERROR);
     }
   };
 
-  const handlePermission = async () => {
-    setStep(STEP.PERMISSION);
+  const handleRequestPermission = async () => {
     try {
       const result = await signInWithPopup(auth, calendarProvider);
       const credential = GoogleAuthProvider.credentialFromResult(result);
-      if (!credential?.accessToken) throw new Error("No access token received.");
-      setAccessToken(credential.accessToken);
-      await handleCreateEvent(credential.accessToken);
+      const token = credential?.accessToken;
+      if (token) {
+        setAccessToken(token);
+        handleCreateEvent(token);
+      } else {
+        throw new Error("Could not retrieve access token.");
+      }
     } catch (err) {
-      if (err.code === "auth/popup-closed-by-user") { setStep(STEP.DRAFT); return; }
-      setErrorMsg(err.message || "Permission denied.");
+      console.error("Calendar permission error:", err);
+      setErrorMsg("Google Calendar permission was not granted.");
       setStep(STEP.ERROR);
     }
   };
 
-  const handleConfirm = async () => {
-    if (!event.date || !event.title) { setErrorMsg("Please fill in the title and date."); return; }
-    if (accessToken) await handleCreateEvent(accessToken);
-    else await handlePermission();
-  };
-
-  const cardCls = `relative w-full sm:max-w-2xl max-h-[100dvh] sm:max-h-[90vh] flex flex-col rounded-t-2xl sm:rounded-2xl border shadow-2xl overflow-hidden ${
-    dark ? "bg-[#111111] border-gray-800" : "bg-white border-gray-200"
-  }`;
-
-  const inputCls = `w-full rounded-xl border px-3.5 py-2.5 text-sm outline-none transition ${
-    dark ? "bg-[#1a1a1a] border-gray-800 text-white placeholder:text-gray-600 focus:border-violet-600" : "bg-gray-50 border-gray-200 text-gray-900 focus:border-violet-500"
-  }`;
-
   return (
-    <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center p-0 sm:p-4">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 animate-fade-in">
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
-      <div className={cardCls}>
-        {/* Header */}
-        <div className={`flex items-center justify-between px-5 py-4 border-b shrink-0 ${dark ? "border-gray-800" : "border-gray-100"}`}>
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-600 to-amber-400 flex items-center justify-center shadow-lg shadow-amber-500/20">
-              <CalendarDays size={15} className="text-white" />
+
+      <div className="relative w-full sm:max-w-2xl max-h-[100dvh] sm:max-h-[90vh] flex flex-col rounded-t-3xl sm:rounded-3xl bg-white dark:bg-[#121215] border border-slate-200 dark:border-white/[0.08] shadow-2xl overflow-hidden">
+        
+        {/* ── MODAL HEADER ── */}
+        <div className="flex items-center justify-between px-6 h-16 border-b border-slate-200/80 dark:border-white/[0.07] shrink-0">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-500">
+              <CalendarDays size={16} />
             </div>
             <div>
-              <h2 className={`text-sm font-semibold ${dark ? "text-white" : "text-gray-900"}`}>AI Calendar Scheduler</h2>
-              <p className={`text-[10px] ${dark ? "text-gray-500" : "text-gray-400"}`}>Schedule events from natural language</p>
+              <h2 className="text-sm font-bold text-slate-900 dark:text-white">
+                AI Event Scheduler
+              </h2>
+              <p className="text-[11px] text-slate-400 dark:text-zinc-500">
+                Parse natural language requests directly into Google Calendar
+              </p>
             </div>
           </div>
-          <button onClick={onClose} className={`p-2 rounded-xl transition ${dark ? "hover:bg-white/8 text-gray-500" : "hover:bg-gray-100 text-gray-400"}`}>
+
+          <button
+            onClick={onClose}
+            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:text-zinc-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/[0.06] transition"
+          >
             <X size={16} />
           </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto">
-          {/* PROMPT */}
+        {/* ── MODAL BODY ── */}
+        <div className="flex-1 overflow-y-auto p-6 space-y-5">
+          
+          {/* STEP 1: PROMPT INPUT */}
           {step === STEP.PROMPT && (
-            <div className="p-5 space-y-4">
+            <div className="space-y-4">
               <div>
-                <label className={`text-xs font-semibold mb-2 block ${dark ? "text-gray-300" : "text-gray-700"}`}>
-                  📅 Describe the event you want to schedule
+                <label className="block text-xs font-semibold text-slate-700 dark:text-zinc-300 mb-1.5">
+                  Describe your meeting or event:
                 </label>
                 <textarea
                   value={prompt}
                   onChange={(e) => setPrompt(e.target.value)}
-                  placeholder={outOfCredits ? "Daily limit reached. Resets tomorrow." : `e.g. "Schedule a project review..."`}
-                  disabled={outOfCredits}
-                  rows={4}
-                  style={{ fontSize: "16px" }}
-                  className={`w-full rounded-xl border px-4 py-3 text-sm leading-6 outline-none resize-none transition ${
-                    dark ? "bg-[#1a1a1a] border-gray-800 text-white placeholder:text-gray-600 focus:border-violet-600" : "bg-gray-50 border-gray-200 text-gray-900 focus:border-violet-500"
-                  }`}
-                  onKeyDown={(e) => { if (e.key === "Enter" && e.ctrlKey) handleGenerate(); }}
+                  rows={3}
+                  placeholder={outOfCredits ? "Daily AI credits exhausted." : "e.g. Schedule a product review with team@example.com tomorrow at 3 PM for 45 minutes on Zoom..."}
+                  disabled={outOfCredits || generating}
+                  className="w-full rounded-2xl border border-slate-200 dark:border-white/[0.08] bg-slate-50/50 dark:bg-white/[0.03] px-4 py-3 text-sm text-slate-900 dark:text-zinc-100 placeholder:text-slate-400 dark:placeholder:text-zinc-500 outline-none focus:border-amber-500/50 transition"
                 />
-                <p className={`text-[10px] mt-1.5 ${dark ? "text-gray-600" : "text-gray-400"}`}>
-                  Include date, time, attendees, and duration. Ctrl+Enter to generate.
+              </div>
+
+              {/* Sample Prompts */}
+              <div>
+                <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-zinc-500 block mb-2">
+                  Sample Scheduling Prompts
+                </span>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {SUGGESTED_EVENTS.map((p, i) => (
+                    <button
+                      key={i}
+                      onClick={() => setPrompt(p)}
+                      className="p-2.5 rounded-xl text-left text-xs bg-slate-50 dark:bg-white/[0.03] border border-slate-200/60 dark:border-white/[0.05] hover:border-amber-500/30 text-slate-600 dark:text-zinc-300 transition"
+                    >
+                      {p}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="pt-2 flex justify-end">
+                <button
+                  onClick={handleGenerate}
+                  disabled={!prompt.trim() || generating || outOfCredits}
+                  className="btn-primary flex items-center gap-2"
+                >
+                  {generating ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />}
+                  <span>{generating ? "Parsing Details..." : "Extract Calendar Event"}</span>
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* STEP 2: EVENT DETAILS REVIEW */}
+          {step === STEP.DRAFT && (
+            <div className="space-y-4">
+              
+              {/* Event Title */}
+              <div>
+                <label className="block text-xs font-semibold text-slate-500 dark:text-zinc-400 mb-1">
+                  Event Title
+                </label>
+                <input
+                  type="text"
+                  value={event.title}
+                  onChange={(e) => setEvent({ ...event, title: e.target.value })}
+                  className="w-full rounded-xl border border-slate-200 dark:border-white/[0.08] bg-slate-50/50 dark:bg-white/[0.03] px-3.5 py-2 text-sm font-semibold text-slate-900 dark:text-zinc-100 outline-none focus:border-amber-500/50"
+                />
+              </div>
+
+              {/* Date & Time Row */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div>
+                  <label className="flex items-center gap-1.5 text-xs font-semibold text-slate-500 dark:text-zinc-400 mb-1">
+                    <Calendar size={13} />
+                    <span>Date (YYYY-MM-DD)</span>
+                  </label>
+                  <input
+                    type="date"
+                    value={event.date}
+                    onChange={(e) => setEvent({ ...event, date: e.target.value })}
+                    className="w-full rounded-xl border border-slate-200 dark:border-white/[0.08] bg-slate-50/50 dark:bg-white/[0.03] px-3 py-2 text-xs text-slate-900 dark:text-zinc-100 outline-none focus:border-amber-500/50"
+                  />
+                </div>
+
+                <div>
+                  <label className="flex items-center gap-1.5 text-xs font-semibold text-slate-500 dark:text-zinc-400 mb-1">
+                    <Clock size={13} />
+                    <span>Start Time</span>
+                  </label>
+                  <input
+                    type="time"
+                    value={event.start_time}
+                    onChange={(e) => setEvent({ ...event, start_time: e.target.value })}
+                    className="w-full rounded-xl border border-slate-200 dark:border-white/[0.08] bg-slate-50/50 dark:bg-white/[0.03] px-3 py-2 text-xs text-slate-900 dark:text-zinc-100 outline-none focus:border-amber-500/50"
+                  />
+                </div>
+
+                <div>
+                  <label className="flex items-center gap-1.5 text-xs font-semibold text-slate-500 dark:text-zinc-400 mb-1">
+                    <Clock size={13} />
+                    <span>End Time</span>
+                  </label>
+                  <input
+                    type="time"
+                    value={event.end_time}
+                    onChange={(e) => setEvent({ ...event, end_time: e.target.value })}
+                    className="w-full rounded-xl border border-slate-200 dark:border-white/[0.08] bg-slate-50/50 dark:bg-white/[0.03] px-3 py-2 text-xs text-slate-900 dark:text-zinc-100 outline-none focus:border-amber-500/50"
+                  />
+                </div>
+              </div>
+
+              {/* Location & Attendees */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="flex items-center gap-1.5 text-xs font-semibold text-slate-500 dark:text-zinc-400 mb-1">
+                    <MapPin size={13} />
+                    <span>Location / Link</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={event.location}
+                    onChange={(e) => setEvent({ ...event, location: e.target.value })}
+                    placeholder="e.g. Google Meet / Room 4B"
+                    className="w-full rounded-xl border border-slate-200 dark:border-white/[0.08] bg-slate-50/50 dark:bg-white/[0.03] px-3 py-2 text-xs text-slate-900 dark:text-zinc-100 outline-none focus:border-amber-500/50"
+                  />
+                </div>
+
+                <div>
+                  <label className="flex items-center gap-1.5 text-xs font-semibold text-slate-500 dark:text-zinc-400 mb-1">
+                    <Users size={13} />
+                    <span>Attendee Emails</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={attendeeInput}
+                    onChange={(e) => setAttendeeInput(e.target.value)}
+                    placeholder="email1@example.com, email2@example.com"
+                    className="w-full rounded-xl border border-slate-200 dark:border-white/[0.08] bg-slate-50/50 dark:bg-white/[0.03] px-3 py-2 text-xs text-slate-900 dark:text-zinc-100 outline-none focus:border-amber-500/50"
+                  />
+                </div>
+              </div>
+
+              {/* Description */}
+              <div>
+                <label className="block text-xs font-semibold text-slate-500 dark:text-zinc-400 mb-1">
+                  Description / Agenda
+                </label>
+                <textarea
+                  value={event.description}
+                  onChange={(e) => setEvent({ ...event, description: e.target.value })}
+                  rows={3}
+                  className="w-full rounded-xl border border-slate-200 dark:border-white/[0.08] bg-slate-50/50 dark:bg-white/[0.03] px-3 py-2 text-xs text-slate-900 dark:text-zinc-100 outline-none focus:border-amber-500/50 font-sans"
+                />
+              </div>
+
+              {/* Actions */}
+              <div className="flex items-center justify-between pt-2 border-t border-slate-100 dark:border-white/[0.04]">
+                <button
+                  onClick={() => setStep(STEP.PROMPT)}
+                  className="btn-secondary"
+                >
+                  Back
+                </button>
+                <button
+                  onClick={() => handleCreateEvent()}
+                  className="btn-primary flex items-center gap-1.5"
+                >
+                  <CalendarDays size={13} />
+                  <span>Create in Google Calendar</span>
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* STEP 3: OAUTH PERMISSION */}
+          {step === STEP.PERMISSION && (
+            <div className="py-8 text-center max-w-sm mx-auto space-y-4">
+              <div className="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/25 flex items-center justify-center mx-auto text-amber-500">
+                <Lock size={22} />
+              </div>
+              <div>
+                <h3 className="text-base font-bold text-slate-900 dark:text-white">
+                  Connect Google Calendar
+                </h3>
+                <p className="text-xs text-slate-500 dark:text-zinc-400 mt-1 leading-relaxed">
+                  Authorize Simha AI to schedule this event directly onto your Google Calendar.
                 </p>
               </div>
+
               <button
-                onClick={handleGenerate}
-                disabled={!prompt.trim() || generating || outOfCredits}
-                className={`w-full flex items-center justify-center gap-2.5 py-3 rounded-xl text-black text-sm font-black tracking-widest hover:opacity-90 active:scale-95 transition disabled:opacity-50 touch-manipulation shadow-lg shadow-amber-500/20 bg-gradient-to-r from-amber-600 to-amber-400`}
+                onClick={handleRequestPermission}
+                className="w-full btn-primary flex items-center justify-center gap-2 py-3"
               >
-                {generating ? <Loader2 size={16} className="animate-spin" /> : <Sparkles size={16} />}
-                {generating ? "Generating event..." : "Generate Event Details"}
+                <span>Authorize & Create Event</span>
+                <ArrowRight size={14} />
               </button>
             </div>
           )}
 
-          {/* DRAFT */}
-          {step === STEP.DRAFT && (
-            <div className="p-5 space-y-3">
-              {event.suggestions && (
-                <div className={`flex items-start gap-2.5 px-3.5 py-2.5 rounded-xl text-xs ${dark ? "bg-violet-950/50 border border-violet-900 text-violet-300" : "bg-violet-50 border border-violet-100 text-violet-700"}`}>
-                  <Sparkles size={13} className="shrink-0 mt-0.5" />
-                  {event.suggestions}
-                </div>
-              )}
-
-              <div>
-                <label className={`text-[11px] font-semibold mb-1 block ${dark ? "text-gray-400" : "text-gray-500"}`}>EVENT TITLE *</label>
-                <input type="text" value={event.title} onChange={(e) => setEvent((d) => ({ ...d, title: e.target.value }))} style={{ fontSize: "16px" }} className={inputCls} />
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className={`text-[11px] font-semibold mb-1 flex items-center gap-1 ${dark ? "text-gray-400" : "text-gray-500"}`}>
-                    <Calendar size={10} /> DATE *
-                  </label>
-                  <input type="date" value={event.date} onChange={(e) => setEvent((d) => ({ ...d, date: e.target.value }))} style={{ fontSize: "16px" }} className={inputCls} />
-                </div>
-                <div>
-                  <label className={`text-[11px] font-semibold mb-1 flex items-center gap-1 ${dark ? "text-gray-400" : "text-gray-500"}`}>
-                    <Clock size={10} /> TIME
-                  </label>
-                  <div className="flex items-center gap-1">
-                    <input type="time" value={event.start_time} onChange={(e) => setEvent((d) => ({ ...d, start_time: e.target.value }))} style={{ fontSize: "16px" }} className={inputCls} />
-                    <span className={`text-xs ${dark ? "text-gray-600" : "text-gray-400"}`}>to</span>
-                    <input type="time" value={event.end_time} onChange={(e) => setEvent((d) => ({ ...d, end_time: e.target.value }))} style={{ fontSize: "16px" }} className={inputCls} />
-                  </div>
-                </div>
-              </div>
-
-              <div>
-                <label className={`text-[11px] font-semibold mb-1 flex items-center gap-1 ${dark ? "text-gray-400" : "text-gray-500"}`}>
-                  <Users size={10} /> ATTENDEES (comma-separated emails)
-                </label>
-                <input type="text" value={attendeeInput} onChange={(e) => setAttendeeInput(e.target.value)} placeholder="email1@gmail.com, email2@gmail.com" style={{ fontSize: "16px" }} className={inputCls} />
-              </div>
-
-              <div>
-                <label className={`text-[11px] font-semibold mb-1 flex items-center gap-1 ${dark ? "text-gray-400" : "text-gray-500"}`}>
-                  <MapPin size={10} /> LOCATION (optional)
-                </label>
-                <input type="text" value={event.location} onChange={(e) => setEvent((d) => ({ ...d, location: e.target.value }))} placeholder="Google Meet / Room 101 / Online" style={{ fontSize: "16px" }} className={inputCls} />
-              </div>
-
-              <div>
-                <label className={`text-[11px] font-semibold mb-1 block ${dark ? "text-gray-400" : "text-gray-500"}`}>DESCRIPTION / AGENDA</label>
-                <textarea value={event.description} onChange={(e) => setEvent((d) => ({ ...d, description: e.target.value }))} rows={3} style={{ fontSize: "16px" }} className={`${inputCls} resize-none`} />
-              </div>
-            </div>
-          )}
-
-          {/* PERMISSION */}
-          {step === STEP.PERMISSION && (
-            <div className="p-8 flex flex-col items-center text-center gap-4">
-              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-orange-500 to-amber-500 flex items-center justify-center">
-                <Lock size={28} className="text-white" />
-              </div>
-              <div>
-                <h3 className={`text-base font-semibold mb-1.5 ${dark ? "text-white" : "text-gray-900"}`}>Google Calendar Permission</h3>
-                <p className={`text-xs leading-5 max-w-xs ${dark ? "text-gray-400" : "text-gray-500"}`}>
-                  A popup will ask you to grant Simha AI permission to create events in your Google Calendar.
-                  <strong className={dark ? " text-orange-400" : " text-orange-600"}> We only create events — we never read or delete your calendar.</strong>
-                </p>
-              </div>
-              <Loader2 size={24} className="animate-spin text-violet-500" />
-            </div>
-          )}
-
-          {/* SAVING */}
+          {/* STEP 4: SAVING */}
           {step === STEP.SAVING && (
-            <div className="p-8 flex flex-col items-center text-center gap-4">
-              <Loader2 size={40} className="animate-spin text-violet-500" />
-              <div>
-                <h3 className={`text-base font-semibold ${dark ? "text-white" : "text-gray-900"}`}>Creating calendar event...</h3>
-                <p className={`text-xs mt-1 ${dark ? "text-gray-500" : "text-gray-400"}`}>Sending invites to attendees.</p>
-              </div>
+            <div className="py-12 text-center space-y-3">
+              <Loader2 size={32} className="animate-spin text-amber-500 mx-auto" />
+              <p className="text-sm font-semibold text-slate-800 dark:text-zinc-200">
+                Scheduling event in Google Calendar...
+              </p>
             </div>
           )}
 
-          {/* SUCCESS */}
+          {/* STEP 5: SUCCESS */}
           {step === STEP.SUCCESS && (
-            <div className="p-8 flex flex-col items-center text-center gap-4">
-              <div className="w-16 h-16 rounded-full bg-green-500/20 flex items-center justify-center">
-                <CheckCircle2 size={36} className="text-green-500" />
+            <div className="py-8 text-center max-w-sm mx-auto space-y-4">
+              <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/25 flex items-center justify-center mx-auto text-emerald-500">
+                <CheckCircle2 size={24} />
               </div>
               <div>
-                <h3 className={`text-base font-semibold ${dark ? "text-white" : "text-gray-900"}`}>Event Created! 🎉</h3>
-                <p className={`text-xs mt-1.5 max-w-xs ${dark ? "text-gray-400" : "text-gray-500"}`}>
-                  <strong>{event.title}</strong> on {event.date} at {event.start_time} has been added to your Google Calendar.
+                <h3 className="text-base font-bold text-slate-900 dark:text-white">
+                  Event Scheduled!
+                </h3>
+                <p className="text-xs text-slate-500 dark:text-zinc-400 mt-1">
+                  "{event.title}" has been placed on your calendar.
                 </p>
               </div>
+
               {createdLink && (
-                <a href={createdLink} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-600 to-amber-400 text-black text-sm font-black tracking-widest hover:opacity-90 transition touch-manipulation shadow-lg shadow-amber-500/20">
-                  <CalendarDays size={14} />
-                  View in Google Calendar
+                <a
+                  href={createdLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn-secondary w-full flex items-center justify-center gap-2"
+                >
+                  <span>Open in Google Calendar</span>
+                  <ExternalLink size={13} />
                 </a>
               )}
-              <button onClick={() => { setStep(STEP.PROMPT); setPrompt(""); setEvent({ title: "", description: "", date: "", start_time: "10:00", end_time: "11:00", attendees: [], location: "", suggestions: "" }); setAttendeeInput(""); }} className={`text-sm ${dark ? "text-gray-600 hover:text-gray-400" : "text-gray-400 hover:text-gray-600"} transition`}>
-                Schedule another
+
+              <button
+                onClick={onClose}
+                className="btn-primary w-full"
+              >
+                Done
               </button>
             </div>
           )}
 
-          {/* ERROR */}
+          {/* STEP 6: ERROR */}
           {step === STEP.ERROR && (
-            <div className="p-8 flex flex-col items-center text-center gap-4">
-              <div className="w-16 h-16 rounded-full bg-red-500/20 flex items-center justify-center">
-                <AlertCircle size={36} className="text-red-500" />
+            <div className="py-8 text-center max-w-sm mx-auto space-y-4">
+              <div className="w-12 h-12 rounded-2xl bg-red-500/10 border border-red-500/25 flex items-center justify-center mx-auto text-red-500">
+                <AlertCircle size={24} />
               </div>
               <div>
-                <h3 className={`text-base font-semibold ${dark ? "text-white" : "text-gray-900"}`}>Something went wrong</h3>
-                <p className={`text-xs mt-1.5 max-w-xs ${dark ? "text-red-400" : "text-red-600"}`}>{errorMsg}</p>
+                <h3 className="text-base font-bold text-slate-900 dark:text-white">
+                  Scheduling Failed
+                </h3>
+                <p className="text-xs text-slate-500 dark:text-zinc-400 mt-1">
+                  {errorMsg || "An unexpected error occurred."}
+                </p>
               </div>
-              <button onClick={() => setStep(STEP.PROMPT)} className="flex items-center gap-2 px-5 py-2.5 rounded-xl border text-sm transition touch-manipulation">
-                <RefreshCw size={14} /> Try Again
-              </button>
+
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setStep(STEP.DRAFT)}
+                  className="btn-secondary flex-1"
+                >
+                  Edit Details
+                </button>
+                <button
+                  onClick={onClose}
+                  className="btn-primary flex-1"
+                >
+                  Close
+                </button>
+              </div>
             </div>
           )}
         </div>
-
-        {/* Footer */}
-        {step === STEP.DRAFT && (
-          <div className={`shrink-0 px-5 py-4 border-t flex gap-3 ${dark ? "border-gray-800 bg-[#0e0e0e]" : "border-gray-100 bg-gray-50"}`}>
-            <button onClick={() => setStep(STEP.PROMPT)} className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm border transition touch-manipulation ${dark ? "border-gray-700 text-gray-400 hover:text-gray-200" : "border-gray-200 text-gray-500 hover:text-gray-700"}`}>
-              <RefreshCw size={13} /> Regenerate
-            </button>
-            <button
-              onClick={handleConfirm}
-              disabled={!event.title || !event.date}
-              className="flex-1 flex items-center justify-center gap-2.5 py-2.5 rounded-xl bg-gradient-to-r from-amber-600 to-amber-400 text-black text-sm font-black tracking-widest hover:opacity-90 active:scale-95 transition disabled:opacity-40 touch-manipulation shadow-lg shadow-amber-500/20"
-            >
-              <CalendarDays size={15} />
-              {accessToken ? "Create Event" : "Grant Permission & Create"}
-            </button>
-          </div>
-        )}
       </div>
     </div>
   );

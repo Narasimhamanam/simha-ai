@@ -1,144 +1,131 @@
-import { Menu, SquarePen, Volume2, VolumeX } from "lucide-react";
+import { Menu, SquarePen, Volume2, VolumeX, Sparkles, Zap, Shield, Crown } from "lucide-react";
 import ThemeToggle from "./ThemeToggle";
 
-function getGreeting() {
-  const hour = new Date().getHours();
-  if (hour < 12) return "Good morning";
-  if (hour < 17) return "Good afternoon";
-  return "Good evening";
-}
-
-const PAGE_TITLES = {
+const PAGE_META = {
   chat: null,
-  email: "Email Composer",
-  calendar: "AI Scheduler",
-  url: "URL Summarizer",
-  history: "Chat History",
-  documents: "Documents",
-  settings: "Settings",
+  email: { title: "Email Composer", desc: "Professional AI Email Assistant" },
+  calendar: { title: "AI Scheduler", desc: "Smart Calendar Event Parsing" },
+  url: { title: "URL Reader", desc: "Web Page Analysis & Summaries" },
+  history: { title: "Chat History", desc: "Past Conversations & Insights" },
+  documents: { title: "Knowledge Base", desc: "Document & PDF RAG Store" },
+  settings: { title: "Preferences", desc: "Account Settings & Profile" },
 };
 
-const PAGE_EMOJIS = {
-  email: "✉️",
-  calendar: "📅",
-  url: "🌐",
-  history: "📜",
-  documents: "📄",
-  settings: "⚙️",
-};
-
-function Header({ theme, setTheme, profile, setIsSidebarOpen, isSidebarOpen, activeChat, currentPage, createNewChat, credits, isPro, selectedAgent, isMusicPlaying, setIsMusicPlaying }) {
+function Header({
+  theme,
+  setTheme,
+  profile,
+  setIsSidebarOpen,
+  isSidebarOpen,
+  activeChat,
+  currentPage,
+  createNewChat,
+  credits,
+  isPro,
+  selectedAgent,
+  isMusicPlaying,
+  setIsMusicPlaying,
+}) {
   const isDivine = selectedAgent === "divine";
   const dark = theme === "dark";
-  const firstName = profile?.nickname?.split(" ")[0] || "";
   const chatTitle = activeChat?.title && activeChat.title !== "New Chat" ? activeChat.title : null;
-  const pageTitle = PAGE_TITLES[currentPage];
-  const pageEmoji = PAGE_EMOJIS[currentPage];
+  const pageMeta = PAGE_META[currentPage];
 
   return (
-    <header className={`sticky top-0 z-20 flex items-center justify-between px-6 py-3 h-20 transition-all duration-500 border-b backdrop-blur-2xl shadow-lg ${
-      dark 
-        ? isDivine ? "bg-[#06090c]/80 border-sky-500/10 shadow-black/20" : "bg-[#080502]/80 border-amber-500/10 shadow-black/20" 
-        : isDivine ? "bg-white/80 border-sky-100 shadow-sm" : "bg-[#fffbeb]/80 border-amber-200 shadow-sm"
-    }`}>
-      {/* LEFT — Hamburger */}
-      <button
-        onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-        className={`p-3 rounded-2xl transition-all duration-300 group ${
-          dark 
-            ? isDivine ? "bg-white/5 text-sky-500 border border-sky-500/10 hover:bg-sky-500/10 hover:border-sky-500/30" : "bg-white/5 text-amber-500 border border-amber-500/10 hover:bg-amber-500/10 hover:border-amber-500/30" 
-            : isDivine ? "bg-white text-sky-900 border border-sky-200 hover:border-sky-400 shadow-sm" : "bg-white text-amber-900 border border-amber-200 hover:border-amber-400 shadow-sm"
-        }`}
-        aria-label={isSidebarOpen ? "Close Sidebar" : "Open Sidebar"}
-      >
-        <div className="space-y-1.5 flex flex-col items-center">
-          <div className="w-5 h-0.5 bg-current rounded-full transition-all group-hover:w-6"></div>
-          <div className="w-6 h-0.5 bg-current rounded-full"></div>
-          <div className="w-4 h-0.5 bg-current rounded-full transition-all group-hover:w-6"></div>
-        </div>
-      </button>
+    <header className="sticky top-0 z-30 flex items-center justify-between px-4 sm:px-6 h-14 transition-all duration-200 glass-header">
+      {/* ── LEFT: SIDEBAR TOGGLE & CONTEXT ── */}
+      <div className="flex items-center gap-3">
+        <button
+          onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+          className="p-1.5 rounded-lg text-slate-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/[0.06] transition"
+          aria-label={isSidebarOpen ? "Collapse sidebar" : "Expand sidebar"}
+        >
+          <Menu size={18} />
+        </button>
 
-      {/* CENTER — Model/Page title */}
-      <div className="flex flex-col items-center">
-        {pageTitle ? (
-          <span className={`text-sm font-semibold ${dark ? "text-white" : "text-gray-900"}`}>
-            {pageEmoji} {pageTitle}
-          </span>
-        ) : (
-          <div className="flex items-center gap-2">
-            <div className={`w-6 h-6 flex-shrink-0 ${isDivine ? "divine-breathing" : ""}`}>
-              {isDivine ? (
-                <div className="w-full h-full flex items-center justify-center text-xl">🦚</div>
-              ) : (
-                <img src="/logo-lion.png" alt="Logo" className="w-full h-full object-contain logo-mask filter drop-shadow-[0_0_5px_rgba(245,158,11,0.3)]" />
-              )}
-            </div>
-            <div className="flex flex-col items-start leading-none">
-              <span className={`text-sm font-black tracking-tight ${dark ? "text-white" : isDivine ? "text-sky-950" : "text-gray-900"}`}>
-                {chatTitle
-                  ? <span className="max-w-[140px] truncate block">{chatTitle}</span>
-                  : isDivine ? "Krishna AI" : "Simha AI"}
+        {/* Dynamic Title / Breadcrumb */}
+        <div className="hidden sm:flex items-center gap-2">
+          {pageMeta ? (
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-semibold text-slate-800 dark:text-zinc-200">
+                {pageMeta.title}
               </span>
-              <span className={`text-[9px] font-bold ${dark ? isDivine ? "text-sky-500/60" : "text-amber-500/60" : isDivine ? "text-sky-600/60" : "text-amber-600/60"} uppercase tracking-widest mt-0.5`}>
-                {isDivine ? "Perspective" : "Assistant"}
+              <span className="text-slate-300 dark:text-zinc-700">•</span>
+              <span className="text-[11px] text-slate-400 dark:text-zinc-500 font-normal">
+                {pageMeta.desc}
               </span>
             </div>
-          </div>
-        )}
+          ) : (
+            <div className="flex items-center gap-2">
+              <div className={`w-2 h-2 rounded-full ${isDivine ? "bg-sky-500" : "bg-emerald-500"} animate-pulse`} />
+              <span className="text-xs font-semibold text-slate-800 dark:text-zinc-200 max-w-[200px] truncate">
+                {chatTitle || (isDivine ? "Krishna AI" : "Simha AI Workspace")}
+              </span>
+              <span className="text-[10px] px-1.5 py-0.2 rounded font-mono text-slate-400 dark:text-zinc-500 bg-slate-100 dark:bg-white/[0.04] border border-slate-200/50 dark:border-white/[0.06]">
+                {isDivine ? "Gita 18.78" : "Groq Qwen-27B"}
+              </span>
+            </div>
+          )}
+        </div>
       </div>
 
-      {/* RIGHT — Theme toggle + New chat */}
-      <div className="flex items-center gap-1">
-        {/* Credits Badge */}
-          <div className={`mr-4 flex items-center gap-2 px-4 py-2 rounded-full text-[11px] font-black tracking-widest shadow-lg transition-all duration-300 ${
-            credits <= 0 
-              ? dark ? "bg-red-500/10 text-red-400 border border-red-500/20" : "bg-red-50 text-red-600 border border-red-100"
-              : dark 
-                ? isDivine ? "bg-sky-500/10 text-sky-500 border border-sky-500/20 shadow-sky-500/5" : "bg-amber-500/10 text-amber-500 border border-amber-500/20 shadow-amber-500/5" 
-                : isDivine ? "bg-sky-50 text-sky-700 border border-sky-200" : "bg-amber-50 text-amber-700 border border-amber-200"
-          }`}>
-            <span className="animate-pulse">{isDivine ? "✨" : "⚡"}</span>
-            {credits.toFixed(1)}
-          </div>
-        {/* Pro Badge */}
-        {isPro && (
-          <div className={`mr-4 flex items-center gap-2 px-5 py-2.5 rounded-full text-[11px] font-black tracking-widest transition-all duration-500 shadow-lg ${
-            dark 
-              ? isDivine ? "bg-gradient-to-r from-sky-600 to-sky-400 text-white border border-sky-400/50 shadow-sky-500/10" : "bg-gradient-to-r from-amber-600 to-amber-400 text-black border border-amber-400/50 shadow-amber-500/10" 
-              : isDivine ? "bg-gradient-to-r from-sky-500 to-sky-400 text-white border border-sky-300 shadow-sky-900/10" : "bg-gradient-to-r from-amber-500 to-amber-400 text-white border border-amber-300 shadow-amber-900/10"
-          }`}>
-            <span className="text-sm">{isDivine ? "🦚" : "👑"}</span>
-            {isDivine ? "DIVINE MEMBER" : "PRO MEMBER"}
-          </div>
-        )}
+      {/* ── RIGHT: METRICS & CONTROLS ── */}
+      <div className="flex items-center gap-2">
+        {/* Credits Balance Indicator */}
+        <div
+          title={isPro ? "Pro Plan: Unlimited credits" : "Current AI Credits balance"}
+          className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold tracking-tight transition ${
+            credits <= 0 && !isPro
+              ? "bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20"
+              : isPro
+              ? "bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20"
+              : "bg-slate-100 dark:bg-white/[0.06] text-slate-700 dark:text-zinc-300 border border-slate-200/60 dark:border-white/[0.06]"
+          }`}
+        >
+          {isPro ? (
+            <Crown size={12} className="text-amber-500" />
+          ) : (
+            <Zap size={12} className={credits > 0 ? "text-amber-500" : "text-red-500"} />
+          )}
+          <span>{isPro ? "Unlimited" : `${Number(credits || 0).toFixed(1)} cr`}</span>
+        </div>
 
-        {/* Music Toggle - Only for Divine Mode */}
+        {/* Ambient Divine Flute Audio Toggle */}
         {isDivine && (
           <button
             onClick={() => setIsMusicPlaying(!isMusicPlaying)}
-            className={`p-2.5 rounded-xl transition-all duration-300 mr-1 ${
-              dark 
-                ? isMusicPlaying ? "bg-sky-500/20 text-sky-400 border border-sky-500/30" : "text-sky-500/40 hover:text-sky-400 hover:bg-white/5" 
-                : isMusicPlaying ? "bg-sky-100 text-sky-600 border border-sky-200" : "text-sky-900/40 hover:text-sky-900 hover:bg-sky-100"
+            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium transition ${
+              isMusicPlaying
+                ? "bg-sky-500/15 text-sky-600 dark:text-sky-400 border border-sky-500/30 shadow-xs"
+                : "text-slate-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/[0.06]"
             }`}
-            aria-label="Toggle Music"
+            title={isMusicPlaying ? "Pause ambient sound" : "Play ambient flute"}
           >
-            {isMusicPlaying ? <Volume2 size={18} /> : <VolumeX size={18} />}
+            {isMusicPlaying ? (
+              <>
+                <Volume2 size={13} className="text-sky-500 animate-pulse" />
+                <span className="hidden sm:inline text-[11px]">Ambient On</span>
+              </>
+            ) : (
+              <VolumeX size={13} />
+            )}
           </button>
         )}
 
-        <ThemeToggle theme={theme} setTheme={setTheme} />
+        {/* New Chat Quick Action */}
         {currentPage === "chat" && (
           <button
             onClick={createNewChat}
-            className={`p-2 rounded-xl transition touch-manipulation ${
-              dark ? "text-gray-400 hover:bg-white/8 hover:text-white" : "text-gray-500 hover:bg-gray-100 hover:text-gray-900"
-            }`}
+            className="p-1.5 rounded-lg text-slate-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/[0.06] transition"
+            title="Create new chat (⌘N)"
             aria-label="New chat"
           >
-            <SquarePen size={18} />
+            <SquarePen size={16} />
           </button>
         )}
+
+        {/* Dark / Light Mode Toggle */}
+        <ThemeToggle theme={theme} setTheme={setTheme} />
       </div>
     </header>
   );

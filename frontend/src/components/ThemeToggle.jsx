@@ -7,13 +7,14 @@ function ThemeToggle({ theme, setTheme }) {
     <button
       onClick={() => setTheme(dark ? "light" : "dark")}
       aria-label="Toggle theme"
-      className={`p-2 rounded-xl transition-all touch-manipulation ${
-        dark
-          ? "text-gray-400 hover:text-yellow-400 hover:bg-white/8"
-          : "text-gray-500 hover:text-gray-900 hover:bg-gray-100"
-      }`}
+      title={dark ? "Switch to light theme" : "Switch to dark theme"}
+      className="p-1.5 rounded-lg text-slate-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/[0.06] transition duration-150 active:scale-95"
     >
-      {dark ? <Sun size={18} /> : <Moon size={18} />}
+      {dark ? (
+        <Sun size={16} className="text-amber-400" />
+      ) : (
+        <Moon size={16} className="text-slate-600" />
+      )}
     </button>
   );
 }
