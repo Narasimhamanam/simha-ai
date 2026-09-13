@@ -3,7 +3,7 @@ import { auth } from "../firebase";
 
 const BACKEND_URL =
   import.meta.env.VITE_BACKEND_URL ||
-  "https://astra-ai-backend.onrender.com";
+  "https://simha-ai-backend.onrender.com";
 
 const API = axios.create({
   baseURL: BACKEND_URL,

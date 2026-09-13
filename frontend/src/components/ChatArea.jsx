@@ -184,7 +184,7 @@ export default function ChatArea({
           ...m,
           { role: "assistant", content: "", agent: selectedAgent, timestamp: new Date().toISOString() },
         ]);
-        const baseURL = import.meta.env.VITE_BACKEND_URL || "https://astra-ai-backend.onrender.com";
+        const baseURL = import.meta.env.VITE_BACKEND_URL || "https://simha-ai-backend.onrender.com";
         const token = await user?.getIdToken?.().catch(() => null);
         const authHeaders = {
           "Content-Type": "application/json",
@@ -237,7 +237,7 @@ export default function ChatArea({
           { role: "assistant", content: "", agent: selectedAgent, timestamp: new Date().toISOString() },
         ]);
 
-        const baseURL = import.meta.env.VITE_BACKEND_URL || "https://astra-ai-backend.onrender.com";
+        const baseURL = import.meta.env.VITE_BACKEND_URL || "https://simha-ai-backend.onrender.com";
         const token = await user?.getIdToken?.().catch(() => null);
         const authHeaders = {
           "Content-Type": "application/json",
