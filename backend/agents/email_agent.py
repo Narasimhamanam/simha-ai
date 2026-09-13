@@ -4,9 +4,8 @@ from dotenv import load_dotenv
 import json
 import re
 
-load_dotenv()
-
-client = Groq(api_key=os.getenv("GROQ_API_KEY"))
+def get_groq_client():
+    return Groq(api_key=os.getenv("GROQ_API_KEY"))
 
 EMAIL_SYSTEM_PROMPT = """You are an expert email writing assistant integrated into Astra AI.
 
@@ -40,6 +39,7 @@ def generate_email_draft(prompt: str, sender_name: str = "") -> dict:
     """
     user_context = f"Sender name: {sender_name}\n\nUser request: {prompt}" if sender_name else f"User request: {prompt}"
 
+    client = get_groq_client()
     completion = client.chat.completions.create(
         model="qwen/qwen3.8-27b",
         messages=[

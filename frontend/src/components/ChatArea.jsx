@@ -128,6 +128,9 @@ export default function ChatArea({
 
   const uploadFile = async (file) => {
     if (!file) return null;
+    if (file.size > 30 * 1024 * 1024) {
+      throw new Error(`File size (${(file.size / (1024 * 1024)).toFixed(1)} MB) exceeds the 30MB document size limit.`);
+    }
     const fd = new FormData();
     fd.append("file", file);
     if (user?.email) fd.append("user_email", user.email);
@@ -657,7 +660,7 @@ export default function ChatArea({
                 <button
                   onClick={() => fileRef.current?.click()}
                   className="p-1.5 rounded-lg transition text-[var(--ink-3)] hover:text-[var(--ink-1)] hover:bg-white/5"
-                  title="Attach document (PDF, DOCX, TXT, CSV)"
+                  title="Attach document up to 30MB (PDF, DOCX, TXT, CSV)"
                 >
                   <Paperclip size={15} />
                 </button>

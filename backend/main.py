@@ -49,9 +49,9 @@ from routes.auth import router as auth_router
 
 load_dotenv()
 
-# Limits & Cost Controls
-MAX_DOC_SIZE_BYTES = int(os.getenv("MAX_DOCUMENT_SIZE_MB", "10")) * 1024 * 1024
-MAX_IMAGE_SIZE_BYTES = int(os.getenv("MAX_IMAGE_SIZE_MB", "5")) * 1024 * 1024
+# Limits & Cost Controls (Accepts up to 30MB documents)
+MAX_DOC_SIZE_BYTES = int(os.getenv("MAX_DOCUMENT_SIZE_MB", "30")) * 1024 * 1024
+MAX_IMAGE_SIZE_BYTES = int(os.getenv("MAX_IMAGE_SIZE_MB", "20")) * 1024 * 1024
 
 # Concurrency semaphore for LLM calls
 groq_semaphore = asyncio.Semaphore(10)
@@ -294,46 +294,11 @@ async def analyze_image(request: ImageAnalysisRequest, req: Request):
 
     await check_user_quota(user_email, request_type="image")
 
-    # ── Primary: Groq llama-3.2-11b-vision-preview ──────────────────────────
-    groq_api_key = os.getenv("GROQ_API_KEY")
-    if groq_api_key:
-        try:
-            from groq import Groq
-            groq_client = Groq(api_key=groq_api_key)
-            completion = groq_client.chat.completions.create(
-                model="llama-3.2-11b-vision-preview",
-                messages=[
-                    {
-                        "role": "user",
-                        "content": [
-                            {
-                                "type": "image_url",
-                                "image_url": {"url": request.image_base64},
-                            },
-                            {"type": "text", "text": request.prompt or "Describe this image in detail."},
-                        ],
-                    }
-                ],
-                temperature=0.3,
-                max_tokens=2048,
-            )
-            response_text = completion.choices[0].message.content or ""
-            await record_user_usage(user_email, request_type="image")
-            return {"response": response_text, "model": "llama-3.2-11b-vision-preview"}
-        except Exception as groq_exc:
-            print(f"[Astra Vision] Groq vision error, falling back to Gemini: {groq_exc}")
-
-    # ── Fallback: Google Gemini 1.5 Flash (vision-capable) ──────────────────
+    # ── Option 1: Google Gemini (REST API via httpx or SDK) ─────────────────
     gemini_api_key = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
     if gemini_api_key:
         try:
-            import google.generativeai as genai
-            import base64, re
-
-            genai.configure(api_key=gemini_api_key)
-            gemini_model = genai.GenerativeModel("gemini-1.5-flash")
-
-            # Handle both data-URL and raw base64
+            import re
             image_data = request.image_base64
             mime_type = "image/jpeg"
             if image_data.startswith("data:"):
@@ -342,28 +307,83 @@ async def analyze_image(request: ImageAnalysisRequest, req: Request):
                     mime_type = match.group(1)
                     image_data = match.group(2)
 
-            image_part = {
-                "inline_data": {
-                    "mime_type": mime_type,
-                    "data": image_data,
-                }
+            # Direct Google Generative Language REST API (resilient & fast)
+            gemini_payload = {
+                "contents": [
+                    {
+                        "parts": [
+                            {"text": request.prompt or "Describe this image in detail."},
+                            {
+                                "inline_data": {
+                                    "mime_type": mime_type,
+                                    "data": image_data,
+                                }
+                            },
+                        ]
+                    }
+                ],
+                "generationConfig": {
+                    "temperature": 0.3,
+                    "maxOutputTokens": 2048,
+                },
             }
-            gemini_response = gemini_model.generate_content(
-                [image_part, request.prompt or "Describe this image in detail."]
-            )
-            response_text = gemini_response.text or ""
-            await record_user_usage(user_email, request_type="image")
-            return {"response": response_text, "model": "gemini-1.5-flash"}
+
+            models = ["gemini-1.5-flash", "gemini-2.0-flash", "gemini-1.5-pro"]
+            for model in models:
+                try:
+                    url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={gemini_api_key}"
+                    async with httpx.AsyncClient(timeout=30.0) as client:
+                        resp = await client.post(url, json=gemini_payload)
+                        if resp.status_code == 200:
+                            data = resp.json()
+                            parts = data.get("candidates", [{}])[0].get("content", {}).get("parts", [])
+                            text = parts[0].get("text", "") if parts else ""
+                            if text:
+                                await record_user_usage(user_email, request_type="image")
+                                return {"response": text, "model": model}
+                except Exception as model_err:
+                    print(f"[Astra Vision] Gemini model {model} attempt notice: {model_err}")
+                    continue
+
         except Exception as gemini_exc:
-            print(f"[Astra Vision] Gemini fallback error: {gemini_exc}")
-            raise HTTPException(
-                status_code=500,
-                detail=f"Vision analysis failed on both providers: {str(gemini_exc)}",
-            )
+            print(f"[Astra Vision] Gemini REST error, falling back to Groq: {gemini_exc}")
+
+    # ── Option 2: Groq Vision (llama-3.2-11b / 90b) ─────────────────────────
+    groq_api_key = os.getenv("GROQ_API_KEY")
+    if groq_api_key:
+        groq_models = ["llama-3.2-11b-vision-preview", "llama-3.2-90b-vision-preview"]
+        for g_model in groq_models:
+            try:
+                from groq import Groq
+                groq_client = Groq(api_key=groq_api_key)
+                completion = groq_client.chat.completions.create(
+                    model=g_model,
+                    messages=[
+                        {
+                            "role": "user",
+                            "content": [
+                                {
+                                    "type": "image_url",
+                                    "image_url": {"url": request.image_base64},
+                                },
+                                {"type": "text", "text": request.prompt or "Describe this image in detail."},
+                            ],
+                        }
+                    ],
+                    temperature=0.3,
+                    max_tokens=2048,
+                )
+                response_text = completion.choices[0].message.content or ""
+                if response_text:
+                    await record_user_usage(user_email, request_type="image")
+                    return {"response": response_text, "model": g_model}
+            except Exception as groq_exc:
+                print(f"[Astra Vision] Groq {g_model} error: {groq_exc}")
+                continue
 
     raise HTTPException(
         status_code=503,
-        detail="No vision-capable API key configured. Set GROQ_API_KEY or GEMINI_API_KEY.",
+        detail="No vision-capable API key configured or available. Please set GEMINI_API_KEY or GROQ_API_KEY in your environment variables.",
     )
 
 

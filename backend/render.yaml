@@ -43,8 +43,8 @@ services:
       - key: PREMIUM_DAILY_DOCUMENTS
         value: "20"
       - key: MAX_DOCUMENT_SIZE_MB
-        value: "10"
+        value: "30"
       - key: MAX_IMAGE_SIZE_MB
-        value: "5"
+        value: "20"
       - key: MAX_REQUESTS_PER_MINUTE
         value: "30"

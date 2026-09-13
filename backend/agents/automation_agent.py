@@ -4,8 +4,8 @@ from groq import Groq
 import os
 from dotenv import load_dotenv
 
-load_dotenv()
-client = Groq(api_key=os.getenv("GROQ_API_KEY"))
+def get_groq_client():
+    return Groq(api_key=os.getenv("GROQ_API_KEY"))
 
 URL_SYSTEM_PROMPT = """You are a smart research assistant. You are given the raw text content of a webpage.
 
@@ -66,6 +66,7 @@ async def summarize_url(url: str) -> dict:
     if len(text) < 100:
         raise ValueError("Page has too little readable content.")
 
+    client = get_groq_client()
     completion = client.chat.completions.create(
         model="qwen/qwen3.8-27b",
         messages=[
@@ -99,6 +100,7 @@ def generate_calendar_event(prompt: str, sender_name: str = "") -> dict:
 
     context = f"User name: {sender_name}\n\nRequest: {prompt}" if sender_name else f"Request: {prompt}"
 
+    client = get_groq_client()
     completion = client.chat.completions.create(
         model="qwen/qwen3.8-27b",
         messages=[
