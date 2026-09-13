@@ -130,9 +130,13 @@ async def ensure_indexes():
 
         payments = get_payments_collection()
         if payments is not None:
-            await payments.create_index("merchant_transaction_id", unique=True, sparse=True)
-            await payments.create_index("order_id")
+            await payments.create_index("order_id", unique=True, sparse=True)
+            await payments.create_index("link_id", sparse=True)
+            await payments.create_index("payment_id", sparse=True)
             await payments.create_index("user_id")
+            await payments.create_index("status")
+            await payments.create_index("provider")
+
 
         entitlements = get_entitlements_collection()
         if entitlements is not None:

@@ -12,6 +12,8 @@ import {
   RefreshCw,
   Gift,
   ArrowLeft,
+  ExternalLink,
+  ShieldCheck,
 } from "lucide-react";
 import API from "../services/api";
 
@@ -25,6 +27,7 @@ export default function AdminDashboard({ user, onBack }) {
   const [grantEmail, setGrantEmail] = useState("");
   const [grantDays, setGrantDays] = useState(7);
   const [grantMsg, setGrantMsg] = useState("");
+  const [reconcilingId, setReconcilingId] = useState("");
 
   const fetchData = async () => {
     setLoading(true);
@@ -74,13 +77,28 @@ export default function AdminDashboard({ user, onBack }) {
     }
   };
 
+  const handleReconcile = async (orderId) => {
+    if (!orderId) return;
+    setReconcilingId(orderId);
+    try {
+      const headers = user?.email ? { "X-User-Email": user.email } : {};
+      const res = await API.post(`/api/admin/reconcile/${encodeURIComponent(orderId)}`, {}, { headers });
+      alert(`Reconciliation result for ${orderId}: ${res.data.status} — ${res.data.message}`);
+      fetchData();
+    } catch (err) {
+      alert(`Reconciliation error: ${err?.response?.data?.detail || err.message}`);
+    } finally {
+      setReconcilingId("");
+    }
+  };
+
   const filteredUsers = usersList.filter((u) =>
     u.email?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   return (
     <div className="flex-1 flex flex-col h-full overflow-y-auto bg-[var(--void)] text-[var(--ink-1)] px-4 sm:px-8 py-8">
-      <div className="max-w-6xl mx-auto w-full">
+      <div className="max-w-7xl mx-auto w-full">
         
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
@@ -95,7 +113,7 @@ export default function AdminDashboard({ user, onBack }) {
               Astra SaaS Administration
             </h1>
             <p className="text-xs text-[var(--ink-3)] mt-1">
-              Operational metrics, PhonePe transaction logs, and customer pass entitlements
+              Operational metrics, Cashfree transaction logs, and customer pass entitlements
             </p>
           </div>
 
@@ -117,57 +135,47 @@ export default function AdminDashboard({ user, onBack }) {
 
         {/* Metrics Grid */}
         {metrics && (
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-            <div className="glass-panel p-5">
-              <div className="flex items-center justify-between text-xs text-[var(--ink-3)] mb-2">
-                <span>Total Users</span>
-                <Users size={16} className="text-[var(--astra-cyan)]" />
-              </div>
-              <div className="text-2xl font-black">{metrics.total_users}</div>
-              <div className="text-[11px] text-[var(--ink-3)] mt-1">
-                {metrics.free_users} Free · {metrics.active_premium_users} Premium
-              </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3 mb-8">
+            <div className="glass-panel p-4">
+              <div className="text-[11px] text-[var(--ink-3)] mb-1">Users</div>
+              <div className="text-xl font-black">{metrics.total_users}</div>
+              <div className="text-[10px] text-[var(--ink-3)] mt-0.5">{metrics.free_users} Free</div>
             </div>
 
-            <div className="glass-panel p-5">
-              <div className="flex items-center justify-between text-xs text-[var(--ink-3)] mb-2">
-                <span>Active 7-Day Passes</span>
-                <UserCheck size={16} className="text-emerald-400" />
-              </div>
-              <div className="text-2xl font-black text-emerald-400">
-                {metrics.active_premium_users}
-              </div>
-              <div className="text-[11px] text-[var(--ink-3)] mt-1">
-                {metrics.expired_passes} Expired passes
-              </div>
+            <div className="glass-panel p-4 border-emerald-500/30">
+              <div className="text-[11px] text-emerald-400 mb-1">Active Passes</div>
+              <div className="text-xl font-black text-emerald-400">{metrics.active_premium_users}</div>
+              <div className="text-[10px] text-[var(--ink-3)] mt-0.5">7-Day Access</div>
             </div>
 
-            <div className="glass-panel p-5">
-              <div className="flex items-center justify-between text-xs text-[var(--ink-3)] mb-2">
-                <span>Total Revenue (INR)</span>
-                <TrendingUp size={16} className="text-[var(--astra-cyan)]" />
-              </div>
-              <div className="text-2xl font-black text-astra-gradient">
-                ₹{metrics.total_revenue_inr.toFixed(0)}
-              </div>
-              <div className="text-[11px] text-[var(--ink-3)] mt-1">
-                {metrics.successful_payments} Successful orders
-              </div>
+            <div className="glass-panel p-4">
+              <div className="text-[11px] text-[var(--ink-3)] mb-1">Expired Passes</div>
+              <div className="text-xl font-black text-[var(--ink-2)]">{metrics.expired_passes}</div>
+              <div className="text-[10px] text-[var(--ink-3)] mt-0.5">Reverted to Free</div>
             </div>
 
-            <div className="glass-panel p-5">
-              <div className="flex items-center justify-between text-xs text-[var(--ink-3)] mb-2">
-                <span>PhonePe Success Rate</span>
-                <CreditCard size={16} className="text-indigo-400" />
-              </div>
-              <div className="text-2xl font-black">
-                {metrics.total_payments > 0
-                  ? `${Math.round((metrics.successful_payments / metrics.total_payments) * 100)}%`
-                  : "N/A"}
-              </div>
-              <div className="text-[11px] text-[var(--ink-3)] mt-1">
-                {metrics.failed_payments} Failed orders
-              </div>
+            <div className="glass-panel p-4 border-amber-500/30">
+              <div className="text-[11px] text-amber-400 mb-1">Pending Payments</div>
+              <div className="text-xl font-black text-amber-400">{metrics.pending_payments || 0}</div>
+              <div className="text-[10px] text-[var(--ink-3)] mt-0.5">Awaiting Gateway</div>
+            </div>
+
+            <div className="glass-panel p-4 border-emerald-500/30">
+              <div className="text-[11px] text-emerald-400 mb-1">Successful Payments</div>
+              <div className="text-xl font-black text-emerald-400">{metrics.successful_payments}</div>
+              <div className="text-[10px] text-[var(--ink-3)] mt-0.5">Verified ₹99 Orders</div>
+            </div>
+
+            <div className="glass-panel p-4 border-red-500/30">
+              <div className="text-[11px] text-red-400 mb-1">Failed Payments</div>
+              <div className="text-xl font-black text-red-400">{metrics.failed_payments}</div>
+              <div className="text-[10px] text-[var(--ink-3)] mt-0.5">Declined / Dropped</div>
+            </div>
+
+            <div className="glass-panel p-4 border-[var(--astra-cyan)]">
+              <div className="text-[11px] text-[var(--astra-cyan)] mb-1">Total Revenue</div>
+              <div className="text-xl font-black text-astra-gradient">₹{metrics.total_revenue_inr.toFixed(0)}</div>
+              <div className="text-[10px] text-[var(--ink-3)] mt-0.5">Verified Net</div>
             </div>
           </div>
         )}
@@ -196,7 +204,10 @@ export default function AdminDashboard({ user, onBack }) {
               <option value={14}>14 Days Pass</option>
               <option value={30}>30 Days Pass</option>
             </select>
-            <button type="submit" className="btn-astra !py-2 text-xs font-bold">
+            <button
+              type="submit"
+              className="btn-astra !py-2 !px-4 text-xs font-semibold"
+            >
               Grant Pass
             </button>
           </form>
@@ -205,101 +216,149 @@ export default function AdminDashboard({ user, onBack }) {
           )}
         </div>
 
-        {/* Two-column view: Recent Transactions & User Directory */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          
-          {/* Recent PhonePe Transactions */}
-          <div className="glass-panel p-6">
-            <h2 className="text-sm font-bold mb-4 flex items-center justify-between">
-              <span>Recent Transactions (PhonePe)</span>
-              <span className="text-xs text-[var(--ink-3)] font-mono">{transactions.length}</span>
-            </h2>
+        {/* Full-width Cashfree Transactions Table */}
+        <div className="glass-panel p-6 mb-8">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h2 className="text-sm font-bold">Payment Transactions (Cashfree)</h2>
+              <p className="text-[11px] text-[var(--ink-3)]">
+                Server-verified transactions with Cashfree Payment Links
+              </p>
+            </div>
+            <span className="text-xs text-[var(--ink-3)] font-mono">{transactions.length} Records</span>
+          </div>
 
-            <div className="space-y-2.5 max-h-96 overflow-y-auto pr-1">
-              {transactions.length === 0 ? (
-                <p className="text-xs text-[var(--ink-3)] py-4 text-center">No transaction records</p>
-              ) : (
-                transactions.map((tx, idx) => (
-                  <div
-                    key={idx}
-                    className="p-3 rounded-xl bg-white/5 border border-[var(--edge-subtle)] text-xs flex items-center justify-between gap-2"
-                  >
-                    <div>
-                      <p className="font-semibold text-[var(--ink-1)] truncate max-w-[200px]">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs">
+              <thead>
+                <tr className="border-b border-[var(--edge-subtle)] text-[var(--ink-3)] uppercase tracking-wider text-[10px]">
+                  <th className="py-2.5 px-3">User</th>
+                  <th className="py-2.5 px-3">Order ID</th>
+                  <th className="py-2.5 px-3">Amount</th>
+                  <th className="py-2.5 px-3">Status</th>
+                  <th className="py-2.5 px-3">Provider</th>
+                  <th className="py-2.5 px-3">Created</th>
+                  <th className="py-2.5 px-3">Verified</th>
+                  <th className="py-2.5 px-3 text-right">Action</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-white/5">
+                {transactions.length === 0 ? (
+                  <tr>
+                    <td colSpan={8} className="py-6 text-center text-xs text-[var(--ink-3)]">
+                      No payment records found
+                    </td>
+                  </tr>
+                ) : (
+                  transactions.map((tx, idx) => (
+                    <tr key={idx} className="hover:bg-white/[0.02] transition">
+                      <td className="py-3 px-3 font-semibold text-[var(--ink-1)] max-w-[180px] truncate">
                         {tx.user_email}
-                      </p>
-                      <p className="text-[10px] text-[var(--ink-3)] font-mono">
-                        {tx.merchant_transaction_id}
-                      </p>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-bold text-[var(--ink-1)]">₹{tx.amount_inr}</p>
-                      <span
-                        className={`text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded ${
-                          tx.status === "SUCCESS"
-                            ? "bg-emerald-500/15 text-emerald-400"
-                            : tx.status === "PENDING"
-                            ? "bg-amber-500/15 text-amber-400"
-                            : "bg-red-500/15 text-red-400"
-                        }`}
-                      >
-                        {tx.status}
-                      </span>
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
+                      </td>
+                      <td className="py-3 px-3 font-mono text-[11px] text-[var(--ink-2)]">
+                        {tx.order_id}
+                      </td>
+                      <td className="py-3 px-3 font-bold text-[var(--ink-1)]">
+                        ₹{tx.amount_inr}
+                      </td>
+                      <td className="py-3 px-3">
+                        <span
+                          className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${
+                            tx.status === "SUCCESS"
+                              ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/30"
+                              : tx.status === "PENDING"
+                              ? "bg-amber-500/15 text-amber-400 border border-amber-500/30"
+                              : "bg-red-500/15 text-red-400 border border-red-500/30"
+                          }`}
+                        >
+                          {tx.status}
+                        </span>
+                      </td>
+                      <td className="py-3 px-3 uppercase text-[10px] font-mono text-[var(--ink-3)]">
+                        {tx.provider || "cashfree"}
+                      </td>
+                      <td className="py-3 px-3 text-[11px] text-[var(--ink-3)]">
+                        {tx.created_at ? new Date(tx.created_at).toLocaleString("en-GB", { dateStyle: "short", timeStyle: "short" }) : "-"}
+                      </td>
+                      <td className="py-3 px-3 text-[11px] text-[var(--ink-3)]">
+                        {tx.verified_at ? new Date(tx.verified_at).toLocaleString("en-GB", { dateStyle: "short", timeStyle: "short" }) : "-"}
+                      </td>
+                      <td className="py-3 px-3 text-right">
+                        {tx.status === "PENDING" ? (
+                          <button
+                            onClick={() => handleReconcile(tx.order_id)}
+                            disabled={reconcilingId === tx.order_id}
+                            className="px-2 py-1 rounded bg-[var(--astra-glow)] text-[var(--astra-cyan)] border border-[var(--edge)] hover:bg-[var(--astra-cyan)] hover:text-black transition text-[10px] font-semibold inline-flex items-center gap-1"
+                          >
+                            <RefreshCw size={10} className={reconcilingId === tx.order_id ? "animate-spin" : ""} />
+                            <span>Reconcile</span>
+                          </button>
+                        ) : (
+                          <span className="text-[10px] text-[var(--ink-3)] font-mono">Settled</span>
+                        )}
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
           </div>
+        </div>
 
-          {/* User Directory */}
-          <div className="glass-panel p-6">
-            <div className="flex items-center justify-between mb-4">
+        {/* User Directory */}
+        <div className="glass-panel p-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+            <div>
               <h2 className="text-sm font-bold">User Directory</h2>
-              <div className="relative">
-                <Search size={13} className="absolute left-2.5 top-2.5 text-[var(--ink-3)]" />
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Filter users..."
-                  className="pl-8 pr-3 py-1.5 rounded-lg bg-white/5 border border-[var(--edge-subtle)] text-xs text-[var(--ink-1)] outline-none w-36 sm:w-48"
-                />
-              </div>
+              <p className="text-[11px] text-[var(--ink-3)]">Customer pass entitlements and plan status</p>
             </div>
-
-            <div className="space-y-2.5 max-h-96 overflow-y-auto pr-1">
-              {filteredUsers.length === 0 ? (
-                <p className="text-xs text-[var(--ink-3)] py-4 text-center">No users found</p>
-              ) : (
-                filteredUsers.map((u) => (
-                  <div
-                    key={u.id}
-                    className="p-3 rounded-xl bg-white/5 border border-[var(--edge-subtle)] text-xs flex items-center justify-between"
-                  >
-                    <div>
-                      <p className="font-semibold text-[var(--ink-1)]">{u.email}</p>
-                      <p className="text-[10px] text-[var(--ink-3)]">
-                        Status: {u.subscription_status}
-                      </p>
-                    </div>
-                    <div>
-                      <span
-                        className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                          u.is_active_pass
-                            ? "bg-[var(--astra-glow)] text-[var(--astra-cyan)] border border-[var(--edge)]"
-                            : "bg-white/5 text-[var(--ink-3)]"
-                        }`}
-                      >
-                        {u.plan}
-                      </span>
-                    </div>
-                  </div>
-                ))
-              )}
+            <div className="relative">
+              <Search size={13} className="absolute left-2.5 top-2.5 text-[var(--ink-3)]" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Filter by email..."
+                className="pl-8 pr-3 py-1.5 rounded-xl bg-white/5 border border-[var(--edge-subtle)] text-xs text-[var(--ink-1)] outline-none focus:border-[var(--astra-cyan)] w-60"
+              />
             </div>
           </div>
 
+          <div className="space-y-2 max-h-96 overflow-y-auto pr-1">
+            {filteredUsers.length === 0 ? (
+              <p className="text-xs text-[var(--ink-3)] py-6 text-center">No users matched query</p>
+            ) : (
+              filteredUsers.map((u) => (
+                <div
+                  key={u.id}
+                  className="p-3 rounded-xl bg-white/5 border border-[var(--edge-subtle)] text-xs flex items-center justify-between gap-3"
+                >
+                  <div>
+                    <p className="font-semibold text-[var(--ink-1)]">{u.email}</p>
+                    <p className="text-[10px] text-[var(--ink-3)] font-mono">
+                      Joined: {u.created_at ? new Date(u.created_at).toLocaleDateString() : "Recent"}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <span
+                      className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${
+                        u.is_active_pass
+                          ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/30"
+                          : "bg-white/5 text-[var(--ink-3)] border border-[var(--edge-subtle)]"
+                      }`}
+                    >
+                      {u.is_active_pass ? "Astra 7-Day Pass" : "Free"}
+                    </span>
+                    {u.access_expires_at && u.is_active_pass && (
+                      <p className="text-[10px] text-emerald-400/80 font-mono mt-1">
+                        Expires: {new Date(u.access_expires_at).toLocaleDateString()}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
         </div>
 
       </div>

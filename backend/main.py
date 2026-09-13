@@ -73,11 +73,17 @@ app = FastAPI(
 # -----------------------------------
 # CORS
 # -----------------------------------
+_raw_origins = os.getenv(
+    "ALLOWED_ORIGINS",
+    "http://localhost:5173,http://localhost:3000,http://127.0.0.1:5173",
+)
+ALLOWED_ORIGINS = [o.strip() for o in _raw_origins.split(",") if o.strip()]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=ALLOWED_ORIGINS,
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allow_headers=["*"],
 )
 
@@ -283,34 +289,88 @@ async def analyze_image(request: ImageAnalysisRequest, req: Request):
     if not request.image_base64:
         raise HTTPException(status_code=400, detail="image_base64 is required.")
 
-    # Size check
+    # Size check (base64 is ~1.37x the raw binary size)
     if len(request.image_base64) > MAX_IMAGE_SIZE_BYTES * 1.37:
-        raise HTTPException(status_code=413, detail=f"Image exceeds maximum allowed size of {MAX_IMAGE_SIZE_BYTES // (1024*1024)}MB.")
+        raise HTTPException(
+            status_code=413,
+            detail=f"Image exceeds maximum allowed size of {MAX_IMAGE_SIZE_BYTES // (1024 * 1024)}MB.",
+        )
 
     await check_user_quota(user_email, request_type="image")
 
-    try:
-        from groq import Groq
-        groq_client = Groq(api_key=os.getenv("GROQ_API_KEY"))
-        completion = groq_client.chat.completions.create(
-            model="qwen/qwen3.8-27b",
-            messages=[
-                {
-                    "role": "user",
-                    "content": [
-                        {"type": "image_url", "image_url": {"url": request.image_base64}},
-                        {"type": "text", "text": request.prompt},
-                    ],
+    # ── Primary: Groq llama-3.2-11b-vision-preview ──────────────────────────
+    groq_api_key = os.getenv("GROQ_API_KEY")
+    if groq_api_key:
+        try:
+            from groq import Groq
+            groq_client = Groq(api_key=groq_api_key)
+            completion = groq_client.chat.completions.create(
+                model="llama-3.2-11b-vision-preview",
+                messages=[
+                    {
+                        "role": "user",
+                        "content": [
+                            {
+                                "type": "image_url",
+                                "image_url": {"url": request.image_base64},
+                            },
+                            {"type": "text", "text": request.prompt or "Describe this image in detail."},
+                        ],
+                    }
+                ],
+                temperature=0.3,
+                max_tokens=2048,
+            )
+            response_text = completion.choices[0].message.content or ""
+            await record_user_usage(user_email, request_type="image")
+            return {"response": response_text, "model": "llama-3.2-11b-vision-preview"}
+        except Exception as groq_exc:
+            print(f"[Astra Vision] Groq vision error, falling back to Gemini: {groq_exc}")
+
+    # ── Fallback: Google Gemini 1.5 Flash (vision-capable) ──────────────────
+    gemini_api_key = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
+    if gemini_api_key:
+        try:
+            import google.generativeai as genai
+            import base64, re
+
+            genai.configure(api_key=gemini_api_key)
+            gemini_model = genai.GenerativeModel("gemini-1.5-flash")
+
+            # Handle both data-URL and raw base64
+            image_data = request.image_base64
+            mime_type = "image/jpeg"
+            if image_data.startswith("data:"):
+                match = re.match(r"data:([^;]+);base64,(.+)", image_data)
+                if match:
+                    mime_type = match.group(1)
+                    image_data = match.group(2)
+
+            image_part = {
+                "inline_data": {
+                    "mime_type": mime_type,
+                    "data": image_data,
                 }
-            ],
-            temperature=0.3,
-            max_tokens=1024,
-        )
-        response_text = completion.choices[0].message.content or ""
-        await record_user_usage(user_email, request_type="image")
-        return {"response": response_text}
-    except Exception as exc:
-        raise HTTPException(status_code=500, detail=f"Astra Vision analysis error: {str(exc)}")
+            }
+            gemini_response = gemini_model.generate_content(
+                [image_part, request.prompt or "Describe this image in detail."]
+            )
+            response_text = gemini_response.text or ""
+            await record_user_usage(user_email, request_type="image")
+            return {"response": response_text, "model": "gemini-1.5-flash"}
+        except Exception as gemini_exc:
+            print(f"[Astra Vision] Gemini fallback error: {gemini_exc}")
+            raise HTTPException(
+                status_code=500,
+                detail=f"Vision analysis failed on both providers: {str(gemini_exc)}",
+            )
+
+    raise HTTPException(
+        status_code=503,
+        detail="No vision-capable API key configured. Set GROQ_API_KEY or GEMINI_API_KEY.",
+    )
+
+
 
 
 # -----------------------------------
@@ -385,10 +445,13 @@ async def upload_pdf(
     user_email: str = Form(""),
     chat_id: str = Form(""),
 ):
+    ALLOWED_EXTENSIONS = {".pdf", ".docx", ".doc", ".txt", ".md", ".csv", ".rst"}
+    import uuid
+    from pathlib import Path as _Path
+
     # Check quota for document processing
     await check_user_quota(user_email or "guest", request_type="document")
 
-    os.makedirs("uploads", exist_ok=True)
     content = await file.read()
     file_size = len(content)
 
@@ -398,13 +461,31 @@ async def upload_pdf(
             detail=f"File exceeds maximum allowed size of {MAX_DOC_SIZE_BYTES // (1024*1024)}MB.",
         )
 
-    file_path = f"uploads/{file.filename}"
+    ext = _Path(file.filename or "").suffix.lower()
+    if ext not in ALLOWED_EXTENSIONS:
+        raise HTTPException(
+            status_code=415,
+            detail=f"Unsupported file type '{ext}'. Accepted: {', '.join(sorted(ALLOWED_EXTENSIONS))}",
+        )
+
+    # Collision-safe filename: uuid4 prefix keeps concurrent uploads isolated
+    safe_name = f"{uuid.uuid4().hex}_{file.filename}"
+    os.makedirs("uploads", exist_ok=True)
+    file_path = os.path.join("uploads", safe_name)
     with open(file_path, "wb") as buffer:
         buffer.write(content)
 
-    # Process and vectorize
-    chunks = process_pdf(file_path)
-    create_vector_store(chunks)
+    # Process and vectorize (supports PDF, DOCX, TXT, CSV)
+    try:
+        chunks = process_pdf(file_path)
+        create_vector_store(chunks)
+    except Exception as proc_err:
+        # Cleanup orphan file on failure
+        try:
+            os.remove(file_path)
+        except OSError:
+            pass
+        raise HTTPException(status_code=422, detail=f"Document processing failed: {str(proc_err)}")
 
     doc_id = None
     docs_collection = get_documents_collection()
@@ -413,7 +494,7 @@ async def upload_pdf(
             "user_email": user_email,
             "file_name": file.filename,
             "file_size": file_size,
-            "file_type": file.content_type or "application/pdf",
+            "file_type": file.content_type or f"application/{ext.lstrip('.')}",
             "chat_id": chat_id or None,
             "pages": len(chunks),
             "uploaded_at": datetime.datetime.now(datetime.timezone.utc),
@@ -424,11 +505,12 @@ async def upload_pdf(
     await record_user_usage(user_email or "guest", request_type="document")
 
     return {
-        "message": "PDF indexed successfully in Astra Docs",
+        "message": "Document indexed successfully in Astra Docs",
         "doc_id": doc_id,
         "file_name": file.filename,
         "pages": len(chunks),
     }
+
 
 
 @app.get("/get-documents/{user_email}")

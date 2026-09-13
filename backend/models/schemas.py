@@ -95,26 +95,46 @@ class UsageInfo(BaseModel):
 class CheckoutRequest(BaseModel):
     email: str
     redirect_url: Optional[str] = None
+    customer_name: Optional[str] = None
+    customer_phone: Optional[str] = None
 
 
 class PaymentOrderResponse(BaseModel):
     order_id: str
-    merchant_transaction_id: str
-    amount: int
+    link_id: Optional[str] = None
+    merchant_transaction_id: Optional[str] = None  # Backward compatibility
+    amount: float = 99.00
     currency: str = "INR"
-    checkout_url: str
+    payment_link: str
+    checkout_url: str  # For frontend redirect
     status: str = "PENDING"
+    provider: str = "cashfree"
 
 
 class PaymentStatusResponse(BaseModel):
     order_id: str
-    merchant_transaction_id: str
+    link_id: Optional[str] = None
+    merchant_transaction_id: Optional[str] = None
     status: str
-    amount: int
+    amount: float = 99.00
     currency: str = "INR"
     plan: str = "ASTRA_7_DAY"
     access_expires_at: Optional[str] = None
+    provider: str = "cashfree"
+    provider_payment_id: Optional[str] = None
+    verified_at: Optional[str] = None
     message: str = ""
+
+
+class PaymentReconcileRequest(BaseModel):
+    order_id: str
+
+
+class PaymentReconcileResponse(BaseModel):
+    order_id: str
+    reconciled: bool
+    status: str
+    message: str
 
 
 # ── Admin Schemas ──────────────────────────────────────────────────
@@ -128,9 +148,11 @@ class AdminMetrics(BaseModel):
     total_payments: int = 0
     successful_payments: int = 0
     failed_payments: int = 0
+    pending_payments: int = 0
 
 
 class AdminGrantRequest(BaseModel):
     email: str
     days: int = 7
     reason: Optional[str] = "Admin manual grant"
+

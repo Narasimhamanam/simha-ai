@@ -2,7 +2,7 @@ from datetime import datetime, timezone
 from fastapi import APIRouter, HTTPException, Depends
 from typing import Optional, List
 
-from models.schemas import AdminMetrics, AdminGrantRequest
+from models.schemas import AdminMetrics, AdminGrantRequest, PaymentReconcileResponse
 from database import (
     get_users_collection,
     get_payments_collection,
@@ -12,6 +12,7 @@ from database import (
 )
 from security.auth import require_admin
 from services.entitlement import activate_7_day_pass
+from services.payment.cashfree import CashfreeService, ASTRA_PASS_AMOUNT_INR, ASTRA_PASS_CURRENCY
 
 router = APIRouter(prefix="/api/admin", tags=["Admin"])
 
@@ -49,9 +50,14 @@ async def get_admin_metrics(admin: dict = Depends(require_admin)):
         if payments_col is not None
         else 0
     )
+    pending_payments = (
+        await payments_col.count_documents({"status": "PENDING"})
+        if payments_col is not None
+        else 0
+    )
 
-    # Total revenue from successful payments (amount in paise / 100)
-    total_revenue_inr = successful_payments * 99.0
+    # Total revenue strictly calculated from verified successful payments
+    total_revenue_inr = successful_payments * ASTRA_PASS_AMOUNT_INR
 
     return AdminMetrics(
         total_users=total_users,
@@ -62,6 +68,7 @@ async def get_admin_metrics(admin: dict = Depends(require_admin)):
         total_payments=total_payments,
         successful_payments=successful_payments,
         failed_payments=failed_payments,
+        pending_payments=pending_payments,
     )
 
 
@@ -89,6 +96,12 @@ async def list_users(
         is_active = False
         if expires_at and isinstance(expires_at, datetime):
             is_active = expires_at.replace(tzinfo=timezone.utc if not expires_at.tzinfo else None) > now
+        elif expires_at and isinstance(expires_at, str):
+            try:
+                dt = datetime.fromisoformat(expires_at.replace("Z", "+00:00"))
+                is_active = dt > now
+            except Exception:
+                is_active = False
 
         users_list.append({
             "id": str(user.get("_id")),
@@ -134,7 +147,7 @@ async def list_transactions(
     limit: int = 50,
     admin: dict = Depends(require_admin),
 ):
-    """Lists recent transactions with PhonePe references and statuses."""
+    """Lists recent transactions with Cashfree references and statuses."""
     payments_col = get_payments_collection()
     if payments_col is None:
         return []
@@ -143,15 +156,40 @@ async def list_transactions(
     transactions = []
 
     async for doc in cursor:
+        created_at_val = doc.get("created_at")
+        verified_at_val = doc.get("verified_at")
         transactions.append({
             "order_id": doc.get("order_id"),
-            "merchant_transaction_id": doc.get("merchant_transaction_id"),
+            "link_id": doc.get("link_id"),
             "user_email": doc.get("email") or doc.get("user_id"),
-            "amount_inr": doc.get("amount", 9900) / 100.0,
-            "currency": doc.get("currency", "INR"),
+            "amount_inr": float(doc.get("amount", ASTRA_PASS_AMOUNT_INR)),
+            "currency": doc.get("currency", ASTRA_PASS_CURRENCY),
             "status": doc.get("status"),
-            "payment_method": doc.get("payment_method"),
-            "created_at": doc.get("created_at").isoformat() if isinstance(doc.get("created_at"), datetime) else "",
+            "provider": doc.get("provider", "cashfree"),
+            "payment_link": doc.get("payment_link"),
+            "provider_payment_id": doc.get("provider_payment_id"),
+            "created_at": created_at_val.isoformat() if isinstance(created_at_val, datetime) else "",
+            "verified_at": verified_at_val.isoformat() if isinstance(verified_at_val, datetime) else "",
         })
 
     return transactions
+
+
+@router.post("/reconcile/{order_id}", response_model=PaymentReconcileResponse)
+async def admin_reconcile_payment(
+    order_id: str,
+    admin: dict = Depends(require_admin),
+):
+    """
+    Administrative tool to force-reconcile a transaction with Cashfree.
+    """
+    try:
+        result = await CashfreeService.reconcile_payment(order_id)
+        return PaymentReconcileResponse(
+            order_id=order_id,
+            reconciled=result["reconciled"],
+            status=result["status"],
+            message=result["message"],
+        )
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))

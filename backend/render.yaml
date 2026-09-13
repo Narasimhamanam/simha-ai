@@ -13,15 +13,38 @@ services:
         sync: false
       - key: GROQ_API_KEY
         sync: false
-      - key: PHONEPE_MERCHANT_ID
+      - key: GEMINI_API_KEY
         sync: false
-      - key: PHONEPE_SALT_KEY
+      - key: CASHFREE_CLIENT_ID
         sync: false
-      - key: PHONEPE_SALT_INDEX
+      - key: CASHFREE_CLIENT_SECRET
         sync: false
-      - key: PHONEPE_ENV
-        value: UAT
+      - key: CASHFREE_ENVIRONMENT
+        value: sandbox
+      - key: CASHFREE_API_VERSION
+        value: 2023-08-01
       - key: ADMIN_EMAILS
         sync: false
-      - key: FRONTEND_URL
+      - key: BACKEND_URL
+        # Set to your actual backend Render URL, e.g. https://astra-ai-backend.onrender.com
         sync: false
+      - key: FRONTEND_URL
+        # Set to your actual frontend Render URL, e.g. https://gpt-6-astra.onrender.com
+        sync: false
+      - key: ALLOWED_ORIGINS
+        # Comma-separated list: https://gpt-6-astra.onrender.com,http://localhost:5173
+        sync: false
+      - key: FREE_DAILY_MESSAGES
+        value: "10"
+      - key: PREMIUM_DAILY_MESSAGES
+        value: "100"
+      - key: FREE_DAILY_DOCUMENTS
+        value: "2"
+      - key: PREMIUM_DAILY_DOCUMENTS
+        value: "20"
+      - key: MAX_DOCUMENT_SIZE_MB
+        value: "10"
+      - key: MAX_IMAGE_SIZE_MB
+        value: "5"
+      - key: MAX_REQUESTS_PER_MINUTE
+        value: "30"

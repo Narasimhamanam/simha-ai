@@ -6,7 +6,7 @@
 
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.136-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
 [![React](https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev)
-[![PhonePe](https://img.shields.io/badge/Payment-PhonePe_PG-5f259f?style=for-the-badge)](https://phonepe.com)
+[![Cashfree](https://img.shields.io/badge/Payment-Cashfree_PG-14b8a6?style=for-the-badge)](https://cashfree.com)
 [![Python](https://img.shields.io/badge/Python-3.11+-3b82f6?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
 [![MongoDB](https://img.shields.io/badge/Database-MongoDB_Motor-47A248?style=for-the-badge&logo=mongodb&logoColor=white)](https://www.mongodb.com)
 
@@ -52,15 +52,16 @@ Astra AI rejects deceptive pricing tactics, hidden recurring subscriptions, and 
 
 ---
 
-## 🛡️ PhonePe Payment Gateway Integration
+## 🛡️ Cashfree Payment Links Integration
 
-Payment processing is built on **PhonePe Standard Payment Gateway**:
+Payment processing is powered by **Cashfree Payment Gateway & Payment Links** (`2023-08-01` API):
 
-1. **Order Initiation:** Backend computes base64 payloads and cryptographic SHA-256 checksums (`X-VERIFY: SHA256(payload + endpoint + salt_key)###salt_index`).
-2. **Checkout:** User completes checkout on PhonePe's secure checkout page (UPI, Credit/Debit Card, Net Banking).
-3. **Server-to-Server Verification:** PhonePe posts asynchronous webhooks verified against the salt key. The backend independently queries PhonePe's status API before activating entitlements.
-4. **Idempotency Guarantee:** Payments and entitlement activations are atomic. Double-charging or duplicate entitlement grants are prevented.
-5. **No Secret Leaks:** Card numbers, CVVs, and UPI PINs are never handled or stored by Astra AI.
+1. **Order Initiation:** Backend generates unique internal order & link IDs and initiates a server-controlled Payment Link (`POST /links`) for ₹99.00 INR.
+2. **Hosted Checkout:** Customer is redirected to Cashfree's hosted payment page (UPI, Credit/Debit Cards, Net Banking).
+3. **Cryptographic Webhook Verification:** Cashfree sends asynchronous webhooks verified with HMAC-SHA256 (`x-webhook-signature` computed over `timestamp + raw_body`).
+4. **Server-Side Status Polling:** The application independently verifies payment status against Cashfree's status API before activating entitlements.
+5. **Idempotency Guarantee:** Duplicate webhooks or retried verification checks never duplicate or over-extend subscriptions.
+6. **Zero Client Trust:** Neither frontend redirects nor client state can activate premium access. Expiry is computed strictly from server time.
 
 ---
 
@@ -71,11 +72,11 @@ Payment processing is built on **PhonePe Standard Payment Gateway**:
                                       │
               ┌───────────────────────┼───────────────────────┐
               ▼                       ▼                       ▼
-      [MongoDB Atlas]        [PhonePe PG Service]       [ChromaDB Vector RAG]
-      - users                 - POST /create-order      - PDF embeddings
-      - payments              - GET /status/{id}        - Gita RAG
-      - entitlements          - POST /webhook
-      - usages
+      [MongoDB Atlas]       [Cashfree PG Service]       [ChromaDB Vector RAG]
+      - users                - POST /links              - PDF embeddings
+      - payments             - GET /links/{id}          - Astra Wisdom
+      - entitlements         - POST /cashfree/webhook
+      - usages               - POST /reconcile/{id}
       - audit_logs
 ```
 
@@ -95,9 +96,8 @@ source venv/bin/activate
 
 pip install -r requirements.txt
 cp .env.example .env
-# Edit .env with your MONGO_URL, GROQ_API_KEY, and PHONEPE credentials
-
-uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+# Edit .env with your MONGO_URL, GROQ_API_KEY, and CASHFREE credentials
+uvicorn main:app --reload --port 8000
 ```
 
 ### 2. Frontend Setup
@@ -112,19 +112,18 @@ The frontend will start at `http://localhost:5173` connecting to the backend at 
 
 ---
 
-## 🧪 Automated Testing
+## 🧪 Automated Tests
 
-Run the complete test suite:
+Execute backend test suites covering authentication, entitlements, quotas, and Cashfree payment integration:
 
 ```bash
 cd backend
-python -m unittest discover -s tests -p "test_*.py"
+python -m unittest discover tests/ -v
 ```
 
-Verified test coverage:
-- `test_phonepe_payment.py`: Checksum generation, webhook validation, pricing integrity.
-- `test_entitlement_and_usage.py`: Free vs 7-Day quotas, auto-expiration, pass activation.
-- `test_auth_and_isolation.py`: Authentication resolution, admin authorization, rate limiting (30 req/min).
+- `test_cashfree_payment.py`: Cashfree Payment Links creation, amount verification (₹99), HMAC-SHA256 webhook signatures, idempotency, 7-day expiry calculation.
+- `test_entitlement_and_usage.py`: Quotas, auto-expiration, and multi-tenant isolation.
+- `test_auth_and_isolation.py`: Per-IP sliding-window rate limiting and admin security guards.
 
 ---
 

@@ -79,7 +79,7 @@ export default function LegalPages({ initialTab = "terms", onBack }) {
               </p>
               <h2 className="text-sm font-bold text-[var(--ink-1)] mt-4 mb-2">2. Payment Data Security</h2>
               <p className="mb-3">
-                All financial payments are handled exclusively through PhonePe Payment Gateway. Astra AI never stores, processes, or transmits sensitive payment information (such as credit/debit card numbers, CVV, or UPI PINs).
+                All financial payments are handled exclusively through Cashfree Payments Gateway. Astra AI never stores, processes, or transmits sensitive payment information (such as credit/debit card numbers, CVV, or UPI PINs).
               </p>
               <h2 className="text-sm font-bold text-[var(--ink-1)] mt-4 mb-2">3. Data Isolation</h2>
               <p className="mb-3">
@@ -100,7 +100,7 @@ export default function LegalPages({ initialTab = "terms", onBack }) {
               </p>
               <h2 className="text-sm font-bold text-[var(--ink-1)] mt-4 mb-2">2. Refund Eligibility</h2>
               <p className="mb-3">
-                If your payment was debited via PhonePe but technical gateway errors prevented entitlement activation within 24 hours, you are entitled to an immediate resolution or a full refund upon verification by our support team.
+                If your payment was debited via Cashfree Payments but technical gateway errors prevented entitlement activation within 24 hours, you are entitled to an immediate resolution or a full refund upon verification by our support team.
               </p>
             </div>
           )}

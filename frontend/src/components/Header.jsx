@@ -9,8 +9,6 @@ const AGENTS = [
 ];
 
 export default function Header({
-  theme,
-  setTheme,
   setIsSidebarOpen,
   isSidebarOpen,
   activeChat,
@@ -98,7 +96,7 @@ export default function Header({
           </button>
         )}
 
-        <ThemeToggle theme={theme} setTheme={setTheme} />
+        <ThemeToggle />
       </div>
     </header>
   );

@@ -132,12 +132,32 @@ async def activate_7_day_pass(
 ) -> Dict[str, Any]:
     """
     Grants 7-day Astra Pass to user and persists in DB.
+    Uses strict server time. If user has active time remaining,
+    safely stacks the 7 days on top of their existing expiry.
     """
     now = datetime.now(timezone.utc)
-    expires_at = now + timedelta(days=days)
-
     users_col = get_users_collection()
     entitlements_col = get_entitlements_collection()
+
+    user = await users_col.find_one({"email": user_email}) if users_col is not None else None
+    base_time = now
+
+    if user and user.get("access_expires_at"):
+        existing_exp = user.get("access_expires_at")
+        if isinstance(existing_exp, str):
+            try:
+                dt = datetime.fromisoformat(existing_exp.replace("Z", "+00:00"))
+                if dt > now:
+                    base_time = dt
+            except Exception:
+                pass
+        elif isinstance(existing_exp, datetime):
+            dt = existing_exp if existing_exp.tzinfo else existing_exp.replace(tzinfo=timezone.utc)
+            if dt > now:
+                base_time = dt
+
+    expires_at = base_time + timedelta(days=days)
+    started_at = user.get("access_started_at") if (user and base_time > now and user.get("access_started_at")) else now
 
     if users_col is not None:
         await users_col.update_one(
@@ -146,7 +166,7 @@ async def activate_7_day_pass(
                 "$set": {
                     "plan": "ASTRA_7_DAY",
                     "subscription_status": "ACTIVE",
-                    "access_started_at": now,
+                    "access_started_at": started_at,
                     "access_expires_at": expires_at,
                     "is_pro": True,
                     "updated_at": now,
@@ -160,18 +180,21 @@ async def activate_7_day_pass(
             "user_id": user_email,
             "email": user_email,
             "plan": "ASTRA_7_DAY",
-            "starts_at": now,
+            "starts_at": started_at,
             "expires_at": expires_at,
             "status": "ACTIVE",
             "source_payment_id": source_payment_id,
             "created_at": now,
         })
 
+    days_remaining = max(1, (expires_at - now).days + (1 if (expires_at - now).seconds > 0 else 0))
+
     return {
         "plan": "ASTRA_7_DAY",
         "subscription_status": "ACTIVE",
-        "access_started_at": now.isoformat(),
+        "access_started_at": started_at.isoformat() if isinstance(started_at, datetime) else started_at,
         "access_expires_at": expires_at.isoformat(),
-        "days_remaining": days,
+        "days_remaining": days_remaining,
         "is_active": True,
     }
+

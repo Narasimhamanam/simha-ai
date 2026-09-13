@@ -1,201 +1,113 @@
-# ASTRA AI (GPT 6 Astra) — Codebase Migration & Architectural Audit
+# 🔍 GPT-6 Astra (Astra AI) — Comprehensive Architecture & Migration Audit
 
+**Document Version:** 2.0.0  
 **Date:** September 2026  
-**Project:** Simha AI → GPT 6 Astra (Astra AI) Transformation  
-**Target Brand:** GPT 6 Astra / Astra AI  
-**Legal Classification:** Independent AI Application (Not affiliated with OpenAI, Google, or Anthropic)
+**Auditor:** Principal SaaS Systems & Full-Stack Security Architect  
+**Project:** Astra AI (formerly Simha AI)  
 
 ---
 
 ## 1. Executive Summary
 
-This document establishes the official technical audit and migration blueprint for transitioning the existing **Simha AI** single-tier prototype into **GPT 6 Astra** (marketed as **Astra AI**), an enterprise-ready, multi-tenant consumer AI SaaS.
+This audit performs an exhaustive, ground-truth inspection of the **Astra AI** repository prior to executing the platform-wide transformation into **GPT-6 Astra** (branded primarily as **Astra AI**). 
 
-The transformation preserves all high-performance core capabilities (multi-agent routing, streaming inference, PDF RAG, vision OCR, email drafting, calendar scheduling, URL summarization) while completely replacing legacy identity, insecure fake-payment logic, unverified authentication, and monolithic data structures with a production-grade SaaS architecture.
-
----
-
-## 2. Complete Codebase Audit of Existing Simha AI
-
-### 2.1 Technology Stack
-
-| Layer | Existing Simha AI Implementation | Target Astra AI Implementation |
-| :--- | :--- | :--- |
-| **Frontend Framework** | React 19 (`^19.2.5`), Vite (`^8.0.10`), Tailwind CSS (`^3.4.3`), Framer Motion (`^12.38.0`), Lucide Icons (`^1.14.0`), Three.js (`^0.185.1`) | React 19 + Vite + Tailwind CSS with Astra AI Design System & Orbital 3D canvas |
-| **Backend Framework** | FastAPI (`0.136.1`), Uvicorn (`0.46.0`), Python 3.11/3.13 | FastAPI modular architecture with APIRouters, dependency injection, and security middlewares |
-| **Database** | MongoDB via `motor==3.7.1` (collections: `chats`, `documents`, `users`) | MongoDB extended schemas (`users`, `payments`, `entitlements`, `usages`, `chats`, `documents`, `audit_logs`) with compound indexes |
-| **Authentication** | Firebase Auth (Google OAuth client-side only; backend receives unverified `email`/`user_id`) | Firebase Auth client-side + backend authentication guard (`require_authenticated_user`) enforcing user data isolation |
-| **AI Providers** | Groq (`groq==1.2.0`), fallback list: `qwen/qwen3.8-27b`, `groq/compound-mini`, `groq/compound`, `openai/gpt-oss-120b` | Multi-provider abstraction (`BaseAIProvider`, `GroqProvider`, `ModelRouter`) with configurable env vars and strict server-side key safety |
-| **RAG & Vectors** | ChromaDB (`chromadb==1.5.9`) + HuggingFace embeddings (`sentence-transformers/all-MiniLM-L6-v2`) in `chroma_db/` & `divine_rag/` | Retained and hardened for Astra Docs and Astra Wisdom modules |
-| **Payment Gateway** | Razorpay (Stubbed with insecure fallback `rzp_test_dummy` granting instant free Pro on any dummy string) | **PhonePe Standard Payment Gateway (PG)** with SHA-256 checksums, S2S webhook verification, and idempotent activation |
-| **Subscription Model** | Static boolean `is_pro` without expiration | Dynamic entitlement engine: `FREE` (10 messages/day) vs `ASTRA_7_DAY` (₹99 for 7 days with automatic expiration) |
-| **Testing** | None (0 test files) | Comprehensive automated test suite (`unittest`/`pytest`) covering auth, payments, entitlements, usage, and admin |
-| **Admin Panel** | None | Role-based administrative dashboard with metrics, user inspection, revenue logs, and audit trails |
+The application possesses a strong modular core (multi-agent routing, streaming completions, ChromaDB RAG, and Cashfree payment link foundations), but exhibits specific systemic deficiencies:
+1. **Broken Theme Toggler:** Theme state toggled `theme` in React, but failed to set `.light` class on `<html>`, reset to dark on reload due to missing `localStorage` hydration, and components contained hard-coded dark color classes.
+2. **Failing Vision Pipeline:** Vision analysis at `/analyze-image` used text-only model `qwen/qwen3.8-27b`, causing `rate_limit_exceeded` / token errors (HTTP 429).
+3. **Broken Document Upload & RAG:** Upload endpoint `/upload-pdf` lacked support for non-PDF files (`.docx`, `.txt`, `.csv`), lacked collision-safe filenames, and didn't return text context to the client, while frontend lacked drag-and-drop state machines.
+4. **Authentication Gaps:** Firebase auth was limited to Google popup; lacked Email/Password, GitHub, Microsoft, password reset, and email verification.
+5. **CORS Vulnerability:** `allow_origins=["*"]` with `allow_credentials=True` is prohibited by web standards and insecure for production SaaS.
+6. **Residual Legacy Branding & Assets:** Lion image files (`logo-lion.png`, `neon-lion.png`, `narasimha-hero.jpg`) in `frontend/public/` and old SVG favicons remained.
 
 ---
 
-### 2.2 Security & Code Vulnerability Findings in Legacy Codebase
+## 2. Component-by-Component Inventory
 
-1. **Insecure Payment Bypass:**
-   - In `backend/main.py` (lines 137–139, 158–173), when `RAZORPAY_KEY_ID == "rzp_test_dummy"`, backend generated an `order_dummy`. The verification endpoint accepted any dummy signature and updated `{"$set": {"is_pro": True}}`.
-   - **Remediation:** Complete elimination of Razorpay and all dummy pathways. PhonePe integration requires cryptographic SHA-256 checksum validation and direct PhonePe status checks before entitlement activation.
-2. **Missing Backend Authentication:**
-   - Any user could call `/get-chats/{user_email}`, `/create-chat`, `/get-documents/{user_email}`, or `/stream-chat` with another user's email to read, write, or spend credits on their behalf.
-   - **Remediation:** Introduce backend `require_authenticated_user` dependency to validate caller tokens and strictly isolate user resources.
-3. **No Expiration on Pro Status:**
-   - Once `is_pro` was set to `True`, it remained indefinitely.
-   - **Remediation:** Introduce `entitlements` collection with `starts_at` and `expires_at` timestamps, checked on every authenticated request with automatic reversion to `FREE` status once expired.
-4. **Branding & Trademark Exposure:**
-   - The name "Simha", lion assets, and Sanskrit lion references permeate the UI, CSS, icons, and system prompts.
-   - **Remediation:** Rebrand to "GPT 6 Astra" / "Astra AI" with prominent legal disclaimers stating independence from OpenAI.
+### 2.1 Frontend Architecture (`frontend/`)
+- **Core Framework:** React 19 + Vite 8 + Tailwind CSS.
+- **Current Working Features:**
+  - Sidebar workspace navigation, chat history listing, agent selection (Wisdom, Coding, Study, Productivity).
+  - Streaming SSE chat UI in `ChatArea.jsx`.
+  - Cashfree hosted checkout link redirect and status polling in `PricingPage.jsx` and `PaymentStatusPage.jsx`.
+  - Admin metrics dashboard in `AdminDashboard.jsx`.
+- **Broken / Flawed Features:**
+  - **Theme Toggling:** `Home.jsx` forces `dark` on initial mount; never saves or reads from `localStorage`; never toggles `html.light`.
+  - **Document Upload:** No drag-and-drop zone; file input restricted; errors unformatted.
+  - **Vision Input:** Uploads raw base64 uncompressed; triggers backend 429 errors.
+  - **Authentication:** Only a bare Google sign-in button without proper modal, email/password, or password recovery.
+- **Branding Assets:**
+  - `frontend/public/` contains legacy lion images: `logo-lion.png`, `neon-lion.png`, `narasimha-hero.jpg`, `narasimha-hero.png`.
+  - `favicon.svg` is an old Vite icon.
 
----
+### 2.2 Backend Architecture (`backend/`)
+- **Core Framework:** FastAPI + Uvicorn + Motor (Async MongoDB) + ChromaDB.
+- **Current Working Features:**
+  - Server-side Cashfree Payment Links service (`services/payment/cashfree.py`).
+  - Cashfree Webhook HMAC-SHA256 signature verification.
+  - 7-Day Pass entitlement calculation from server time and renewal stacking (`services/entitlement.py`).
+  - Daily quota and sliding-window rate limiter (`services/usage.py`, `security/rate_limiter.py`).
+  - Agent routing (`agents/router.py`, `coding_agent.py`, `study_agent.py`, `productivity_agent.py`, `divine_agent.py`).
+- **Broken / Incomplete Features:**
+  - **Vision Endpoint (`/analyze-image`):** Uses non-vision model `qwen/qwen3.8-27b`, causing immediate 429 token errors. Needs migration to `llama-3.2-11b-vision-preview` with Gemini fallback.
+  - **Document Processing (`/upload-pdf`):** Hardcoded to `PyPDFLoader` only. Needs universal document parser for PDF, DOCX, TXT, CSV with collision-safe filenames.
+  - **CORS:** Uses wildcard `allow_origins=["*"]` with `allow_credentials=True`. Needs explicit origins (`http://localhost:5173`, `https://gpt-6-astra.onrender.com`).
+  - **Gemini Fallback:** Missing backend Gemini provider abstraction for multimodal reasoning.
 
-## 3. Astra AI Target Architecture
-
-```
-                                [Client Browser / Mobile PWA]
-                                              │
-                      ┌───────────────────────┴───────────────────────┐
-                      │                                               │
-             Public Marketing / Landing                      Astra App Workspace
-             - Hero & Feature Showcase                       - Astra Chat (Conversational)
-             - Capability Grid                               - Astra Code (Programming)
-             - Transparent Pricing (₹99)                     - Astra Study (Academic)
-             - Legal & Compliance Pages                      - Astra Docs (RAG PDF)
-             - FAQ & OpenAI Disclaimer                       - Astra Vision (OCR / Multimodal)
-                                                             - Astra Research (URL Intelligence)
-                                                             - Astra Productivity (Email/Calendar)
-                                                             - Astra Wisdom (Reflective clarity)
-                                                              │
-                                            HTTPS / Bearer Token
-                                                              │
-                                                              ▼
-                                            [FastAPI Gateway (Uvicorn)]
-                                                              │
-                     ┌────────────────────────────────────────┼────────────────────────────────────────┐
-                     ▼                                        ▼                                        ▼
-             [Security Middlewares]                   [Payment Router]                         [Admin Gateway]
-             - Rate Limiter (30 req/min)              - POST /create-order                     - GET /metrics
-             - Auth Guard (Token Verifier)            - GET /status/{id}                       - GET /users
-             - User Data Isolation                    - POST /webhook                          - POST /entitlement/grant
-                     │                                        │                                        │
-                     ▼                                        ▼                                        ▼
-             [Entitlement & Usage Engine]             [PhonePe PG Service]                     [Admin Audit Logs]
-             - Check Quota (Free vs 7-Day)            - SHA-256 Checksum                       - Role-based Access
-             - Auto-Expiration Evaluation             - S2S Status Check                       - Zero Credential Leak
-             - Record Daily Consumption               - Idempotent Activation
-                     │
-                     ▼
-             [AI Provider Abstraction]
-             - BaseAIProvider
-             - ModelRouter (Groq / Qwen / Llama)
-             - Astra Agent Orchestration
-                     │
-                     ▼
-             [Data Persistence Layer (MongoDB)]
-             - users, payments, entitlements, usages, chats, documents, audit_logs
-```
+### 2.3 Database Layer (MongoDB Motor)
+- **Collections:** `users`, `payments`, `entitlements`, `usages`, `chats`, `documents`, `audit_logs`.
+- **Indexes:** Properly indexed on `order_id`, `link_id`, `payment_id`, `user_id`, `status`, and `email`.
+- **Status:** Healthy and functional.
 
 ---
 
-## 4. Database Schema Extensions
+## 3. Detailed Deficiency Analysis & Root Causes
 
-### 4.1 Collection: `users`
-```json
-{
-  "_id": "ObjectId",
-  "email": "user@example.com",
-  "name": "Jane Doe",
-  "avatar": "https://...",
-  "plan": "FREE | ASTRA_7_DAY",
-  "subscription_status": "INACTIVE | ACTIVE | EXPIRED",
-  "access_started_at": "ISODate or null",
-  "access_expires_at": "ISODate or null",
-  "is_admin": false,
-  "created_at": "ISODate",
-  "updated_at": "ISODate"
-}
-```
-
-### 4.2 Collection: `payments`
-```json
-{
-  "_id": "ObjectId",
-  "user_id": "user@example.com",
-  "email": "user@example.com",
-  "order_id": "ASTRA_ORD_20260913_...",
-  "merchant_transaction_id": "ASTRA_TXN_...",
-  "provider": "PHONEPE",
-  "amount": 9900,
-  "currency": "INR",
-  "status": "PENDING | SUCCESS | FAILED | EXPIRED",
-  "payment_method": "UPI | CARD | NETBANKING",
-  "provider_reference_id": "T260913...",
-  "raw_response": {},
-  "created_at": "ISODate",
-  "updated_at": "ISODate"
-}
-```
-
-### 4.3 Collection: `entitlements`
-```json
-{
-  "_id": "ObjectId",
-  "user_id": "user@example.com",
-  "email": "user@example.com",
-  "plan": "ASTRA_7_DAY",
-  "starts_at": "ISODate",
-  "expires_at": "ISODate",
-  "status": "ACTIVE | EXPIRED | REVOKED",
-  "source_payment_id": "ASTRA_TXN_...",
-  "created_at": "ISODate"
-}
-```
-
-### 4.4 Collection: `usages`
-```json
-{
-  "_id": "ObjectId",
-  "user_id": "user@example.com",
-  "email": "user@example.com",
-  "date": "2026-09-13",
-  "messages_count": 7,
-  "tokens_estimated": 3500,
-  "document_requests": 1,
-  "image_requests": 2,
-  "created_at": "ISODate",
-  "updated_at": "ISODate"
-}
-```
+| Feature Area | Current State | Root Cause | Remediation |
+|---|---|---|---|
+| **Theme Toggler** | Broken / Resets to Dark | 1. No `localStorage` read/write. 2. `html.light` class never added. 3. Hard-coded dark classes in views. | Implement `ThemeProvider` + hook with `localStorage`, system preference listener, `.light` CSS variables, and clean theme switching. |
+| **Image / Vision** | HTTP 429 Rate Limit Error | Model set to `qwen/qwen3.8-27b` (not vision capable) + large uncompressed base64 images exceeding token capacity. | Create `VisionRouter` with Pillow image pre-scaling (max 1024px), using `llama-3.2-11b-vision-preview` on Groq and `gemini-2.0-flash` on Google Gemini. |
+| **Document Upload** | Fails on non-PDF, no context returned | 1. `PyPDFLoader` crashes on DOCX/TXT/CSV. 2. File collisions in `uploads/{filename}`. 3. `/upload-pdf` returns no context snippet. | Create `DocumentProcessor` supporting PDF, DOCX, TXT, CSV; save files with UUID prefix; return `context_preview`. Add drag & drop in UI. |
+| **Authentication** | Google-only popup | Missing Email/Password, GitHub, Microsoft providers, password reset, and verify email. | Implement comprehensive `AuthModal` with Firebase Auth (Google, GitHub, Microsoft, Email/Password, Reset, Verification). |
+| **CORS** | `allow_origins=["*"]` | Insecure wildcard configuration with credentials. | Set explicit allowed origins from environment with localhost and production Render domains. |
+| **Branding & Logo** | Legacy lion motifs in public/ | Old logo files present in `frontend/public/`. | Remove all lion assets; generate original geometric quantum star Astra AI logo component and SVG favicon. |
+| **Render URL** | `simha-ai-frontend-production` | Needs transition to `gpt-6-astra.onrender.com`. | Update `render.yaml`, document exact manual Render service rename steps, and configure CORS. |
 
 ---
 
-## 5. PhonePe Payment Flow Specification
+## 4. File Modification Matrix
 
-1. **User Action:** Clicks "Get 7-Day Pass — ₹99" on Pricing Page.
-2. **Order Initiation (`POST /api/payments/create-order`):**
-   - Backend creates unique `merchantTransactionId = f"ASTRA_{uuid4().hex[:16]}"`
-   - Builds PhonePe payload (amount = 9900 paise, ₹99)
-   - Computes SHA-256 checksum: `sha256(base64_payload + "/pg/v1/pay" + salt_key) + "###" + salt_index`
-   - Stores payment record as `PENDING`
-   - Returns PhonePe payment redirect URL
-3. **User Payment:** User completes payment on PhonePe checkout (UPI, Card, Net Banking).
-4. **Server-to-Server Callback (`POST /api/payments/webhook`):**
-   - PhonePe posts base64 payload with `X-VERIFY` header
-   - Backend verifies checksum: `sha256(response_base64 + salt_key) + "###" + salt_index`
-   - Backend queries PhonePe status API directly to confirm authentic payment status
-   - If payment is `COMPLETED` / `PAYMENT_SUCCESS`:
-     - Checks if `merchant_transaction_id` is already processed (Idempotency guarantee)
-     - Updates payment status to `SUCCESS`
-     - Inserts entitlement: `starts_at = now`, `expires_at = now + 7 days`
-     - Updates user: `plan = "ASTRA_7_DAY"`, `subscription_status = "ACTIVE"`, `access_expires_at = now + 7 days`
-5. **Client Redirection:** Frontend redirects to `/payment/status?order_id=...` which queries `GET /api/payments/status/{order_id}` and displays success state with expiry date.
+### 4.1 Files to Modify
+- `frontend/src/index.css` — Fix light mode styles, ensure readable semantic color tokens.
+- `frontend/src/pages/Home.jsx` — Integrate ThemeProvider, AuthModal, drag-and-drop document upload, and refined routing.
+- `frontend/src/components/ThemeToggle.jsx` — Connect to ThemeProvider with support for Light, Dark, System modes.
+- `frontend/src/components/Header.jsx` — Display new Astra logo, auth status, theme toggle.
+- `frontend/src/components/Sidebar.jsx` — New Astra logo, navigation items, quota pill.
+- `frontend/src/components/ChatArea.jsx` — Complete document drag-and-drop, preview badge, image compression before upload.
+- `frontend/src/firebase.js` — Add GitHub, Microsoft, and Email/Password provider configurations.
+- `frontend/index.html` — Updated title (`GPT-6 Astra — AI Workspace`), favicon, OpenGraph, and meta tags.
+- `backend/main.py` — Fix CORS origins, fix `/analyze-image` to route to vision models, expand `/upload-document`.
+- `backend/ai/provider.py` — Add Gemini provider, update Groq models to actual IDs, build `VisionRouter`.
+- `backend/rag/pdf_processor.py` -> `backend/rag/document_processor.py` — Support PDF, DOCX, TXT, CSV.
+- `backend/.env.example` — Add `GEMINI_API_KEY`, `ALLOWED_ORIGINS`, Cashfree variables.
+- `backend/render.yaml` — Update environment definitions and service names.
 
----
+### 4.2 New Files to Create
+- `frontend/src/components/AstraLogo.jsx` — Original professional quantum star Astra AI logo.
+- `frontend/src/components/AuthModal.jsx` — Complete Firebase authentication modal.
+- `frontend/src/context/ThemeContext.jsx` — Persistent light/dark/system theme manager.
+- `backend/rag/document_processor.py` — Universal document extraction engine.
+- `docs/ASTRA_MIGRATION_AUDIT.md` — This audit document.
+- `docs/ASTRA_FINAL_AUDIT.md` — Final audit after all phases complete.
 
-## 6. Migration Safeguards & Fallbacks
+### 4.3 Files to Delete / Remove
+- `frontend/public/logo-lion.png` — Legacy Simha lion logo.
+- `frontend/public/neon-lion.png` — Legacy neon lion asset.
+- `frontend/public/narasimha-hero.jpg` — Legacy hero image.
+- `frontend/public/narasimha-hero.png` — Legacy hero image.
 
-- **Zero Data Loss:** Existing users in MongoDB will be preserved. When queried, any user lacking the new `plan` or `access_expires_at` fields will automatically be read as `FREE` tier.
-- **Chats & Documents Isolation:** Existing chats and documents remain intact and are scoped strictly by authenticated `user_email`.
-- **Safe Environment Variables:** All secrets remain server-side. Frontend accesses only public environment variables.
+### 4.4 Files to Retain Untouched
+- `backend/services/payment/cashfree.py` — Real Cashfree payment link service.
+- `backend/services/entitlement.py` — Server-time 7-day entitlement logic.
+- `backend/database.py` — Motor collections and indexes.
+- `backend/security/auth.py` — `require_active_premium` guard.
+- `backend/security/rate_limiter.py` — Sliding-window rate limiter.

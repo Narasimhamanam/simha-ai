@@ -1,12 +1,13 @@
 import { useState } from "react";
-import { Check, Zap, ArrowLeft, ShieldCheck, Lock, Sparkles, Loader2 } from "lucide-react";
+import { Check, Zap, ArrowLeft, ShieldCheck, Lock, Sparkles, Loader2, Calendar, RefreshCw } from "lucide-react";
 import API from "../services/api";
 
-export default function PricingPage({ user, onBack, onStartFree }) {
+export default function PricingPage({ user, usage, onBack, onStartFree }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const isPassActive = usage?.is_premium || usage?.plan === "ASTRA_7_DAY";
 
-  const handlePhonePeCheckout = async () => {
+  const handleCashfreeCheckout = async () => {
     if (!user?.email) {
       setError("Please sign in first to purchase the Astra 7-Day Pass.");
       return;
@@ -16,21 +17,25 @@ export default function PricingPage({ user, onBack, onStartFree }) {
     setError("");
 
     try {
+      // Direct post-checkout return URL to our verification page
       const redirectUrl = `${window.location.origin}/payment/status`;
-      const response = await API.post("/api/payments/create-order", {
+      const response = await API.post("/api/payments/create", {
         email: user.email,
         redirect_url: redirectUrl,
+        customer_name: user.displayName || user.email.split("@")[0],
       });
 
-      const { checkout_url } = response.data;
-      if (checkout_url) {
-        // Redirect browser to official PhonePe checkout page
-        window.location.href = checkout_url;
+      const { payment_link, checkout_url } = response.data;
+      const targetUrl = payment_link || checkout_url;
+
+      if (targetUrl) {
+        // Redirect browser directly to official hosted Cashfree checkout
+        window.location.href = targetUrl;
       } else {
-        setError("Unable to retrieve checkout gateway URL. Please try again.");
+        setError("Unable to retrieve Cashfree checkout link. Please try again.");
       }
     } catch (err) {
-      console.error("Payment initiation error:", err);
+      console.error("Cashfree checkout error:", err);
       const detail = err?.response?.data?.detail;
       setError(typeof detail === "string" ? detail : "Payment gateway initialization failed. Please retry.");
     } finally {
@@ -53,15 +58,38 @@ export default function PricingPage({ user, onBack, onStartFree }) {
         {/* Title */}
         <div className="text-center max-w-xl mx-auto mb-10">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[var(--astra-glow)] border border-[var(--edge)] text-xs font-bold text-[var(--astra-cyan)] mb-3">
-            <Zap size={13} /> Transparent Entitlements
+            <Zap size={13} /> Official Cashfree Integration
           </div>
           <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight mb-2">
             Upgrade to Astra 7-Day Pass
           </h1>
           <p className="text-xs sm:text-sm text-[var(--ink-3)] leading-relaxed">
-            Get high-capacity AI access for one full week. Single payment of ₹99. No recurring charges.
+            High-capacity AI intelligence for one full week. Single payment of ₹99. No recurring charges.
           </p>
         </div>
+
+        {/* Existing Active Pass Banner */}
+        {isPassActive && (
+          <div className="mb-8 max-w-2xl mx-auto p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0">
+                <Calendar size={20} />
+              </div>
+              <div className="text-left">
+                <p className="text-xs font-bold text-emerald-300">Astra Pass Active</p>
+                <p className="text-[11px] text-[var(--ink-2)]">
+                  You currently have {usage?.days_remaining || 7} days remaining. Any additional pass safely stacks onto your current expiry.
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={onBack}
+              className="btn-ghost !py-1.5 !px-3 text-xs shrink-0"
+            >
+              Back to Chat
+            </button>
+          </div>
+        )}
 
         {error && (
           <div className="mb-6 max-w-md mx-auto p-3.5 rounded-xl text-xs bg-red-500/10 border border-red-500/25 text-red-400 text-center font-medium">
@@ -100,7 +128,7 @@ export default function PricingPage({ user, onBack, onStartFree }) {
                 </li>
                 <li className="flex items-center gap-2.5">
                   <Check size={14} className="text-[var(--astra-cyan)] shrink-0" />
-                  <span>Standard model latency</span>
+                  <span>Standard model response queue</span>
                 </li>
               </ul>
             </div>
@@ -112,17 +140,17 @@ export default function PricingPage({ user, onBack, onStartFree }) {
             </button>
           </div>
 
-          {/* 7-Day Pass */}
+          {/* 7-Day Pass Card */}
           <div className="glass-panel p-6 sm:p-8 flex flex-col justify-between border-[var(--astra-cyan)] relative shadow-2xl shadow-[var(--astra-glow)]">
             <div className="absolute -top-3 right-6 px-3 py-1 rounded-full bg-gradient-to-r from-[var(--astra-cyan)] to-[var(--royal-violet)] text-[10px] font-black text-[#0B0F17] uppercase tracking-wider">
-              Best Value
+              Popular Choice
             </div>
 
             <div>
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-lg font-bold text-[var(--ink-1)]">Astra 7-Day Pass</h2>
                 <span className="text-xs px-2.5 py-0.5 rounded-full bg-[var(--astra-glow)] text-[var(--astra-cyan)] font-bold">
-                  7 Full Days
+                  7 Days
                 </span>
               </div>
               <div className="flex items-baseline gap-1 mb-6">
@@ -132,45 +160,45 @@ export default function PricingPage({ user, onBack, onStartFree }) {
               <ul className="space-y-3 text-xs text-[var(--ink-2)] mb-8">
                 <li className="flex items-center gap-2.5 font-semibold text-[var(--ink-1)]">
                   <Check size={14} className="text-[var(--astra-cyan)] shrink-0" />
-                  <span>100 messages per day</span>
+                  <span>Higher AI usage (100 messages/day)</span>
                 </li>
                 <li className="flex items-center gap-2.5">
                   <Check size={14} className="text-[var(--astra-cyan)] shrink-0" />
-                  <span>20 PDF uploads with deep vector RAG</span>
+                  <span>Astra premium features (Email & Calendar)</span>
                 </li>
                 <li className="flex items-center gap-2.5">
                   <Check size={14} className="text-[var(--astra-cyan)] shrink-0" />
-                  <span>Astra Vision (Image analysis & OCR)</span>
+                  <span>Documents (20 PDF uploads + Vector RAG)</span>
                 </li>
                 <li className="flex items-center gap-2.5">
                   <Check size={14} className="text-[var(--astra-cyan)] shrink-0" />
-                  <span>Astra Research & URL Intelligence</span>
+                  <span>Coding agent with automated debugging</span>
                 </li>
                 <li className="flex items-center gap-2.5">
                   <Check size={14} className="text-[var(--astra-cyan)] shrink-0" />
-                  <span>Astra Productivity (Email & Calendar)</span>
+                  <span>Study agent with structured curricula</span>
                 </li>
                 <li className="flex items-center gap-2.5">
                   <Check size={14} className="text-[var(--astra-cyan)] shrink-0" />
-                  <span>High-priority execution queue</span>
+                  <span>Vision (Image analysis & OCR)</span>
                 </li>
               </ul>
             </div>
 
             <button
-              onClick={handlePhonePeCheckout}
+              onClick={handleCashfreeCheckout}
               disabled={loading}
               className="btn-astra w-full !py-3 text-xs font-bold flex items-center justify-center gap-2 disabled:opacity-50"
             >
               {loading ? (
                 <>
                   <Loader2 size={14} className="animate-spin" />
-                  <span>Connecting to PhonePe...</span>
+                  <span>Creating secure payment...</span>
                 </>
               ) : (
                 <>
                   <Lock size={13} />
-                  <span>Pay ₹99 via PhonePe</span>
+                  <span>{isPassActive ? "Extend 7-Day Pass — ₹99" : "Get 7-Day Pass — ₹99"}</span>
                 </>
               )}
             </button>
@@ -181,7 +209,7 @@ export default function PricingPage({ user, onBack, onStartFree }) {
         <div className="mt-10 max-w-xl mx-auto flex flex-wrap items-center justify-center gap-6 text-[11px] text-[var(--ink-3)]">
           <div className="flex items-center gap-1.5">
             <ShieldCheck size={14} className="text-[var(--astra-cyan)]" />
-            <span>Official PhonePe Gateway</span>
+            <span>Official Cashfree Payments</span>
           </div>
           <div className="flex items-center gap-1.5">
             <Lock size={14} className="text-[var(--astra-cyan)]" />
@@ -189,7 +217,7 @@ export default function PricingPage({ user, onBack, onStartFree }) {
           </div>
           <div className="flex items-center gap-1.5">
             <Sparkles size={14} className="text-[var(--astra-cyan)]" />
-            <span>Instant Entitlement Activation</span>
+            <span>Instant Server-Verified Activation</span>
           </div>
         </div>
       </div>

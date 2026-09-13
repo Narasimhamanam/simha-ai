@@ -14,9 +14,18 @@ import PricingPage from "./PricingPage";
 import PaymentStatusPage from "./PaymentStatusPage";
 import AdminDashboard from "./AdminDashboard";
 import LegalPages from "./LegalPages";
+import AuthModal from "../components/AuthModal";
 
-import { signInWithPopup, signOut, onAuthStateChanged } from "firebase/auth";
+import {
+  signInWithPopup,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  sendPasswordResetEmail,
+  signOut,
+  onAuthStateChanged,
+} from "firebase/auth";
 import { auth, provider } from "../firebase";
+import { useTheme } from "../context/ThemeContext";
 import API from "../services/api";
 import { startKeepAlive, stopKeepAlive } from "../services/keepAlive";
 import { AlertCircle, RefreshCw, Sparkles } from "lucide-react";
@@ -25,20 +34,13 @@ const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:8000";
 const prewarm = () => fetch(`${BACKEND_URL}/ping`).catch(() => {});
 
 export default function Home() {
-  const [theme, setTheme] = useState("dark");
+  const { theme } = useTheme();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [appLoading, setAppLoading] = useState(false);
   const [appError, setAppError] = useState("");
   const [selectedAgent, setSelectedAgent] = useState("study");
-
-  useEffect(() => {
-    document.documentElement.classList.add("dark");
-  }, []);
-
-  useEffect(() => {
-    if (theme === "dark") document.documentElement.classList.add("dark");
-    else document.documentElement.classList.remove("dark");
-  }, [theme]);
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [authModalMode, setAuthModalMode] = useState("login");
 
   const isDevGuest = (import.meta.env.VITE_DEV_GUEST || "").toString().toLowerCase() === "true";
   const [user, setUser] = useState(
@@ -47,9 +49,12 @@ export default function Home() {
   const [profile, setProfile] = useState(null);
 
   // Determine initial page based on URL
-  const initialPage = window.location.pathname.includes("/payment/status") || window.location.search.includes("order_id")
-    ? "payment_status"
-    : "chat";
+  const isPaymentRedirect =
+    window.location.pathname.includes("/payment/status") ||
+    window.location.pathname.includes("/payment/success") ||
+    window.location.search.includes("order_id") ||
+    window.location.search.includes("link_id");
+  const initialPage = isPaymentRedirect ? "payment_status" : "chat";
 
   const [currentPage, setCurrentPage] = useState(initialPage);
   const [legalTab, setLegalTab] = useState("terms");
@@ -81,7 +86,7 @@ export default function Home() {
       try {
         const fallback = await API.get(`/user-credits/${encodeURIComponent(email)}`);
         setUsage(fallback.data);
-      } catch {}
+      } catch { /* ignore fallback failure */ }
     }
   }, []);
 
@@ -102,6 +107,8 @@ export default function Home() {
 
   const [retryCountdown, setRetryCountdown] = useState(0);
   const retryTimerRef = useRef(null);
+  const retryFnRef = useRef(null);
+  const pendingPageRef = useRef(null);
 
   const fetchChats = useCallback(
     async (email) => {
@@ -119,7 +126,8 @@ export default function Home() {
           if (c <= 0) {
             clearInterval(retryTimerRef.current);
             setRetryCountdown(0);
-            fetchChats(email);
+            // Use retryInit to avoid the 'accessed before declaration' lint error
+            if (retryFnRef.current) retryFnRef.current();
           }
         }, 1000);
         return;
@@ -158,6 +166,11 @@ export default function Home() {
     setRetryCountdown(0);
     if (user) fetchChats(user.email);
   };
+  // Keep retryFnRef in sync with the latest retryInit so fetchChats can call
+  // it without a forward-reference hoisting issue
+  useEffect(() => {
+    retryFnRef.current = retryInit;
+  });
 
   const createNewChat = async () => {
     try {
@@ -182,16 +195,21 @@ export default function Home() {
     const unsub = onAuthStateChanged(auth, (u) => {
       if (u) {
         setUser(u);
-        const isAdmin = u.email === "narasimhamanam@gmail.com" || u.email?.includes("admin@astra.ai");
         setProfile({
           nickname: u.displayName || "Astra User",
           email: u.email,
           avatar: u.photoURL,
-          is_admin: isAdmin,
+          is_admin: false, // Admin status resolved server-side via ADMIN_EMAILS env var
         });
         API.defaults.headers.common["X-User-Email"] = u.email;
         fetchChats(u.email);
         startKeepAlive();
+        setShowAuthModal(false);
+        // Navigate to pending page if any
+        if (pendingPageRef.current) {
+          setCurrentPage(pendingPageRef.current);
+          pendingPageRef.current = null;
+        }
       } else {
         stopKeepAlive();
         setUser(null);
@@ -215,21 +233,20 @@ export default function Home() {
     try {
       await signInWithPopup(auth, provider);
     } catch (e) {
-      console.error("Login failed:", e);
+      console.error("Google login failed:", e);
     }
   };
 
-  const handleLoginThenPage = async (page) => {
-    if (!user) {
-      try {
-        await signInWithPopup(auth, provider);
-        setCurrentPage(page);
-      } catch (e) {
-        console.error("Login error:", e);
-      }
-    } else {
-      setCurrentPage(page);
-    }
+  const handleEmailLogin = async (email, password) => {
+    await signInWithEmailAndPassword(auth, email, password);
+  };
+
+  const handleEmailSignup = async (email, password) => {
+    await createUserWithEmailAndPassword(auth, email, password);
+  };
+
+  const handlePasswordReset = async (email) => {
+    await sendPasswordResetEmail(auth, email);
   };
 
   const handleLogout = async () => {
@@ -253,14 +270,27 @@ export default function Home() {
       );
     }
     return (
-      <LandingPage
-        onStartFree={handleGoogleLogin}
-        onGetPass={() => handleLoginThenPage("pricing")}
-        onOpenLegal={(tab) => {
-          setLegalTab(tab);
-          setCurrentPage("legal");
-        }}
-      />
+      <>
+        <LandingPage
+          onStartFree={() => { setAuthModalMode("login"); setShowAuthModal(true); }}
+          onGetPass={() => { pendingPageRef.current = "pricing"; setAuthModalMode("login"); setShowAuthModal(true); }}
+          onOpenLegal={(tab) => {
+            setLegalTab(tab);
+            setCurrentPage("legal");
+          }}
+        />
+        {showAuthModal && (
+          <AuthModal
+            mode={authModalMode}
+            setMode={setAuthModalMode}
+            onClose={() => setShowAuthModal(false)}
+            onGoogleLogin={handleGoogleLogin}
+            onEmailLogin={handleEmailLogin}
+            onEmailSignup={handleEmailSignup}
+            onPasswordReset={handlePasswordReset}
+          />
+        )}
+      </>
     );
   }
 
@@ -340,8 +370,6 @@ export default function Home() {
       {/* Main viewport area */}
       <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden transition-all duration-300 lg:ml-[64px]">
         <Header
-          theme={theme}
-          setTheme={setTheme}
           setIsSidebarOpen={setIsSidebarOpen}
           isSidebarOpen={isSidebarOpen}
           activeChat={activeChat}
@@ -375,6 +403,7 @@ export default function Home() {
         {currentPage === "pricing" && (
           <PricingPage
             user={user}
+            usage={usage}
             onBack={() => setCurrentPage("chat")}
             onStartFree={() => setCurrentPage("chat")}
           />

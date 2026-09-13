@@ -625,7 +625,7 @@ export default function ChatArea({
                   type="file"
                   ref={fileRef}
                   hidden
-                  accept=".pdf,.txt,.md"
+                  accept=".pdf,.docx,.doc,.txt,.md,.csv,.rst"
                   onChange={(e) => {
                     if (e.target.files?.[0]) setSelectedFile(e.target.files[0]);
                   }}
@@ -633,7 +633,7 @@ export default function ChatArea({
                 <button
                   onClick={() => fileRef.current?.click()}
                   className="p-1.5 rounded-lg transition text-[var(--ink-3)] hover:text-[var(--ink-1)] hover:bg-white/5"
-                  title="Attach PDF or document"
+                  title="Attach document (PDF, DOCX, TXT, CSV)"
                 >
                   <Paperclip size={15} />
                 </button>

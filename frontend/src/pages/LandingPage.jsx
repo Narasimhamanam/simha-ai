@@ -94,7 +94,7 @@ const FAQS = [
   },
   {
     q: "Which payment methods are supported?",
-    a: "We support instant, secure payments via PhonePe Payment Gateway, including UPI (GPay, PhonePe, Paytm), credit/debit cards, and net banking.",
+    a: "We support instant, secure payments via Cashfree Payments Gateway, including UPI (GPay, PhonePe, Paytm, BHIM), credit/debit cards, and net banking.",
   },
 ];
 
