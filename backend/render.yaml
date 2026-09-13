@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: simha-ai-backend
+    name: astra-ai-backend
     env: python
     plan: free
     region: oregon
@@ -13,7 +13,15 @@ services:
         sync: false
       - key: GROQ_API_KEY
         sync: false
-      - key: RAZORPAY_KEY_ID
+      - key: PHONEPE_MERCHANT_ID
         sync: false
-      - key: RAZORPAY_KEY_SECRET
+      - key: PHONEPE_SALT_KEY
+        sync: false
+      - key: PHONEPE_SALT_INDEX
+        sync: false
+      - key: PHONEPE_ENV
+        value: UAT
+      - key: ADMIN_EMAILS
+        sync: false
+      - key: FRONTEND_URL
         sync: false

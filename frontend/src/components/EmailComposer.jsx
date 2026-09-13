@@ -10,7 +10,7 @@ import API from "../services/api";
 
 // ── Gmail API helpers ──────────────────────────────────────────
 function encodeEmailToBase64(to, cc, subject, body, fromName, attachments = []) {
-  const boundary = "simha_ai_boundary_" + Date.now();
+  const boundary = "astra_ai_boundary_" + Date.now();
   const hasAttachments = attachments.length > 0;
 
   const headers = [
@@ -288,7 +288,7 @@ export default function EmailComposer({ theme, profile, onClose, credits, fetchC
               <div>
                 <h3 className="text-base font-bold">Connect Gmail to Send</h3>
                 <p className="text-xs mt-1 leading-relaxed" style={{ color: "var(--ink-3)" }}>
-                  Authorize Simha AI to send this drafted email securely from your Google account.
+                  Authorize Astra AI to send this drafted email securely from your Google account.
                 </p>
               </div>
               <button onClick={handleRequestPermission} className="btn-gold w-full flex items-center justify-center gap-2 py-3">

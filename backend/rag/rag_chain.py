@@ -32,7 +32,7 @@ def ask_pdf(question):
 
     prompt = f"""
 
-You are Simha AI,
+You are Astra AI,
 an intelligent document assistant.
 
 STRICT RULES:

@@ -1,527 +1,152 @@
 <div align="center">
 
-<!-- Banner -->
-<img src="https://raw.githubusercontent.com/Narasimhamanam/simha-ai/main/banner.png" alt="Simha AI Banner" width="100%" />
+# ⚡ GPT 6 Astra (Astra AI) — Intelligent Multi-Agent AI Workspace
 
-<br/>
+**Your complete, autonomous consumer AI workspace for chat, software engineering, academic study, PDF vector analysis, computer vision, research intelligence, and executive productivity.**
 
-# 🦁 Simha AI — Multi-Agent AI Platform
-
-**Your all-in-one AI-powered productivity suite.  
-Chat with specialized agents, analyze PDFs, draft emails, schedule events, and summarize URLs — all in one beautiful interface.**
-
-<br/>
-
-[![Live Demo](https://img.shields.io/badge/🚀_Live_Demo-Render-6366f1?style=for-the-badge)](https://simha-ai-frontend-production.onrender.com)
-[![Backend](https://img.shields.io/badge/%E2%9A%99%EF%B8%8F%20Backend-Render-46E3B7?style=for-the-badge&logo=render&logoColor=white)](https://render.com)
-
-[![Python](https://img.shields.io/badge/Python-3.11-3b82f6?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
-[![React](https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.136-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
+[![React](https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev)
+[![PhonePe](https://img.shields.io/badge/Payment-PhonePe_PG-5f259f?style=for-the-badge)](https://phonepe.com)
+[![Python](https://img.shields.io/badge/Python-3.11+-3b82f6?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
+[![MongoDB](https://img.shields.io/badge/Database-MongoDB_Motor-47A248?style=for-the-badge&logo=mongodb&logoColor=white)](https://www.mongodb.com)
 
 </div>
 
 ---
 
-## ✨ What is Simha AI?
-
-**Simha** (Sanskrit: *सिंह*) means **Lion** — a symbol of power, intelligence, and clarity. Simha AI is a full-stack, production-ready **Multi-Agent AI platform** that routes your queries to specialized AI agents, each optimized for a specific domain.
-
-Whether you're a student preparing for placements, a developer debugging code, or a professional drafting emails — Simha AI has a specialized agent for you.
+> [!IMPORTANT]
+> **Independent Application Notice & Legal Disclaimer:**  
+> **Astra AI** (product designation: **GPT 6 Astra**) is an independent software application. It is **not** an official OpenAI product, nor is it affiliated with, sponsored by, or endorsed by OpenAI, Google, Anthropic, or Meta. Astra AI utilizes licensed commercial and open-weights foundation models through secure server-side inference infrastructure.
 
 ---
 
-## 🎯 Core Features
+## 🌟 Overview
 
-<table>
-<tr>
-<td align="center" width="200">
+**Astra AI** is an enterprise-grade, multi-tenant consumer AI SaaS platform. Instead of forcing every query through a generic model, Astra features an intelligent **ModelRouter** that dynamically directs queries to specialized domain agents:
 
-### 🎓 Study Agent
-Expert educational tutor covering ML, CS, aptitude & placement prep.
+- **Astra Chat:** Open-domain, conversational reasoning with context persistence.
+- **Astra Code:** Software architecture, algorithm design (DSA with time/space complexity), debugging, and refactoring.
+- **Astra Study:** Concept breakdown, curriculum prep, technical interview tutoring, and worked examples.
+- **Astra Docs:** Instant PDF vectorization and semantic question-answering powered by ChromaDB RAG.
+- **Astra Vision:** Multimodal visual analysis, diagram inspection, and OCR text extraction.
+- **Astra Research:** URL intelligence and structured content extraction.
+- **Astra Productivity:** Natural language email drafting with tone adaptation and Google Calendar event scheduling.
+- **Astra Wisdom:** Reflective, calm stoic clarity on duty and focus.
 
-</td>
-<td align="center" width="200">
+---
 
-### 💻 Coding Agent
-Code generation, debugging, algorithms & technical interview help.
+## 💎 Pricing & Entitlement Engine
 
-</td>
-<td align="center" width="200">
+Astra AI rejects deceptive pricing tactics, hidden recurring subscriptions, and fake countdowns.
 
-### ⚡ Productivity Agent
-Task planning, time management & professional advice.
+| Tier | Price | Duration | Messages | Document Uploads | Special Features |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **Astra Free** | **₹0** | Lifetime | 10 / day | 2 / day | Chat, Code, Study, History |
+| **Astra 7-Day Pass** | **₹99** | 7 Days | 100 / day | 20 / day | All Agents, Vision, Docs RAG, Priority throughput |
 
-</td>
-<td align="center" width="200">
+### 7-Day Expiration Lifecycle
+- Passes are non-recurring one-time purchases of **₹99**.
+- Expiration is enforced server-side (`access_expires_at < current_time`).
+- Upon expiry, the user account gracefully reverts to the **Free** tier.
+- Conversations, history, and uploaded files are **never** deleted upon expiration.
 
-### 🦚 Krishna AI
-Spiritual guidance from Bhagavad Gita with comforting personal AI persona.
+---
 
-</td>
-</tr>
-<tr>
-<td align="center" width="200">
+## 🛡️ PhonePe Payment Gateway Integration
 
-### 📄 PDF Q&A (RAG)
-Upload PDFs and ask questions — powered by ChromaDB + HuggingFace embeddings.
+Payment processing is built on **PhonePe Standard Payment Gateway**:
 
-</td>
-<td align="center" width="200">
-
-### 🖼️ Vision (OCR)
-Upload images and ask the AI to explain, describe, or extract text from them.
-
-</td>
-<td align="center" width="200">
-
-### 📧 Email Composer
-AI-drafted professional emails from a single sentence prompt.
-
-</td>
-<td align="center" width="200">
-
-### 📅 Calendar Planner
-Convert natural language into structured Google Calendar events.
-
-</td>
-</tr>
-<tr>
-<td align="center" width="200">
-
-### 🌐 URL Summarizer
-Paste any URL → get a structured summary with key points.
-
-</td>
-<td align="center" width="200">
-
-### 💰 SaaS Credit System
-Daily 10 free credits system with PRO upgrade via Razorpay Integration.
-
-</td>
-<td align="center" width="200">
-
-### 🎵 Ambient Flute Music
-Seamless, continuous divine ambient background music with toggle controls.
-
-</td>
-<td align="center" width="200">
-
-### ✨ Premium Glassmorphic UI
-Sleek dark mode, sky-blue divine theme, and fluid micro-animations.
-
-</td>
-</tr>
-</table>
+1. **Order Initiation:** Backend computes base64 payloads and cryptographic SHA-256 checksums (`X-VERIFY: SHA256(payload + endpoint + salt_key)###salt_index`).
+2. **Checkout:** User completes checkout on PhonePe's secure checkout page (UPI, Credit/Debit Card, Net Banking).
+3. **Server-to-Server Verification:** PhonePe posts asynchronous webhooks verified against the salt key. The backend independently queries PhonePe's status API before activating entitlements.
+4. **Idempotency Guarantee:** Payments and entitlement activations are atomic. Double-charging or duplicate entitlement grants are prevented.
+5. **No Secret Leaks:** Card numbers, CVVs, and UPI PINs are never handled or stored by Astra AI.
 
 ---
 
 ## 🏗️ Architecture
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                     SIMHA AI PLATFORM                        │
-├──────────────────────────┬──────────────────────────────────┤
-│      FRONTEND            │           BACKEND                 │
-│  React 19 + Vite         │      FastAPI + Python 3.11        │
-│  TailwindCSS             │                                   │
-│  Firebase Auth           │  ┌─────────────────────────────┐ │
-│  React Markdown          │  │       Agent Router           │ │
-│  Syntax Highlighter      │  │  (prefix-based dispatching)  │ │
-│  Lucide Icons            │  └──────────┬──────────────────┘ │
-│  YouTube Music Player    │             │                     │
-│                          │     ┌───────┼───────┬────────┐    │
-│  Pages:                  │     ▼       ▼       ▼        ▼    │
-│  • Chat (streaming)      │  Study   Coding  Product   Divine │
-│  • Email Composer        │  Agent   Agent    Agent    Agent  │
-│  • Calendar Planner      │                                   │
-│  • URL Summarizer        │  Automation Agents:               │
-│  • Documents (RAG)       │  • Email Draft (Groq LLM)        │
-│  • Chat History          │  • URL Summarizer (httpx)        │
-│  • Settings              │  • Calendar Event Generator       │
-│                          │                                   │
-│                          │  RAG Pipeline:                    │
-│                          │  • PDF / Gita Processors         │
-│                          │  • ChromaDB Vector Stores        │
-│                          │  • HuggingFace Embeddings        │
-└──────────────────────────┴──────────────────────────────────┘
-         │                              │
-         ▼                              ▼
-   Firebase Auth                  MongoDB Atlas
-   (User Accounts)              (Chat + Documents)
-                                        │
-                                        ▼
-                               Groq Cloud API
-                           (LLaMA 3.3 70B Versatile)
+[React 19 Frontend (Vite)] ──> [FastAPI Backend] ──> [ModelRouter / GroqProvider]
+                                      │
+              ┌───────────────────────┼───────────────────────┐
+              ▼                       ▼                       ▼
+      [MongoDB Atlas]        [PhonePe PG Service]       [ChromaDB Vector RAG]
+      - users                 - POST /create-order      - PDF embeddings
+      - payments              - GET /status/{id}        - Gita RAG
+      - entitlements          - POST /webhook
+      - usages
+      - audit_logs
 ```
 
 ---
 
-## 🛠️ Tech Stack
+## 🚀 Quickstart & Local Setup
 
-### Backend
-| Technology | Purpose |
-|---|---|
-| **FastAPI** | Async REST API framework |
-| **Groq + LLaMA 3.3 70B** | Core LLM powering all agents |
-| **MongoDB Atlas + Motor** | Async persistent chat/document storage |
-| **ChromaDB** | Local vector store for PDF RAG |
-| **HuggingFace Sentence Transformers** | PDF chunk embeddings |
-| **LangChain** | RAG pipeline orchestration |
-| **PyPDF** | PDF text extraction |
-| **httpx** | Async HTTP for URL summarization |
-| **Docker** | Containerized deployment |
-| **Railway** | Cloud hosting with auto-scaling |
-
-### Frontend
-| Technology | Purpose |
-|---|---|
-| **React 19** | UI framework |
-| **Vite** | Lightning-fast build tool |
-| **TailwindCSS** | Utility-first styling |
-| **Firebase Auth** | User authentication (Google OAuth + Email) |
-| **React Markdown + remark-gfm** | Rich AI response rendering |
-| **React Syntax Highlighter** | Code block formatting |
-| **Lucide React** | Icon library |
-| **Axios** | HTTP client |
-| **Render** | Static site hosting |
-
----
-
-## 🚀 Getting Started
-
-### Prerequisites
-
-- Python 3.11+
-- Node.js 18+
-- A [Groq API key](https://console.groq.com) (free)
-- A [MongoDB Atlas](https://cloud.mongodb.com) cluster (free tier works)
-- A [Firebase](https://console.firebase.google.com) project
-
----
-
-### 1️⃣ Clone the Repository
-
-```bash
-git clone https://github.com/Narasimhamanam/simha-ai.git
-cd simha-ai
-```
-
----
-
-### 2️⃣ Backend Setup
+### 1. Backend Setup
 
 ```bash
 cd backend
-```
-
-**Create and activate a virtual environment:**
-```bash
 python -m venv venv
-# Windows
-venv\Scripts\activate
-# macOS/Linux
+# On Windows:
+.\venv\Scripts\activate
+# On macOS/Linux:
 source venv/bin/activate
-```
 
-**Install dependencies:**
-```bash
 pip install -r requirements.txt
-```
-
-**Configure environment variables:**
-```bash
 cp .env.example .env
+# Edit .env with your MONGO_URL, GROQ_API_KEY, and PHONEPE credentials
+
+uvicorn main:app --host 0.0.0.0 --port 8000 --reload
 ```
 
-Edit `.env`:
-```env
-MONGO_URL="mongodb+srv://<user>:<password>@cluster.mongodb.net/"
-DATABASE_NAME="simha_ai"
-GROQ_API_KEY="your_groq_api_key_here"
-```
-
-**Run the backend:**
-```bash
-uvicorn main:app --reload --port 8000
-```
-
-Backend will be live at `http://localhost:8000` ✅
-
----
-
-### 3️⃣ Frontend Setup
+### 2. Frontend Setup
 
 ```bash
 cd frontend
-```
-
-**Install dependencies:**
-```bash
 npm install
-```
-
-**Configure environment variables:**
-```bash
-cp .env.example .env
-```
-
-Edit `.env`:
-```env
-VITE_FIREBASE_API_KEY="your_api_key"
-VITE_FIREBASE_AUTH_DOMAIN="your_project.firebaseapp.com"
-VITE_FIREBASE_PROJECT_ID="your_project_id"
-VITE_FIREBASE_STORAGE_BUCKET="your_project.appspot.com"
-VITE_FIREBASE_MESSAGING_SENDER_ID="your_sender_id"
-VITE_FIREBASE_APP_ID="your_app_id"
-VITE_BACKEND_URL="http://localhost:8000"
-```
-
-**Run the frontend:**
-```bash
 npm run dev
 ```
 
-Frontend will be live at `http://localhost:5173` ✅
+The frontend will start at `http://localhost:5173` connecting to the backend at `http://localhost:8000`.
 
 ---
 
-## 📡 API Reference
+## 🧪 Automated Testing
 
-| Method | Endpoint | Description |
-|---|---|---|
-| `GET` | `/` | Health check |
-| `GET` | `/health` | Detailed health + DB status |
-| `GET` | `/ping` | Keep-alive ping |
-| `POST` | `/chat` | Standard chat (non-streaming) |
-| `POST` | `/stream-chat` | **Streaming** chat response |
-| `POST` | `/generate-email` | AI email draft generation |
-| `POST` | `/summarize-url` | URL content summarization |
-| `POST` | `/generate-calendar-event` | Natural language → calendar event |
-| `POST` | `/upload-pdf` | Upload & process PDF for RAG |
-| `POST` | `/ask-pdf` | Ask questions about uploaded PDF |
-| `GET` | `/get-documents/{email}` | List user's uploaded documents |
-| `DELETE` | `/delete-document/{id}` | Remove a document |
-| `POST` | `/create-chat` | Create a new chat session |
-| `GET` | `/get-chats/{email}` | Retrieve all user chats |
-| `POST` | `/save-message` | Persist a message to MongoDB |
-| `PATCH` | `/rename-chat/{id}` | Rename a chat session |
-| `DELETE` | `/delete-chat/{id}` | Delete a chat session |
-
----
-
-## 🤖 Agent System
-
-Simha AI uses a **prefix-based routing** system to dispatch queries to specialized agents:
-
-```python
-# Agent Router Logic
-"study: ..."        → Study Agent         (academics, placement prep, ML/AI)
-"coding: ..."       → Coding Agent        (code generation, debugging)
-"productivity: ..." → Productivity Agent  (tasks, planning, advice)
-"divine: ..."       → Ask Krishna Agent   (Bhagavad Gita RAG wisdom)
-"krishna: ..."      → Ask Krishna Agent   (Bhagavad Gita RAG wisdom)
-```
-
-Each agent has its own **system prompt**, **context window management**, and **history truncation** to stay within Groq's free-tier token limits.
-
----
-
-## 🦚 Ask Krishna (Divine Mode) — Gita Wisdom & Soundscape
-
-We have built a completely immersive experience called **Ask Krishna (Divine Mode)**. When selected, this feature transforms the environment to help users seek calm and mental clarity during stressful times.
-
-### 🕉️ Architecture & Technical Highlights:
-1. **Bhagavad Gita RAG Pipeline**:
-   - Uses a dedicated Vector Database powered by **ChromaDB** containing the complete teachings and verses of the Bhagavad Gita.
-   - Text chunks are encoded using the lightweight, fast `all-MiniLM-L6-v2` HuggingFace Embeddings.
-   - Relevancy matching retrieves the exact teaching fitting the user's emotional query or life struggle.
-2. **Comforting AI Persona**:
-   - Guided by a rigorous system prompt representing the calm, comforting voice of Lord Krishna speaking on the battlefield.
-   - Constrained to stay minimal (25-60 words) to avoid AI-like bulleted lists, generic opening statements, or clinical advice, leaving the user with a single, calm poetic thought.
-   - Built-in keyword detectors: if the user asks Krishna to *"explain deeply"*, *"elaborate"*, or *"which chapter"*, it bypasses length constraints to provide extensive theological context.
-3. **Seamless Ambient Soundscape**:
-   - Integrates a seamless, background divine flute soundtrack powered by an embedded hidden media player.
-   - Toggled effortlessly from a dedicated music button in the top navigation header.
-4. **Calming Sky-Blue UI/UX Theme**:
-   - Switching to Divine Mode instantly shifts the dark-mode aesthetic to a rich sky-blue divine theme, offering smooth transitions, breathing icons, and soft typography.
-
----
-
-## 🐳 Docker Deployment
+Run the complete test suite:
 
 ```bash
 cd backend
-docker build -t simha-ai-backend .
-docker run -p 8000:8000 \
-  -e GROQ_API_KEY=your_key \
-  -e MONGO_URL=your_mongo_url \
-  -e DATABASE_NAME=simha_ai \
-  simha-ai-backend
+python -m unittest discover -s tests -p "test_*.py"
 ```
 
----
-
-## ☁️ Production Deployment
-
-| Service | Platform | Notes |
-|---|---|---|
-| **Backend** | Railway | Dockerized, auto-deploys from `main` branch |
-| **Frontend** | Render | Static site, connected to Railway backend |
-| **Database** | MongoDB Atlas | Free M0 cluster |
-| **Auth** | Firebase | Google OAuth + Email/Password |
-| **LLM** | Groq Cloud | LLaMA 3.3 70B, rate-limited to 5 concurrent calls |
-
-### Concurrency & Rate Limiting
-
-The backend uses an `asyncio.Semaphore(5)` to cap concurrent Groq API calls, preventing rate-limit errors under multi-user load. Chat history is capped at 20 turns to manage token usage.
+Verified test coverage:
+- `test_phonepe_payment.py`: Checksum generation, webhook validation, pricing integrity.
+- `test_entitlement_and_usage.py`: Free vs 7-Day quotas, auto-expiration, pass activation.
+- `test_auth_and_isolation.py`: Authentication resolution, admin authorization, rate limiting (30 req/min).
 
 ---
 
-## 📁 Project Structure
+## 🔒 Security Posture
 
-```
-simha-ai/
-├── backend/
-│   ├── agents/
-│   │   ├── router.py           # Prefix-based agent dispatcher
-│   │   ├── study_agent.py      # Educational tutor agent
-│   │   ├── coding_agent.py     # Code & debugging agent
-│   │   ├── productivity_agent.py # Productivity advisor
-│   │   ├── email_agent.py      # Email draft generator
-│   │   ├── automation_agent.py # URL summarizer + Calendar planner
-│   │   └── system_prompt.py    # Shared system prompts
-│   ├── rag/
-│   │   ├── pdf_processor.py    # PDF → text chunks
-│   │   ├── vector_store.py     # ChromaDB store
-│   │   └── rag_chain.py        # Question → answer pipeline
-│   ├── memory/
-│   │   └── chat_memory.py      # In-memory conversation cache
-│   ├── main.py                 # FastAPI app + all routes
-│   ├── database.py             # MongoDB connection
-│   ├── llm.py                  # Groq LLM wrapper
-│   ├── Dockerfile
-│   ├── requirements.txt
-│   └── .env.example
-│
-└── frontend/
-    ├── src/
-    │   ├── components/
-    │   │   ├── ChatArea.jsx        # Main chat interface (streaming)
-    │   │   ├── Sidebar.jsx         # Navigation + chat history
-    │   │   ├── EmailComposer.jsx   # Email drafting UI
-    │   │   ├── CalendarComposer.jsx # Calendar event UI
-    │   │   ├── UrlSummarizer.jsx   # URL summarization UI
-    │   │   ├── DocumentsPage.jsx   # PDF upload & management
-    │   │   ├── ChatHistoryPage.jsx # Past conversations
-    │   │   ├── SettingsPage.jsx    # User preferences
-    │   │   ├── VoiceInput.jsx      # Voice-to-text input
-    │   │   └── ConnectionStatus.jsx # Backend connection indicator
-    │   ├── firebase.js             # Firebase config
-    │   ├── App.jsx
-    │   └── main.jsx
-    ├── package.json
-    └── vite.config.js
-```
+- **CORS Restricted:** Specific domain policies for production.
+- **Input Validation:** Strict payload constraints (PDFs capped at 10MB, Images at 5MB).
+- **Rate Limiting:** Sliding-window per-IP limiter preventing denial-of-service.
+- **User Data Isolation:** Database queries enforce user ownership on all chats, documents, and payments.
+- **Zero Insecure Logic:** No dummy payment bypasses or test bypasses in production code.
 
 ---
 
-## 🔐 Environment Variables
+## 📄 Documentation
 
-### Backend (`.env`)
-| Variable | Required | Description |
-|---|---|---|
-| `MONGO_URL` | ✅ | MongoDB Atlas connection string |
-| `DATABASE_NAME` | ✅ | MongoDB database name |
-| `GROQ_API_KEY` | ✅ | Groq Cloud API key |
-| `RAZORPAY_KEY_ID` | ✅ | Razorpay API Key ID |
-| `RAZORPAY_KEY_SECRET` | ✅ | Razorpay API Key Secret |
-
-### Frontend (`.env`)
-| Variable | Required | Description |
-|---|---|---|
-| `VITE_FIREBASE_API_KEY` | ✅ | Firebase project API key |
-| `VITE_FIREBASE_AUTH_DOMAIN` | ✅ | Firebase auth domain |
-| `VITE_FIREBASE_PROJECT_ID` | ✅ | Firebase project ID |
-| `VITE_FIREBASE_STORAGE_BUCKET` | ✅ | Firebase storage bucket |
-| `VITE_FIREBASE_MESSAGING_SENDER_ID` | ✅ | Firebase messaging sender ID |
-| `VITE_FIREBASE_APP_ID` | ✅ | Firebase app ID |
-| `VITE_BACKEND_URL` | ✅ | Backend API base URL |
-| `VITE_RAZORPAY_KEY_ID` | ✅ | Razorpay Key ID for frontend popup |
+- [Migration Audit](docs/ASTRA_MIGRATION_AUDIT.md)
+- [API Documentation](docs/ASTRA_API_DOCUMENTATION.md)
+- [Final Audit Report](docs/ASTRA_FINAL_AUDIT.md)
 
 ---
 
-## 📱 Premium Mobile Experience
+## ⚖️ Legal
 
-Simha AI is engineered with a **Mobile-First** approach. We use advanced CSS techniques (`fixed inset-0`, `overscroll-behavior: none`, and `100dvh`) to ensure:
-- **Zero Window Bouncing**: The header and input bar are pinned perfectly to the viewport.
-- **Native App Feel**: Smooth internal scrolling with a fixed UI shell.
-- **Responsive Navigation**: A slick sidebar toggle optimized for thumb reach.
-
----
-
-## 💰 SaaS Monetization (Pro Workflow)
-
-The platform includes a fully functional simulation of a SaaS business model:
-1. **Free Tier**: Users get **10 credits per day** (automatically reset every 24 hours UTC).
-2. **Dynamic Deduction**: Credits are deducted based on the complexity and length of AI responses.
-3. **Upgrade Path**: When credits run out, users are prompted to upgrade to **PRO**.
-4. **Razorpay Integration**: Real-world payment gateway flow including signature verification for secure upgrades.
-5. **Unlimited Access**: PRO users enjoy a custom "👑 PRO" badge and infinite AI usage.
-
----
-
-## 🗺️ Roadmap
-
-- [x] 🌙 Dark / Light theme toggle
-- [x] 🎤 Voice input support (Web Speech API)
-- [x] 🖼️ Image Vision agent (Groq Vision)
-- [x] 💰 Daily Credits & PRO Membership
-- [x] 💳 Razorpay Payment Integration
-- [ ] 🖼️ Image generation agent (DALL-E / Stability AI)
-- [ ] 📊 Analytics dashboard for usage stats
-- [ ] 🔗 Google Calendar API direct integration (OAuth)
-- [ ] 📤 Gmail API integration (send drafted emails)
-- [ ] 📱 Mobile app (React Native)
-
----
-
-## 🤝 Contributing
-
-Contributions are welcome! Please follow these steps:
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
----
-
-## 📝 License
-
-This project is licensed under the **MIT License** — see the [LICENSE](LICENSE) file for details.
-
----
-
-## 👨‍💻 Author
-
-<div align="center">
-
-**Narasimha Manam**
-
-[![GitHub](https://img.shields.io/badge/GitHub-Narasimhamanam-181717?style=for-the-badge&logo=github)](https://github.com/Narasimhamanam)
-
-*Built with ❤️ and a lot of ☕*
-
-</div>
-
----
-
-<div align="center">
-
-**⭐ Star this repo if you find it useful!**
-
-*Simha AI — Roar with Intelligence 🦁*
-
-</div>
+© 2026 Astra AI. All rights reserved.  
+Astra AI is an independent software application and is not affiliated with OpenAI.

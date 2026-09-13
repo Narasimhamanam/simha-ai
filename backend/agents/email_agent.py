@@ -8,7 +8,7 @@ load_dotenv()
 
 client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 
-EMAIL_SYSTEM_PROMPT = """You are an expert email writing assistant integrated into Simha AI.
+EMAIL_SYSTEM_PROMPT = """You are an expert email writing assistant integrated into Astra AI.
 
 Your job is to generate a professional, well-structured email based on the user's description.
 

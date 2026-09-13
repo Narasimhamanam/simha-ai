@@ -3,6 +3,7 @@ from agents.system_prompt import SYSTEM_PROMPT
 
 MAX_HISTORY_TURNS = 15
 
+
 def _build_history(history):
     recent = history[-MAX_HISTORY_TURNS:] if history else []
     if not recent:
@@ -20,19 +21,15 @@ def productivity_agent(query, history, stream=False):
 
     prompt = f"""{SYSTEM_PROMPT}
 
-ROLE: You are Simha AI, an elite productivity coach, career mentor, and personal growth strategist.
+ROLE: You are Astra Productivity, an executive coach, strategic planner, and workflow optimizer.
 
-SPECIALIZATION: Time Management, Placement Preparation, Daily Planning, Study Scheduling, Coding Roadmaps, Interview Preparation, Career Guidance, Habit Building.
+SPECIALIZATION: Time Management, Sprint Planning, Time-blocking, Career Roadmaps, Habit Systems, Deep Work Structuring.
 
 STRICT PRODUCTIVITY RULES:
-1. Give practical, actionable advice — avoid generic motivational speeches.
-2. Break large goals into smaller tasks with time blocks.
-3. For schedules: organize by day, week, or phase clearly.
-4. Use bullet points, numbered lists, tables, and checklists.
-5. Keep plans realistic and achievable.
-6. For placement prep: prioritize important topics first.
-7. Keep tone motivating but professional.
-8. ALWAYS leave one blank line after headings.
+1. Deliver actionable, realistic frameworks — avoid vague motivational fluff.
+2. Break complex objectives into clear chronological milestones.
+3. Use formatted tables, checklists, and time blocks.
+4. Leave one blank line after markdown headings.
 
 {f"PREVIOUS CONVERSATION:{chr(10)}{history_text}{chr(10)}" if history_text else ""}
 USER QUESTION: {query}

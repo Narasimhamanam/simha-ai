@@ -1,27 +1,40 @@
 import {
   MessageSquare, History, FileText, Settings, Plus, Trash2,
-  X, Mail, Globe, CalendarDays, LogOut, ChevronRight, Zap, Layers
+  X, Mail, Globe, CalendarDays, LogOut, ChevronRight, Zap,
+  Sparkles, Code2, BookOpen, Crown, Shield, CreditCard
 } from "lucide-react";
 import { useState } from "react";
 import API from "../services/api";
 
 const NAV_ITEMS = [
-  { id: "chat",      icon: MessageSquare, label: "AI Workspace" },
-  { id: "email",     icon: Mail,          label: "Email Composer" },
-  { id: "calendar",  icon: CalendarDays,  label: "AI Scheduler" },
-  { id: "url",       icon: Globe,         label: "URL Reader" },
-  { id: "documents", icon: FileText,      label: "Documents" },
-  { id: "history",   icon: History,       label: "Chat History" },
-  { id: "settings",  icon: Settings,      label: "Settings" },
+  { id: "chat", icon: MessageSquare, label: "Astra Chat" },
+  { id: "documents", icon: FileText, label: "Astra Docs" },
+  { id: "email", icon: Mail, label: "Email Composer" },
+  { id: "calendar", icon: CalendarDays, label: "AI Scheduler" },
+  { id: "url", icon: Globe, label: "URL Research" },
+  { id: "pricing", icon: Zap, label: "Astra Pass (₹99)" },
+  { id: "history", icon: History, label: "Chat History" },
+  { id: "settings", icon: Settings, label: "Settings" },
 ];
 
-function Sidebar({
-  theme, chats, setChats, activeChatId, setActiveChatId,
-  createNewChat, currentPage, setCurrentPage,
-  profile, handleLogout, isSidebarOpen, setIsSidebarOpen, isPro,
-  selectedAgent, setSelectedAgent,
+export default function Sidebar({
+  theme,
+  chats,
+  setChats,
+  activeChatId,
+  setActiveChatId,
+  createNewChat,
+  currentPage,
+  setCurrentPage,
+  profile,
+  handleLogout,
+  isSidebarOpen,
+  setIsSidebarOpen,
+  isPro,
+  daysRemaining,
+  selectedAgent,
+  setSelectedAgent,
 }) {
-  const isDivine = selectedAgent === "divine";
   const [hovered, setHovered] = useState(false);
   const expanded = isSidebarOpen || hovered;
 
@@ -31,51 +44,21 @@ function Sidebar({
       const updated = chats.filter((c) => c.id !== chatId);
       setChats(updated);
       if (updated.length > 0) setActiveChatId(updated[0].id);
-    } catch (e) { console.error("Delete failed:", e); }
+    } catch (e) {
+      console.error("Delete failed:", e);
+    }
   };
 
-  const loadRazorpayScript = () =>
-    new Promise((resolve) => {
-      const s = document.createElement("script");
-      s.src = "https://checkout.razorpay.com/v1/checkout.js";
-      s.onload = () => resolve(true);
-      s.onerror = () => resolve(false);
-      document.body.appendChild(s);
-    });
-
-  const handleUpgrade = async () => {
-    const ok = await loadRazorpayScript();
-    if (!ok) { alert("Failed to load Razorpay."); return; }
-    try {
-      const orderRes = await API.post("/create-razorpay-order", { email: profile?.email });
-      const order = orderRes.data;
-      const opts = {
-        key: import.meta.env.VITE_RAZORPAY_KEY_ID || "rzp_test_dummy",
-        amount: order.amount, currency: order.currency,
-        name: "Simha AI", description: "Upgrade to PRO",
-        order_id: order.id !== "order_dummy" ? order.id : undefined,
-        handler: async (res) => {
-          try {
-            await API.post("/verify-razorpay-payment", {
-              email: profile?.email,
-              razorpay_order_id: res.razorpay_order_id || "dummy",
-              razorpay_payment_id: res.razorpay_payment_id || "dummy",
-              razorpay_signature: res.razorpay_signature || "dummy",
-            });
-            alert("You are now a PRO user!"); window.location.reload();
-          } catch { alert("Payment verification failed."); }
-        },
-        prefill: { name: profile?.nickname || "", email: profile?.email || "" },
-        theme: { color: "#D6A84F" },
-      };
-      const rzp = new window.Razorpay(opts);
-      rzp.on("payment.failed", (r) => alert("Payment failed: " + r.error.description));
-      rzp.open();
-    } catch (e) { console.error("Upgrade error:", e); alert("Failed to initiate upgrade."); }
+  const navTo = (id) => {
+    setCurrentPage(id);
+    if (window.innerWidth < 1024) setIsSidebarOpen(false);
   };
 
-  const navTo = (id) => { setCurrentPage(id); if (window.innerWidth < 1024) setIsSidebarOpen(false); };
-  const selectChat = (id) => { setActiveChatId(id); setCurrentPage("chat"); if (window.innerWidth < 1024) setIsSidebarOpen(false); };
+  const selectChat = (id) => {
+    setActiveChatId(id);
+    setCurrentPage("chat");
+    if (window.innerWidth < 1024) setIsSidebarOpen(false);
+  };
 
   return (
     <>
@@ -96,43 +79,62 @@ function Sidebar({
           transition-all duration-300 ease-out
           ${expanded ? "w-[260px]" : "w-[64px]"}
           ${isSidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
-          bg-void-surface/90 backdrop-blur-xl
-          border-r border-[rgba(255,255,255,0.06)]
+          bg-[#0B0F17]/95 backdrop-blur-2xl
+          border-r border-[var(--edge-subtle)]
         `}
         style={{ willChange: "width" }}
       >
-        {/* Brand */}
-        <div className={`flex items-center h-14 border-b border-[rgba(255,255,255,0.06)] shrink-0 ${expanded ? "px-4 gap-3" : "justify-center px-0"}`}>
-          <div className="w-8 h-8 rounded-xl bg-[rgba(214,168,79,0.12)] border border-[rgba(214,168,79,0.25)] flex items-center justify-center shrink-0">
-            <img src="/logo-lion.png" alt="Simha" className="w-5 h-5 object-contain logo-mask" />
+        {/* Brand Header */}
+        <div
+          className={`flex items-center h-14 border-b border-[var(--edge-subtle)] shrink-0 ${
+            expanded ? "px-4 gap-3" : "justify-center px-0"
+          }`}
+        >
+          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[var(--astra-cyan)] to-[var(--royal-violet)] flex items-center justify-center shrink-0 shadow-md shadow-[var(--astra-glow)]">
+            <Sparkles size={16} className="text-[#0B0F17]" />
           </div>
+
           {expanded && (
             <div className="flex flex-col min-w-0 animate-fade-in">
-              <span className="text-sm font-bold text-[var(--ink-1)] tracking-tight truncate">Simha AI</span>
-              <span className="text-[10px] text-[var(--ink-3)]">Zero-G Sanctum</span>
+              <span className="text-sm font-black text-[var(--ink-1)] tracking-tight truncate">
+                Astra <span className="text-[var(--astra-cyan)]">AI</span>
+              </span>
+              <span className="text-[9px] text-[var(--ink-3)] font-semibold uppercase tracking-wider">
+                GPT 6 Astra
+              </span>
             </div>
           )}
+
           {expanded && (
-            <button onClick={() => setIsSidebarOpen(false)} className="lg:hidden ml-auto p-1 rounded text-[var(--ink-3)] hover:text-[var(--ink-1)]">
+            <button
+              onClick={() => setIsSidebarOpen(false)}
+              className="lg:hidden ml-auto p-1 rounded text-[var(--ink-3)] hover:text-[var(--ink-1)]"
+            >
               <X size={15} />
             </button>
           )}
         </div>
 
-        {/* New Chat */}
+        {/* New Workspace / Chat Button */}
         <div className={`${expanded ? "p-3" : "p-2"}`}>
           <button
-            onClick={() => { createNewChat(); if (window.innerWidth < 1024) setIsSidebarOpen(false); }}
-            className={`btn-gold w-full flex items-center justify-center gap-2 ${expanded ? "" : "!px-0"}`}
+            onClick={() => {
+              createNewChat();
+              if (window.innerWidth < 1024) setIsSidebarOpen(false);
+            }}
+            className={`btn-astra w-full flex items-center justify-center gap-2 ${
+              expanded ? "" : "!px-0"
+            }`}
           >
             <Plus size={15} strokeWidth={2.5} />
             {expanded && <span>New Workspace</span>}
           </button>
         </div>
 
-        {/* Nav + Chats */}
+        {/* Navigation & Recent Conversations */}
         <div className="flex-1 overflow-y-auto no-scrollbar px-2 py-1 space-y-4">
-          {/* Navigation */}
+          
+          {/* Main Navigation Items */}
           <nav className="space-y-0.5">
             {NAV_ITEMS.map(({ id, icon: Icon, label }) => {
               const active = currentPage === id;
@@ -145,28 +147,54 @@ function Sidebar({
                     expanded ? "px-3 py-2 gap-2.5" : "px-0 py-2 justify-center"
                   } text-xs font-medium ${
                     active
-                      ? "glass-panel !rounded-xl text-[var(--ink-1)] font-bold"
-                      : "text-[var(--ink-3)] hover:text-[var(--ink-1)] hover:bg-[rgba(255,255,255,0.04)]"
+                      ? "glass-panel !rounded-xl text-[var(--ink-1)] font-bold border-[var(--edge)] bg-[var(--astra-glow)]"
+                      : "text-[var(--ink-3)] hover:text-[var(--ink-1)] hover:bg-white/5"
                   }`}
                 >
-                  <Icon size={16} className={active ? "text-[var(--mane-gold)]" : ""} strokeWidth={active ? 2.2 : 1.7} />
+                  <Icon
+                    size={16}
+                    className={active ? "text-[var(--astra-cyan)]" : ""}
+                    strokeWidth={active ? 2.2 : 1.7}
+                  />
                   {expanded && <span className="truncate">{label}</span>}
-                  {active && expanded && <div className="w-1.5 h-1.5 rounded-full bg-[var(--mane-gold)] ml-auto" />}
+                  {active && expanded && (
+                    <div className="w-1.5 h-1.5 rounded-full bg-[var(--astra-cyan)] ml-auto" />
+                  )}
                 </button>
               );
             })}
+
+            {/* Admin link (visible if admin) */}
+            {profile?.is_admin && (
+              <button
+                onClick={() => navTo("admin")}
+                title={!expanded ? "Admin Console" : undefined}
+                className={`w-full flex items-center rounded-xl transition-all duration-150 ${
+                  expanded ? "px-3 py-2 gap-2.5" : "px-0 py-2 justify-center"
+                } text-xs font-medium ${
+                  currentPage === "admin"
+                    ? "glass-panel !rounded-xl text-[var(--ink-1)] font-bold border-[var(--edge)] bg-[var(--astra-glow)]"
+                    : "text-amber-400/70 hover:text-amber-300 hover:bg-white/5"
+                }`}
+              >
+                <Shield size={16} strokeWidth={1.7} />
+                {expanded && <span className="truncate">Admin Console</span>}
+              </button>
+            )}
           </nav>
 
-          {/* Recent Chats */}
+          {/* Recent Chat Workspaces */}
           {expanded && (
-            <div className="animate-fade-in">
+            <div className="animate-fade-in pt-2">
               <div className="flex items-center justify-between px-3 mb-1">
-                <span className="text-[10px] uppercase font-bold tracking-widest text-[var(--ink-3)]">Recent</span>
+                <span className="text-[10px] uppercase font-bold tracking-widest text-[var(--ink-3)]">
+                  Workspaces
+                </span>
                 <span className="text-[10px] font-mono text-[var(--ink-3)]">{chats.length}</span>
               </div>
               <div className="space-y-0.5">
                 {chats.length === 0 ? (
-                  <p className="px-3 py-4 text-center text-xs text-[var(--ink-3)]">No chats yet</p>
+                  <p className="px-3 py-3 text-center text-xs text-[var(--ink-3)]">No workspaces yet</p>
                 ) : (
                   chats.map((chat) => {
                     const active = currentPage === "chat" && activeChatId === chat.id;
@@ -176,14 +204,20 @@ function Sidebar({
                         onClick={() => selectChat(chat.id)}
                         className={`group flex items-center gap-2 px-3 py-2 rounded-xl text-xs cursor-pointer transition-all ${
                           active
-                            ? "glass-panel !rounded-xl text-[var(--ink-1)] font-medium"
-                            : "text-[var(--ink-3)] hover:text-[var(--ink-2)] hover:bg-[rgba(255,255,255,0.03)]"
+                            ? "glass-panel !rounded-xl text-[var(--ink-1)] font-medium border-[var(--edge)]"
+                            : "text-[var(--ink-3)] hover:text-[var(--ink-2)] hover:bg-white/5"
                         }`}
                       >
-                        <MessageSquare size={13} className={`shrink-0 ${active ? "text-[var(--mane-gold)]" : "opacity-40"}`} />
-                        <span className="truncate flex-1">{chat.title || "Untitled"}</span>
+                        <MessageSquare
+                          size={13}
+                          className={`shrink-0 ${active ? "text-[var(--astra-cyan)]" : "opacity-40"}`}
+                        />
+                        <span className="truncate flex-1">{chat.title || "Untitled Workspace"}</span>
                         <button
-                          onClick={(e) => { e.stopPropagation(); deleteChat(chat.id); }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            deleteChat(chat.id);
+                          }}
                           className="opacity-0 group-hover:opacity-100 p-0.5 rounded text-[var(--ink-3)] hover:text-red-400 transition"
                         >
                           <Trash2 size={12} />
@@ -197,33 +231,71 @@ function Sidebar({
           )}
         </div>
 
-        {/* Footer */}
-        <div className={`border-t border-[rgba(255,255,255,0.06)] shrink-0 ${expanded ? "p-3" : "p-2"}`}>
-          {!isPro && expanded && (
-            <button onClick={handleUpgrade} className="w-full mb-2 flex items-center justify-between px-3 py-2 rounded-xl text-xs font-bold bg-[var(--mane-gold-glow)] border border-[rgba(214,168,79,0.2)] text-[var(--mane-gold-bright)] hover:bg-[rgba(214,168,79,0.12)] transition">
-              <span className="flex items-center gap-1.5"><Zap size={13} /> Upgrade to Pro</span>
+        {/* Pass Upgrade / Status Box */}
+        <div className={`border-t border-[var(--edge-subtle)] shrink-0 ${expanded ? "p-3" : "p-2"}`}>
+          {expanded && !isPro && (
+            <button
+              onClick={() => navTo("pricing")}
+              className="w-full mb-2.5 flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-bold bg-[var(--astra-glow)] border border-[var(--edge)] text-[var(--astra-cyan)] hover:bg-[rgba(0,240,255,0.25)] transition shadow-sm"
+            >
+              <span className="flex items-center gap-1.5">
+                <Zap size={13} /> Get Astra Pass — ₹99
+              </span>
               <ChevronRight size={13} />
             </button>
           )}
-          <div className={`flex items-center glass-panel !rounded-xl ${expanded ? "p-2 gap-2.5" : "p-1.5 justify-center"}`}>
+
+          {expanded && isPro && (
+            <div className="w-full mb-2.5 flex items-center justify-between px-3 py-2 rounded-xl text-xs font-bold bg-emerald-500/10 border border-emerald-500/25 text-emerald-400">
+              <span className="flex items-center gap-1.5">
+                <Crown size={13} /> Astra Pass Active
+              </span>
+              <span className="text-[10px] font-mono">{daysRemaining || 7}d left</span>
+            </div>
+          )}
+
+          {/* User Profile Capsule */}
+          <div
+            className={`flex items-center glass-panel !rounded-xl ${
+              expanded ? "p-2 gap-2.5" : "p-1.5 justify-center"
+            }`}
+          >
             {profile?.avatar ? (
-              <img src={profile.avatar} alt="" className="w-7 h-7 rounded-lg object-cover shrink-0 ring-1 ring-[rgba(255,255,255,0.08)]" />
+              <img
+                src={profile.avatar}
+                alt=""
+                className="w-7 h-7 rounded-lg object-cover shrink-0 ring-1 ring-white/10"
+              />
             ) : (
-              <div className="w-7 h-7 rounded-lg bg-[rgba(255,255,255,0.06)] flex items-center justify-center shrink-0 text-xs font-bold text-[var(--ink-2)]">
-                {profile?.nickname?.charAt(0)?.toUpperCase() || "U"}
+              <div className="w-7 h-7 rounded-lg bg-[var(--astra-glow)] border border-[var(--edge)] flex items-center justify-center shrink-0 text-xs font-bold text-[var(--astra-cyan)]">
+                {profile?.nickname?.charAt(0)?.toUpperCase() || "A"}
               </div>
             )}
+
             {expanded && (
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-1.5">
-                  <span className="text-xs font-bold truncate text-[var(--ink-1)]">{profile?.nickname?.split(" ")[0] || "User"}</span>
-                  {isPro && <span className="text-[9px] px-1 rounded font-bold bg-[var(--mane-gold-glow)] text-[var(--mane-gold)]">PRO</span>}
+                  <span className="text-xs font-bold truncate text-[var(--ink-1)]">
+                    {profile?.nickname?.split(" ")[0] || "Astra User"}
+                  </span>
+                  {isPro && (
+                    <span className="text-[9px] px-1 rounded font-bold bg-[var(--astra-glow)] text-[var(--astra-cyan)]">
+                      PASS
+                    </span>
+                  )}
                 </div>
-                <span className="text-[10px] text-[var(--ink-3)] truncate block">{profile?.email || ""}</span>
+                <span className="text-[10px] text-[var(--ink-3)] truncate block">
+                  {profile?.email || ""}
+                </span>
               </div>
             )}
+
             {expanded && (
-              <button onClick={handleLogout} className="p-1 rounded text-[var(--ink-3)] hover:text-red-400 transition" title="Sign out">
+              <button
+                onClick={handleLogout}
+                className="p-1 rounded text-[var(--ink-3)] hover:text-red-400 transition"
+                title="Sign out"
+              >
                 <LogOut size={14} />
               </button>
             )}
@@ -233,5 +305,3 @@ function Sidebar({
     </>
   );
 }
-
-export default Sidebar;

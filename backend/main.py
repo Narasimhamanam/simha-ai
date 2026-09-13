@@ -1,96 +1,109 @@
-from fastapi import FastAPI, HTTPException
+import os
+import asyncio
+import base64
+import datetime
+from contextlib import asynccontextmanager
+from typing import Optional
+
+from fastapi import FastAPI, HTTPException, Request, UploadFile, File, Form, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
-
-from pydantic import BaseModel
-
 from bson import ObjectId
+from dotenv import load_dotenv
 
-from database import get_chat_collection, get_documents_collection
-
+from database import (
+    get_chat_collection,
+    get_documents_collection,
+    ensure_indexes,
+)
+from models.schemas import (
+    CreateChatRequest,
+    MessageRequest,
+    ChatRequest,
+    RenameChatRequest,
+    ImageAnalysisRequest,
+    EmailDraftRequest,
+    SummarizeUrlRequest,
+    CalendarEventRequest,
+)
 from agents.router import route_query
 from agents.email_agent import generate_email_draft
 from agents.automation_agent import summarize_url, generate_calendar_event
 from memory.chat_memory import conversation_memory
-
-import asyncio
-from fastapi import UploadFile, File
-import shutil
-import base64
-
 from rag.pdf_processor import process_pdf
 from rag.vector_store import create_vector_store
 from rag.rag_chain import ask_pdf
 
-from credits import get_user_credits, check_credits, deduct_credits, calculate_credits
+from services.entitlement import get_user_entitlement
+from services.usage import (
+    check_user_quota,
+    record_user_usage,
+    get_usage_summary,
+)
+from security.rate_limiter import rate_limit_check
+from security.auth import get_current_user
 
-app = FastAPI()
+from routes.payments import router as payments_router
+from routes.admin import router as admin_router
 
-# Limit concurrent Groq API calls — prevents rate limit errors under load
-# Groq free tier: 30 req/min. Semaphore ensures max 5 calls run at once.
-groq_semaphore = asyncio.Semaphore(5)
+load_dotenv()
+
+# Limits & Cost Controls
+MAX_DOC_SIZE_BYTES = int(os.getenv("MAX_DOCUMENT_SIZE_MB", "10")) * 1024 * 1024
+MAX_IMAGE_SIZE_BYTES = int(os.getenv("MAX_IMAGE_SIZE_MB", "5")) * 1024 * 1024
+
+# Concurrency semaphore for LLM calls
+groq_semaphore = asyncio.Semaphore(10)
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup: ensure database indexes
+    await ensure_indexes()
+    yield
+
+
+app = FastAPI(
+    title="GPT 6 Astra API",
+    description="Astra AI Independent SaaS Backend",
+    version="3.0.0",
+    lifespan=lifespan,
+)
 
 # -----------------------------------
 # CORS
 # -----------------------------------
-
 app.add_middleware(
-
     CORSMiddleware,
-
     allow_origins=["*"],
-
     allow_credentials=True,
-
     allow_methods=["*"],
-
     allow_headers=["*"],
-
 )
 
 # -----------------------------------
-# MODELS
+# ROUTERS
 # -----------------------------------
-
-class CreateChatRequest(BaseModel):
-
-    user_email: str
-    title: str
-
-
-class MessageRequest(BaseModel):
-
-    chat_id: str
-    role: str
-    content: str
-
-
-class ChatRequest(BaseModel):
-
-    # Existing backend payload (simple chat)
-    user_id: str | None = None
-    message: str | None = None
-
-    # Frontend payload (agent-based chat)
-    chat_id: str | None = None
-    role: str | None = None
-    agent: str | None = None
-    query: str | None = None
-    file_name: str | None = None
-    file_data: dict | None = None
+app.include_router(payments_router)
+app.include_router(admin_router)
 
 # -----------------------------------
-# ROOT
+# HEALTH & KEEP-ALIVE
 # -----------------------------------
-
 @app.get("/")
-async def home():
-    return {"message": "Simha AI Backend Running"}
+async def root():
+    return {
+        "service": "Astra AI (GPT 6 Astra)",
+        "status": "operational",
+        "version": "3.0.0",
+        "disclaimer": "Astra AI is an independent AI application and is not affiliated with or endorsed by OpenAI.",
+    }
 
-# Keep-alive endpoint — pinged by frontend every 8 minutes to prevent Railway cold start
+
 @app.get("/ping")
 async def ping():
-    return {"status": "ok", "message": "Server is warm 🔥"}
+    return {"status": "ok", "message": "Astra AI core is warm ⚡"}
+
 
 @app.get("/health")
 async def health():
@@ -98,305 +111,64 @@ async def health():
     return {
         "status": "healthy",
         "database": "connected" if db_ok else "unavailable",
-        "version": "2.0"
+        "version": "3.0.0",
     }
 
-# -----------------------------------
-# USER CREDITS & PAYMENTS
-# -----------------------------------
 
+# -----------------------------------
+# USER ENTITLEMENT & USAGE
+# -----------------------------------
 @app.get("/user-credits/{email}")
-async def fetch_user_credits(email: str):
-    info = await get_user_credits(email)
-    return info
+@app.get("/user-usage/{email}")
+async def fetch_user_usage(email: str):
+    """Returns combined entitlement and daily usage stats for the user."""
+    summary = await get_usage_summary(email)
+    # Return backward-compatible fields along with new SaaS metrics
+    summary["credits"] = 999.0 if summary.get("is_premium") else max(0.0, float(summary["messages_limit"] - summary["messages_used"]))
+    summary["is_pro"] = summary.get("is_premium", False)
+    return summary
 
-import razorpay
-import os
-from fastapi import Request
 
-RAZORPAY_KEY_ID = os.getenv("RAZORPAY_KEY_ID", "rzp_test_dummy")
-RAZORPAY_KEY_SECRET = os.getenv("RAZORPAY_KEY_SECRET", "dummy_secret")
-
-if RAZORPAY_KEY_ID != "rzp_test_dummy":
-    razorpay_client = razorpay.Client(auth=(RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET))
-
-class CheckoutRequest(BaseModel):
-    email: str
-
-@app.post("/create-razorpay-order")
-async def create_razorpay_order(request: CheckoutRequest):
-    if not request.email:
-        raise HTTPException(status_code=400, detail="Email is required")
-        
-    try:
-        # ₹499 in paise
-        order_amount = 49900 
-        order_currency = 'INR'
-        order_receipt = request.email[:40]
-        
-        if RAZORPAY_KEY_ID == "rzp_test_dummy":
-            return {"id": "order_dummy", "amount": order_amount, "currency": order_currency}
-            
-        razorpay_order = razorpay_client.order.create({
-            'amount': order_amount,
-            'currency': order_currency,
-            'receipt': order_receipt,
-            'payment_capture': 1
-        })
-        return razorpay_order
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-class VerifyPaymentRequest(BaseModel):
-    email: str
-    razorpay_order_id: str
-    razorpay_payment_id: str
-    razorpay_signature: str
-
-@app.post("/verify-razorpay-payment")
-async def verify_razorpay_payment(request: VerifyPaymentRequest):
-    if RAZORPAY_KEY_ID != "rzp_test_dummy":
-        try:
-            razorpay_client.utility.verify_payment_signature({
-                'razorpay_order_id': request.razorpay_order_id,
-                'razorpay_payment_id': request.razorpay_payment_id,
-                'razorpay_signature': request.razorpay_signature
-            })
-        except razorpay.errors.SignatureVerificationError:
-            raise HTTPException(status_code=400, detail="Signature verification failed")
-            
-    from database import get_users_collection
-    col = get_users_collection()
-    if col is not None:
-        await col.update_one({"email": request.email}, {"$set": {"is_pro": True}})
-        
-    return {"status": "success"}
-
-# -----------------------------------
-# ANALYZE IMAGE (Vision)
-# -----------------------------------
-
-class ImageAnalysisRequest(BaseModel):
-    image_base64: str  # full data URL like "data:image/jpeg;base64,..."
-    prompt: str = "Describe this image in detail."
-    user_email: str | None = ""
-
-@app.post("/analyze-image")
-async def analyze_image(request: ImageAnalysisRequest):
-    """Analyze an image using Groq's vision model."""
-    from groq import Groq as _Groq
-    import os as _os
-
-    if not request.image_base64:
-        raise HTTPException(status_code=400, detail="image_base64 is required.")
-
-    await check_credits(request.user_email)
-
-    # Strip data URL prefix if present, keep as full data URL for Groq
-    image_url = request.image_base64  # Groq accepts data URLs directly
-
-    try:
-        _client = _Groq(api_key=_os.getenv("GROQ_API_KEY"))
-        completion = _client.chat.completions.create(
-            model="qwen/qwen3.8-27b",
-            messages=[
-                {
-                    "role": "user",
-                    "content": [
-                        {
-                            "type": "image_url",
-                            "image_url": {"url": image_url},
-                        },
-                        {
-                            "type": "text",
-                            "text": request.prompt,
-                        },
-                    ],
-                }
-            ],
-            temperature=0.3,
-            max_tokens=1024,
-        )
-        response_text = completion.choices[0].message.content
-        cost = calculate_credits(request.prompt, response_text)
-        await deduct_credits(request.user_email, cost)
-        return {"response": response_text}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Image analysis failed: {str(e)}")
-
-# -----------------------------------
-# GENERATE EMAIL DRAFT
-# -----------------------------------
-
-class EmailDraftRequest(BaseModel):
-    prompt: str
-    sender_name: str | None = ""
-    user_email: str | None = ""
-
-@app.post("/generate-email")
-async def generate_email(request: EmailDraftRequest):
-    if not request.prompt or not request.prompt.strip():
-        raise HTTPException(status_code=400, detail="Prompt is required.")
-        
-    await check_credits(request.user_email)
-    
-    try:
-        draft = generate_email_draft(
-            prompt=request.prompt.strip(),
-            sender_name=request.sender_name or ""
-        )
-        cost = calculate_credits(request.prompt, draft.get("body", ""))
-        await deduct_credits(request.user_email, cost)
-        return draft
-    except Exception as exc:
-        raise HTTPException(status_code=500, detail=str({"error": "Email generation failed", "details": str(exc)}))
-
-# -----------------------------------
-# SUMMARIZE URL
-# -----------------------------------
-
-class SummarizeUrlRequest(BaseModel):
-    url: str
-    user_email: str | None = ""
-
-@app.post("/summarize-url")
-async def summarize_url_endpoint(request: SummarizeUrlRequest):
-    if not request.url or not request.url.startswith("http"):
-        raise HTTPException(status_code=400, detail="A valid URL starting with http/https is required.")
-        
-    await check_credits(request.user_email)
-    
-    try:
-        result = await summarize_url(request.url)
-        cost = calculate_credits(request.url, result.get("summary", ""))
-        await deduct_credits(request.user_email, cost)
-        return result
-    except Exception as exc:
-        raise HTTPException(status_code=500, detail=str({"error": "URL summarization failed", "details": str(exc)}))
-
-# -----------------------------------
-# GENERATE CALENDAR EVENT
-# -----------------------------------
-
-class CalendarEventRequest(BaseModel):
-    prompt: str
-    sender_name: str | None = ""
-    user_email: str | None = ""
-
-@app.post("/generate-calendar-event")
-async def generate_calendar_event_endpoint(request: CalendarEventRequest):
-    if not request.prompt or not request.prompt.strip():
-        raise HTTPException(status_code=400, detail="Prompt is required.")
-        
-    await check_credits(request.user_email)
-    
-    try:
-        event = generate_calendar_event(
-            prompt=request.prompt.strip(),
-            sender_name=request.sender_name or ""
-        )
-        cost = calculate_credits(request.prompt, event.get("description", ""))
-        await deduct_credits(request.user_email, cost)
-        return event
-    except Exception as exc:
-        raise HTTPException(status_code=500, detail=str({"error": "Calendar event generation failed", "details": str(exc)}))
-
-# -----------------------------------
-# NORMAL CHAT
-# -----------------------------------
-
-@app.post("/chat")
-async def chat(request: ChatRequest):
-
-    # Prefer frontend payload fields
-    user_id = request.user_id
-
-    message = None
-    if request.query:
-        # Map agent -> router prefix
-        agent = (request.agent or "study").lower()
-
-        if agent.startswith("coding"):
-            message = f"coding: {request.query}"
-        elif agent.startswith("productivity"):
-            message = f"productivity: {request.query}"
-        else:
-            message = f"study: {request.query}"
-    elif request.message:
-        message = request.message
-
-    if not user_id:
-        user_id = "guest"
-
-    if not message:
-        raise HTTPException(status_code=400, detail=str({"error": "Missing message/query in request."}))
-
-    # MEMORY INIT
-
-    if user_id not in conversation_memory:
-
-        conversation_memory[user_id] = []
-
-    history = conversation_memory[user_id]
-
-    # AI RESPONSE
-
-    response = route_query(
-
-        message,
-        history
-
-    )
-
-    # SAVE MEMORY
-
-    conversation_memory[user_id].append({
-
-        "user": message,
-
-        "assistant": response
-
-    })
-
-    return {
-
-        "response": response
-
-    }
-
-# Frontend/Render compatibility aliases
-@app.post("/api/chat")
-async def api_chat(request: ChatRequest):
-
-    return await chat(request)
+@app.get("/user-entitlement/{email}")
+async def fetch_user_entitlement(email: str):
+    """Returns active pass and expiration details for the user."""
+    return await get_user_entitlement(email)
 
 
 # -----------------------------------
-# STREAM CHAT
+# ASTRA CHAT (STREAMING)
 # -----------------------------------
-
 @app.post("/stream-chat")
-async def stream_chat(request: ChatRequest):
+@app.post("/streamchat")
+@app.post("/api/streamchat")
+async def stream_chat(request: ChatRequest, req: Request):
+    rate_limit_check(req)
+
     user_id = request.user_id or "guest"
     chat_id = request.chat_id
 
+    # Resolve message from query or direct message
     message = None
     if request.query:
         agent = (request.agent or "study").lower()
-        if agent.startswith("coding"):
+        if agent.startswith("coding") or agent.startswith("code"):
             message = f"coding: {request.query}"
         elif agent.startswith("productivity"):
             message = f"productivity: {request.query}"
+        elif agent.startswith("wisdom") or agent.startswith("divine"):
+            message = f"wisdom: {request.query}"
         else:
             message = f"study: {request.query}"
     elif request.message:
         message = request.message
 
     if not message:
-        raise HTTPException(status_code=400, detail=str({"error": "Missing message/query in request."}))
+        raise HTTPException(status_code=400, detail="Missing query or message.")
 
-    # ── Build conversation history ──
-    # Try loading last 60 messages from MongoDB for persistent context across cold starts
+    # 1. Quota Check
+    await check_user_quota(user_id, request_type="message")
+
+    # 2. Build conversation history
     history = []
     if chat_id:
         collection = get_chat_collection()
@@ -404,22 +176,19 @@ async def stream_chat(request: ChatRequest):
             try:
                 doc = await collection.find_one({"_id": ObjectId(chat_id)})
                 if doc and doc.get("messages"):
-                    raw_msgs = doc["messages"][-60:]  # last 60 messages (30 turns)
+                    raw_msgs = doc["messages"][-40:]
                     for i in range(0, len(raw_msgs) - 1, 2):
                         u = raw_msgs[i]
                         a = raw_msgs[i + 1] if i + 1 < len(raw_msgs) else None
                         if u.get("role") == "user" and a and a.get("role") == "assistant":
                             history.append({"user": u["content"], "assistant": a["content"]})
             except Exception:
-                pass  # Fall back to in-memory history
+                pass
 
-    # Fall back to in-memory history if MongoDB gave nothing
     if not history and user_id in conversation_memory:
-        history = conversation_memory[user_id][-30:]
-        
-    await check_credits(user_id)
+        history = conversation_memory[user_id][-20:]
 
-    # ── Stream response (semaphore caps concurrent Groq calls at 5) ──
+    # 3. Stream generator with Groq semaphore and usage recording
     async def generate():
         full_response = ""
         try:
@@ -429,28 +198,32 @@ async def stream_chat(request: ChatRequest):
                     None, lambda: route_query(message, history, stream=False)
                 )
                 if not response_text:
-                    response_text = "No response. Please try again."
-            chunk_size = 8
+                    response_text = "No response from Astra AI. Please retry."
+
+            chunk_size = 12
             for i in range(0, len(response_text), chunk_size):
-                chunk = response_text[i:i + chunk_size]
+                chunk = response_text[i : i + chunk_size]
                 full_response += chunk
                 yield chunk
                 await asyncio.sleep(0.01)
-        except Exception as e:
-            error_msg = "AI is busy, please try again in a moment."
-            full_response = error_msg
-            yield error_msg
-            print(f"[stream] Error: {e}")
+        except Exception as exc:
+            err_msg = "Astra AI is momentarily processing high volume. Please try again."
+            full_response = err_msg
+            yield err_msg
+            print(f"[Astra Stream] Error: {exc}")
         finally:
             if full_response:
-                cost = calculate_credits(request.query or message, full_response)
-                await deduct_credits(user_id, cost)
-                
+                # Record usage upon completion
+                await record_user_usage(user_id, request_type="message", tokens_estimated=len(full_response) // 4)
+
+                # Update in-memory history
                 if user_id not in conversation_memory:
                     conversation_memory[user_id] = []
                 conversation_memory[user_id].append({"user": message, "assistant": full_response})
-                if len(conversation_memory[user_id]) > 40:
-                    conversation_memory[user_id] = conversation_memory[user_id][-40:]
+                if len(conversation_memory[user_id]) > 30:
+                    conversation_memory[user_id] = conversation_memory[user_id][-30:]
+
+                # Persist to MongoDB
                 if chat_id:
                     collection = get_chat_collection()
                     if collection is not None:
@@ -458,56 +231,181 @@ async def stream_chat(request: ChatRequest):
                             await collection.update_one(
                                 {"_id": ObjectId(chat_id)},
                                 {
-                                    "$push": {"messages": {"$each": [
-                                        {"role": "user", "content": request.query or message, "file": request.file_name},
-                                        {"role": "assistant", "content": full_response}
-                                    ]}},
-                                    "$set": {"updated_at": __import__("datetime").datetime.utcnow()}
-                                }
+                                    "$push": {
+                                        "messages": {
+                                            "$each": [
+                                                {"role": "user", "content": request.query or message, "file": request.file_name},
+                                                {"role": "assistant", "content": full_response},
+                                            ]
+                                        }
+                                    },
+                                    "$set": {"updated_at": datetime.datetime.now(datetime.timezone.utc)},
+                                },
                             )
                         except Exception as db_err:
-                            print("DB save error:", db_err)
+                            print("[Astra Stream] DB save error:", db_err)
 
     return StreamingResponse(generate(), media_type="text/plain")
 
 
-# Frontend/Render compatibility aliases for streaming
-@app.post("/streamchat")
-async def streamchat(request: ChatRequest):
-    return await stream_chat(request)
+@app.post("/chat")
+@app.post("/api/chat")
+async def chat_endpoint(request: ChatRequest, req: Request):
+    rate_limit_check(req)
+    user_id = request.user_id or "guest"
 
-@app.post("/api/streamchat")
-async def api_streamchat(request: ChatRequest):
-    return await stream_chat(request)
+    message = request.query or request.message
+    if not message:
+        raise HTTPException(status_code=400, detail="Missing query or message.")
+
+    await check_user_quota(user_id, request_type="message")
+
+    if user_id not in conversation_memory:
+        conversation_memory[user_id] = []
+
+    history = conversation_memory[user_id]
+    response = route_query(message, history, stream=False)
+
+    conversation_memory[user_id].append({"user": message, "assistant": response})
+    await record_user_usage(user_id, request_type="message")
+
+    return {"response": response}
+
 
 # -----------------------------------
-# UPLOAD PDF  (saves metadata to MongoDB documents collection)
+# ASTRA VISION (IMAGE ANALYSIS)
 # -----------------------------------
+@app.post("/analyze-image")
+async def analyze_image(request: ImageAnalysisRequest, req: Request):
+    rate_limit_check(req)
+    user_email = request.user_email or "guest"
 
-import os
-import datetime
+    if not request.image_base64:
+        raise HTTPException(status_code=400, detail="image_base64 is required.")
 
+    # Size check
+    if len(request.image_base64) > MAX_IMAGE_SIZE_BYTES * 1.37:
+        raise HTTPException(status_code=413, detail=f"Image exceeds maximum allowed size of {MAX_IMAGE_SIZE_BYTES // (1024*1024)}MB.")
+
+    await check_user_quota(user_email, request_type="image")
+
+    try:
+        from groq import Groq
+        groq_client = Groq(api_key=os.getenv("GROQ_API_KEY"))
+        completion = groq_client.chat.completions.create(
+            model="qwen/qwen3.8-27b",
+            messages=[
+                {
+                    "role": "user",
+                    "content": [
+                        {"type": "image_url", "image_url": {"url": request.image_base64}},
+                        {"type": "text", "text": request.prompt},
+                    ],
+                }
+            ],
+            temperature=0.3,
+            max_tokens=1024,
+        )
+        response_text = completion.choices[0].message.content or ""
+        await record_user_usage(user_email, request_type="image")
+        return {"response": response_text}
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Astra Vision analysis error: {str(exc)}")
+
+
+# -----------------------------------
+# ASTRA PRODUCTIVITY: EMAIL
+# -----------------------------------
+@app.post("/generate-email")
+async def generate_email(request: EmailDraftRequest, req: Request):
+    rate_limit_check(req)
+    user_email = request.user_email or "guest"
+
+    if not request.prompt or not request.prompt.strip():
+        raise HTTPException(status_code=400, detail="Prompt is required.")
+
+    await check_user_quota(user_email, request_type="message")
+
+    try:
+        draft = generate_email_draft(prompt=request.prompt.strip(), sender_name=request.sender_name or "")
+        await record_user_usage(user_email, request_type="message")
+        return draft
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Email draft failed: {str(exc)}")
+
+
+# -----------------------------------
+# ASTRA RESEARCH: URL SUMMARIZER
+# -----------------------------------
+@app.post("/summarize-url")
+async def summarize_url_endpoint(request: SummarizeUrlRequest, req: Request):
+    rate_limit_check(req)
+    user_email = request.user_email or "guest"
+
+    if not request.url or not request.url.startswith("http"):
+        raise HTTPException(status_code=400, detail="A valid HTTP/HTTPS URL is required.")
+
+    await check_user_quota(user_email, request_type="message")
+
+    try:
+        result = await summarize_url(request.url)
+        await record_user_usage(user_email, request_type="message")
+        return result
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"URL summarization failed: {str(exc)}")
+
+
+# -----------------------------------
+# ASTRA PRODUCTIVITY: CALENDAR
+# -----------------------------------
+@app.post("/generate-calendar-event")
+async def generate_calendar_endpoint(request: CalendarEventRequest, req: Request):
+    rate_limit_check(req)
+    user_email = request.user_email or "guest"
+
+    if not request.prompt or not request.prompt.strip():
+        raise HTTPException(status_code=400, detail="Prompt is required.")
+
+    await check_user_quota(user_email, request_type="message")
+
+    try:
+        event = generate_calendar_event(prompt=request.prompt.strip(), sender_name=request.sender_name or "")
+        await record_user_usage(user_email, request_type="message")
+        return event
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Calendar event generation failed: {str(exc)}")
+
+
+# -----------------------------------
+# ASTRA DOCS: UPLOAD & RAG
+# -----------------------------------
 @app.post("/upload-pdf")
 async def upload_pdf(
     file: UploadFile = File(...),
-    user_email: str = "",
-    chat_id: str = "",
+    user_email: str = Form(""),
+    chat_id: str = Form(""),
 ):
-    os.makedirs("uploads", exist_ok=True)
-    file_path = f"uploads/{file.filename}"
+    # Check quota for document processing
+    await check_user_quota(user_email or "guest", request_type="document")
 
-    # Read file content for size tracking
+    os.makedirs("uploads", exist_ok=True)
     content = await file.read()
     file_size = len(content)
 
+    if file_size > MAX_DOC_SIZE_BYTES:
+        raise HTTPException(
+            status_code=413,
+            detail=f"File exceeds maximum allowed size of {MAX_DOC_SIZE_BYTES // (1024*1024)}MB.",
+        )
+
+    file_path = f"uploads/{file.filename}"
     with open(file_path, "wb") as buffer:
         buffer.write(content)
 
-    # Process for RAG
+    # Process and vectorize
     chunks = process_pdf(file_path)
     create_vector_store(chunks)
 
-    # Save metadata to MongoDB documents collection
     doc_id = None
     docs_collection = get_documents_collection()
     if docs_collection is not None and user_email:
@@ -515,36 +413,34 @@ async def upload_pdf(
             "user_email": user_email,
             "file_name": file.filename,
             "file_size": file_size,
-            "file_type": file.content_type or "application/octet-stream",
+            "file_type": file.content_type or "application/pdf",
             "chat_id": chat_id or None,
             "pages": len(chunks),
-            "uploaded_at": datetime.datetime.utcnow(),
+            "uploaded_at": datetime.datetime.now(datetime.timezone.utc),
         }
-        result = await docs_collection.insert_one(doc_record)
-        doc_id = str(result.inserted_id)
+        res = await docs_collection.insert_one(doc_record)
+        doc_id = str(res.inserted_id)
+
+    await record_user_usage(user_email or "guest", request_type="document")
 
     return {
-        "message": "PDF uploaded successfully",
+        "message": "PDF indexed successfully in Astra Docs",
         "doc_id": doc_id,
         "file_name": file.filename,
         "pages": len(chunks),
     }
 
-# -----------------------------------
-# GET DOCUMENTS (for sidebar Documents page)
-# -----------------------------------
 
 @app.get("/get-documents/{user_email}")
 async def get_documents(user_email: str):
     docs_collection = get_documents_collection()
     if docs_collection is None:
         return []
-    cursor = docs_collection.find(
-        {"user_email": user_email},
-        sort=[("uploaded_at", -1)]
-    )
+
+    cursor = docs_collection.find({"user_email": user_email}, sort=[("uploaded_at", -1)])
     docs = []
     async for doc in cursor:
+        uploaded = doc.get("uploaded_at")
         docs.append({
             "id": str(doc["_id"]),
             "file_name": doc.get("file_name", ""),
@@ -552,111 +448,67 @@ async def get_documents(user_email: str):
             "file_type": doc.get("file_type", ""),
             "chat_id": doc.get("chat_id"),
             "pages": doc.get("pages", 0),
-            "uploaded_at": doc.get("uploaded_at", "").isoformat() if doc.get("uploaded_at") else "",
+            "uploaded_at": uploaded.isoformat() if isinstance(uploaded, datetime.datetime) else "",
         })
     return docs
 
-# -----------------------------------
-# DELETE DOCUMENT
-# -----------------------------------
 
 @app.delete("/delete-document/{doc_id}")
 async def delete_document(doc_id: str):
     docs_collection = get_documents_collection()
     if docs_collection is None:
-        raise HTTPException(status_code=500, detail="DB not configured")
+        raise HTTPException(status_code=500, detail="Database not configured")
     try:
         await docs_collection.delete_one({"_id": ObjectId(doc_id)})
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc))
-    return {"message": "Document deleted"}
+    return {"message": "Document removed from Astra Docs"}
 
-# -----------------------------------
-# ASK PDF
-# -----------------------------------
 
 @app.post("/ask-pdf")
-async def ask_pdf_question(
+async def ask_pdf_question(request: ChatRequest):
+    if not request.message:
+        raise HTTPException(status_code=400, detail="Question is required.")
+    response = ask_pdf(request.message)
+    return {"response": response}
 
-    request: ChatRequest
 
-):
-
-    response = ask_pdf(
-
-        request.message
-
-    )
-
-    return {
-
-        "response":
-
-        response
-
-    }
 # -----------------------------------
-# CREATE CHAT
+# CHAT SESSION MANAGEMENT
 # -----------------------------------
-
 @app.post("/create-chat")
-async def create_chat(
-    request: CreateChatRequest
-):
-
+async def create_chat(request: CreateChatRequest):
     collection = get_chat_collection()
     if collection is None:
-        raise HTTPException(status_code=500, detail=str({"error": "MongoDB not configured (MONGO_URL/DATABASE_NAME missing)."}))
+        raise HTTPException(status_code=500, detail="MongoDB not configured")
 
     new_chat = {
-
-        "user_email":
-        request.user_email,
-
-        "title":
-        request.title,
-
-        "messages": []
-
+        "user_email": request.user_email,
+        "title": request.title,
+        "messages": [],
+        "created_at": datetime.datetime.now(datetime.timezone.utc),
+        "updated_at": datetime.datetime.now(datetime.timezone.utc),
     }
+    result = await collection.insert_one(new_chat)
+    return {"chat_id": str(result.inserted_id)}
 
-    try:
-        result = await collection.insert_one(new_chat)
-    except Exception as exc:
-        raise HTTPException(status_code=500, detail=str({"error": "MongoDB insert failed", "details": str(exc)}))
-
-    return {
-
-        "chat_id":
-        str(result.inserted_id)
-
-    }
-
-# -----------------------------------
-# GET USER CHATS
-# -----------------------------------
 
 @app.get("/get-chats/{user_email}")
 async def get_chats(user_email: str):
     collection = get_chat_collection()
     if collection is None:
-        # Return empty list gracefully — frontend handles it by creating a new chat
         return []
 
     try:
-        cursor = collection.find(
-            {"user_email": user_email},
-            sort=[("_id", -1)]   # newest first
-        )
-        docs = await cursor.to_list(length=30)  # cap at 30 chats
+        cursor = collection.find({"user_email": user_email}, sort=[("_id", -1)])
+        docs = await cursor.to_list(length=50)
     except Exception as exc:
-        print(f"get_chats error for {user_email}: {exc}")
-        return []  # return empty instead of crashing
+        print(f"[Astra DB] get_chats error: {exc}")
+        return []
 
     result = []
     for doc in docs:
         messages = doc.get("messages", [])
-        # Return only last 100 messages to avoid huge payloads
         if len(messages) > 100:
             messages = messages[-100:]
         result.append({
@@ -666,105 +518,44 @@ async def get_chats(user_email: str):
         })
     return result
 
-# -----------------------------------
-# SAVE MESSAGE
-# -----------------------------------
 
 @app.post("/save-message")
-async def save_message(
-    request: MessageRequest
-):
-
+async def save_message(request: MessageRequest):
     collection = get_chat_collection()
     if collection is None:
-        raise HTTPException(status_code=500, detail=str({"error": "MongoDB not configured (MONGO_URL/DATABASE_NAME missing)."}))
+        raise HTTPException(status_code=500, detail="MongoDB not configured")
 
-    try:
-        await collection.update_one(
+    await collection.update_one(
+        {"_id": ObjectId(request.chat_id)},
+        {
+            "$push": {"messages": {"role": request.role, "content": request.content}},
+            "$set": {"updated_at": datetime.datetime.now(datetime.timezone.utc)},
+        },
+    )
+    return {"message": "Message saved"}
 
-            {
-
-                "_id":
-                ObjectId(request.chat_id)
-
-            },
-
-            {
-
-                "$push": {
-
-                    "messages": {
-
-                        "role":
-                        request.role,
-
-                        "content":
-                        request.content
-
-                    }
-
-                }
-
-            }
-
-        )
-    except Exception as exc:
-        raise HTTPException(status_code=500, detail=str({"error": "MongoDB update failed", "details": str(exc)}))
-
-    return {
-
-        "message":
-        "Saved Successfully"
-
-    }
-
-# -----------------------------------
-# RENAME CHAT
-# -----------------------------------
-
-class RenameChatRequest(BaseModel):
-    title: str
 
 @app.patch("/rename-chat/{chat_id}")
 async def rename_chat(chat_id: str, request: RenameChatRequest):
     collection = get_chat_collection()
     if collection is None:
-        raise HTTPException(status_code=500, detail=str({"error": "MongoDB not configured."}))
-    try:
-        await collection.update_one(
-            {"_id": ObjectId(chat_id)},
-            {"$set": {"title": request.title}}
-        )
-    except Exception as exc:
-        raise HTTPException(status_code=500, detail=str({"error": "MongoDB update failed", "details": str(exc)}))
-    return {"message": "Renamed"}
+        raise HTTPException(status_code=500, detail="MongoDB not configured")
+    await collection.update_one(
+        {"_id": ObjectId(chat_id)},
+        {
+            "$set": {
+                "title": request.title,
+                "updated_at": datetime.datetime.now(datetime.timezone.utc),
+            }
+        },
+    )
+    return {"message": "Chat renamed"}
 
-# -----------------------------------
-# DELETE CHAT
-# -----------------------------------
 
 @app.delete("/delete-chat/{chat_id}")
-async def delete_chat(
-    chat_id: str
-):
-
+async def delete_chat(chat_id: str):
     collection = get_chat_collection()
     if collection is None:
-        raise HTTPException(status_code=500, detail=str({"error": "MongoDB not configured (MONGO_URL/DATABASE_NAME missing)."}))
-
-    try:
-        await collection.delete_one({
-
-            "_id":
-            ObjectId(chat_id)
-
-        })
-    except Exception as exc:
-        raise HTTPException(status_code=500, detail=str({"error": "MongoDB delete failed", "details": str(exc)}))
-
-    return {
-
-        "message":
-        "Chat Deleted"
-
-    }
+        raise HTTPException(status_code=500, detail="MongoDB not configured")
+    await collection.delete_one({"_id": ObjectId(chat_id)})
+    return {"message": "Chat deleted"}

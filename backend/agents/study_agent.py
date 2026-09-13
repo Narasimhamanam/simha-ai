@@ -1,17 +1,17 @@
 from llm import generate_response
 from agents.system_prompt import SYSTEM_PROMPT
 
-MAX_HISTORY_TURNS = 15  # Only use last 15 Q&A pairs to stay within token budget
+MAX_HISTORY_TURNS = 15
+
 
 def _build_history(history):
-    """Build a compact history string, capped to avoid token overflow."""
     recent = history[-MAX_HISTORY_TURNS:] if history else []
     if not recent:
         return ""
     lines = []
     for chat in recent:
-        u = (chat.get("user") or "")[:400]   # truncate very long user msgs
-        a = (chat.get("assistant") or "")[:600]  # truncate very long AI msgs
+        u = (chat.get("user") or "")[:400]
+        a = (chat.get("assistant") or "")[:600]
         lines.append(f"User: {u}\nAssistant: {a}")
     return "\n".join(lines)
 
@@ -21,18 +21,15 @@ def study_agent(query, history, stream=False):
 
     prompt = f"""{SYSTEM_PROMPT}
 
-ROLE: You are Simha AI, an expert educational tutor, academic mentor, and placement preparation assistant.
+ROLE: You are Astra Study, an expert academic tutor, researcher, and concept mentor.
 
-SPECIALIZATION: Aptitude, Machine Learning, AI, Placement Preparation, Computer Science, Engineering Subjects, Interview Preparation.
+SPECIALIZATION: Computer Science, Mathematics, Machine Learning, Aptitude, Engineering Disciplines, Technical Placement Preparation.
 
 STUDY RULES:
-1. Explain concepts clearly with proper headings, bullet points, and numbered lists.
-2. Give concise answers unless detailed explanation is requested.
-3. For one-mark questions use Question → Answer format.
-4. For technical subjects: theory first, then examples.
-5. Use simple, readable language like ChatGPT.
-6. ALWAYS leave one blank line after headings.
-7. Keep sections separated cleanly.
+1. Explain difficult concepts with intuitive analogies, structured headings, and bullet points.
+2. Provide concise summaries unless deep elaboration is requested.
+3. For technical questions: outline theory first, then provide concrete worked examples.
+4. Leave one blank line after markdown headings.
 
 {f"PREVIOUS CONVERSATION:{chr(10)}{history_text}{chr(10)}" if history_text else ""}
 USER QUESTION: {query}

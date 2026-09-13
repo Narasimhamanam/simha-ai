@@ -173,7 +173,7 @@ export default function CalendarComposer({ theme, profile, onClose, credits, fet
               <div className="w-12 h-12 rounded-2xl bg-[var(--mane-gold-glow)] border border-[rgba(214,168,79,0.2)] flex items-center justify-center mx-auto" style={{ color: "var(--mane-gold)" }}><Lock size={22} /></div>
               <div>
                 <h3 className="text-base font-bold">Connect Google Calendar</h3>
-                <p className="text-xs mt-1 leading-relaxed" style={{ color: "var(--ink-3)" }}>Authorize Simha AI to schedule this event.</p>
+                <p className="text-xs mt-1 leading-relaxed" style={{ color: "var(--ink-3)" }}>Authorize Astra AI to schedule this event.</p>
               </div>
               <button onClick={handleRequestPermission} className="btn-gold w-full flex items-center justify-center gap-2 py-3">
                 <span>Authorize & Create Event</span><ArrowRight size={14} />
