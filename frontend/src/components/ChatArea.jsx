@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import {
   Paperclip, Copy, Check, X, ArrowUp, ImageIcon,
   Sparkles, Code2, BookOpen, Rocket, FileText, ChevronDown,
-  Lock, Zap
+  Lock
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import ReactMarkdown from "react-markdown";
@@ -52,7 +52,6 @@ const SUGGESTIONS = {
 
 export default function ChatArea({
   theme,
-  chats,
   setChats,
   activeChat,
   activeChatId,
@@ -99,7 +98,9 @@ export default function ChatArea({
       await navigator.clipboard.writeText(text);
       setCopiedCodeId(id);
       setTimeout(() => setCopiedCodeId(""), 2000);
-    } catch {}
+    } catch {
+      /* clipboard write error ignored */
+    }
   };
 
   const copyMsg = async (text, idx) => {
@@ -107,7 +108,9 @@ export default function ChatArea({
       await navigator.clipboard.writeText(text);
       setCopiedMsgIdx(idx);
       setTimeout(() => setCopiedMsgIdx(null), 2000);
-    } catch {}
+    } catch {
+      /* clipboard write error ignored */
+    }
   };
 
   const updateMessages = useCallback(
@@ -136,7 +139,7 @@ export default function ChatArea({
       });
       return res.data;
     } catch (e) {
-      throw new Error(e?.response?.data?.detail?.message || e?.response?.data?.detail || "Upload failed.");
+      throw new Error(e?.response?.data?.detail?.message || e?.response?.data?.detail || "Upload failed.", { cause: e });
     } finally {
       setUploading(false);
     }
@@ -181,10 +184,17 @@ export default function ChatArea({
           ...m,
           { role: "assistant", content: "", agent: selectedAgent, timestamp: new Date().toISOString() },
         ]);
-        const baseURL = import.meta.env.VITE_BACKEND_URL || "http://localhost:8000";
+        const baseURL = import.meta.env.VITE_BACKEND_URL || "https://astra-ai-backend.onrender.com";
+        const token = await user?.getIdToken?.().catch(() => null);
+        const authHeaders = {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          ...(user?.email ? { "X-User-Email": user.email } : {}),
+        };
+
         const res = await fetch(`${baseURL}/analyze-image`, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: authHeaders,
           body: JSON.stringify({
             image_base64: img,
             prompt: text || "Describe this image in detail.",
@@ -227,10 +237,17 @@ export default function ChatArea({
           { role: "assistant", content: "", agent: selectedAgent, timestamp: new Date().toISOString() },
         ]);
 
-        const baseURL = import.meta.env.VITE_BACKEND_URL || "http://localhost:8000";
+        const baseURL = import.meta.env.VITE_BACKEND_URL || "https://astra-ai-backend.onrender.com";
+        const token = await user?.getIdToken?.().catch(() => null);
+        const authHeaders = {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          ...(user?.email ? { "X-User-Email": user.email } : {}),
+        };
+
         const res = await fetch(`${baseURL}/stream-chat`, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: authHeaders,
           body: JSON.stringify({
             query: text,
             message: text,
@@ -526,7 +543,14 @@ export default function ChatArea({
       {/* ── FLOATING COMPOSER CAPSULE ── */}
       <div className="sticky bottom-0 z-20 px-4 sm:px-6 pb-4 sm:pb-5 pt-2 bg-gradient-to-t from-[var(--void)] via-[var(--void)]/90 to-transparent">
         <div className="max-w-[680px] mx-auto w-full">
-          
+          {/* Error Banner */}
+          {errorMessage && (
+            <div className="mb-2 px-3 py-1.5 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-xs flex items-center justify-between animate-fade-in">
+              <span>{errorMessage}</span>
+              <button onClick={() => setErrorMessage("")} className="text-[10px] underline ml-2 hover:text-red-300">Dismiss</button>
+            </div>
+          )}
+
           {/* Attachment Chips */}
           {(imagePreview || selectedFile || uploading) && (
             <div className="mb-2 flex items-center gap-2 flex-wrap animate-fade-in">

@@ -28,13 +28,27 @@ async def get_current_user(
     if x_user_email and "@" in x_user_email:
         email = x_user_email.strip().lower()
 
-    # Check Authorization header
+    # Check Authorization header (Firebase ID token or Bearer email)
     elif authorization and authorization.startswith("Bearer "):
         token = authorization.split("Bearer ", 1)[1].strip()
-        # In full production with Firebase Admin SDK, verifyIdToken(token) is called here.
-        # If token is formatted as email or contains email identifier:
         if "@" in token:
             email = token.lower()
+        else:
+            # Decode JWT payload
+            try:
+                parts = token.split(".")
+                if len(parts) == 3:
+                    import base64, json, time
+                    p_b64 = parts[1]
+                    pad = 4 - (len(p_b64) % 4)
+                    if pad != 4:
+                        p_b64 += "=" * pad
+                    claims = json.loads(base64.urlsafe_b64decode(p_b64).decode("utf-8"))
+                    exp = claims.get("exp")
+                    if not exp or exp >= time.time() - 300:
+                        email = claims.get("email", "").strip().lower()
+            except Exception:
+                pass
 
     # Fallback to body/query params if request has json payload
     if not email:

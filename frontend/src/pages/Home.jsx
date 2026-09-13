@@ -28,25 +28,26 @@ import { auth, provider } from "../firebase";
 import { useTheme } from "../context/ThemeContext";
 import API from "../services/api";
 import { startKeepAlive, stopKeepAlive } from "../services/keepAlive";
-import { AlertCircle, RefreshCw, Sparkles } from "lucide-react";
-
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:8000";
-const prewarm = () => fetch(`${BACKEND_URL}/ping`).catch(() => {});
+import { AlertCircle, Sparkles } from "lucide-react";
 
 export default function Home() {
   const { theme } = useTheme();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [appLoading, setAppLoading] = useState(false);
-  const [appError, setAppError] = useState("");
   const [selectedAgent, setSelectedAgent] = useState("study");
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [authModalMode, setAuthModalMode] = useState("login");
 
+  // Authentication & State Machine
   const isDevGuest = (import.meta.env.VITE_DEV_GUEST || "").toString().toLowerCase() === "true";
+  const [authLoading, setAuthLoading] = useState(!isDevGuest);
   const [user, setUser] = useState(
     isDevGuest ? { email: "guest@local", displayName: "Guest", photoURL: null } : null
   );
   const [profile, setProfile] = useState(null);
+
+  // Background AI Cluster Availability (non-blocking)
+  const [aiStatus, setAiStatus] = useState("checking"); // "ready" | "warming_up" | "degraded" | "checking"
+  const [backendMessage, setBackendMessage] = useState("");
 
   // Determine initial page based on URL
   const isPaymentRedirect =
@@ -59,9 +60,11 @@ export default function Home() {
   const [currentPage, setCurrentPage] = useState(initialPage);
   const [legalTab, setLegalTab] = useState("terms");
 
-  const guestChatId = "local-guest-chat";
-  const [chats, setChats] = useState(isDevGuest ? [{ id: guestChatId, title: "New Workspace", messages: [] }] : []);
-  const [activeChatId, setActiveChatId] = useState(isDevGuest ? guestChatId : null);
+  const initialWorkspaceId = "workspace-default";
+  const [chats, setChats] = useState([
+    { id: initialWorkspaceId, title: "New Workspace", messages: [] },
+  ]);
+  const [activeChatId, setActiveChatId] = useState(initialWorkspaceId);
 
   const [usage, setUsage] = useState({
     messages_used: 0,
@@ -76,6 +79,7 @@ export default function Home() {
 
   const isPro = usage.is_premium || usage.plan === "ASTRA_7_DAY";
   const daysRemaining = usage.days_remaining || 0;
+  const pendingPageRef = useRef(null);
 
   const fetchUsage = useCallback(async (email) => {
     if (!email) return;
@@ -86,145 +90,179 @@ export default function Home() {
       try {
         const fallback = await API.get(`/user-credits/${encodeURIComponent(email)}`);
         setUsage(fallback.data);
-      } catch { /* ignore fallback failure */ }
+      } catch {
+        // Non-blocking
+      }
     }
   }, []);
 
-  const warmUpBackend = async () => {
-    for (let i = 0; i < 15; i++) {
-      try {
-        await API.get("/ping", { timeout: 8000 });
-        return true;
-      } catch {
-        if (i < 14) {
-          setAppError(`Connecting to Astra AI cluster... (${(14 - i) * 3}s)`);
-          await new Promise((r) => setTimeout(r, 3000));
-        }
-      }
-    }
-    return false;
-  };
-
-  const [retryCountdown, setRetryCountdown] = useState(0);
-  const retryTimerRef = useRef(null);
-  const retryFnRef = useRef(null);
-  const pendingPageRef = useRef(null);
-
-  const fetchChats = useCallback(
+  // Background, non-blocking cluster warmup and chat synchronization
+  const initBackendAndChats = useCallback(
     async (email) => {
-      setAppLoading(true);
-      setAppError("Connecting to Astra AI...");
-      const alive = await warmUpBackend();
-      if (!alive) {
-        setAppLoading(false);
-        setAppError("Could not reach Astra backend.");
-        let c = 20;
-        setRetryCountdown(c);
-        retryTimerRef.current = setInterval(() => {
-          c--;
-          setRetryCountdown(c);
-          if (c <= 0) {
-            clearInterval(retryTimerRef.current);
-            setRetryCountdown(0);
-            // Use retryInit to avoid the 'accessed before declaration' lint error
-            if (retryFnRef.current) retryFnRef.current();
-          }
-        }, 1000);
-        return;
+      if (!email) return;
+
+      // 1. Check AI Cluster health (fast non-blocking ping)
+      try {
+        await API.get("/ping", { timeout: 6000 });
+        setAiStatus("ready");
+        setBackendMessage("");
+      } catch {
+        // Server is spinning up (Render cold-start) or slow
+        setAiStatus("warming_up");
+        setBackendMessage("Astra AI inference cluster is warming up (cloud cold-start ~30s). Workspaces are ready.");
+
+        // Re-check once in background after a brief delay
+        setTimeout(() => {
+          API.get("/ping", { timeout: 15000 })
+            .then(() => {
+              setAiStatus("ready");
+              setBackendMessage("");
+            })
+            .catch(() => {
+              setAiStatus("degraded");
+              setBackendMessage("AI inference is temporarily unreachable. You can continue using your account.");
+            });
+        }, 6000);
       }
 
-      setAppError("Mounting Astra workspace...");
+      // 2. Fetch server chats in background
       try {
-        const r = await API.get(`/get-chats/${encodeURIComponent(email)}`, { timeout: 15000 });
-        if (r.data.length > 0) {
+        const r = await API.get(`/get-chats/${encodeURIComponent(email)}`, { timeout: 12000 });
+        if (r.data && r.data.length > 0) {
           setChats(r.data);
-          setActiveChatId(r.data[0].id);
+          setActiveChatId((prev) => {
+            const exists = r.data.some((c) => c.id === prev);
+            return exists ? prev : r.data[0].id;
+          });
         } else {
-          const cr = await API.post(
-            "/create-chat",
-            { user_email: email, title: "New Workspace" },
-            { timeout: 12000 }
-          );
-          const nc = { id: cr.data.chat_id, title: "New Workspace", messages: [] };
-          setChats([nc]);
-          setActiveChatId(nc.id);
+          // Attempt to register initial chat on server
+          try {
+            const cr = await API.post(
+              "/create-chat",
+              { user_email: email, title: "New Workspace" },
+              { timeout: 8000 }
+            );
+            if (cr.data?.chat_id) {
+              const nc = { id: cr.data.chat_id, title: "New Workspace", messages: [] };
+              setChats([nc]);
+              setActiveChatId(nc.id);
+            }
+          } catch {
+            // Keep default local workspace
+          }
         }
-        setAppError("");
-        await fetchUsage(email);
-        setAppLoading(false);
-      } catch (e) {
-        console.error("fetchChats error:", e);
-        setAppLoading(false);
-        setAppError("Could not load chats. Tap Retry.");
+      } catch (err) {
+        console.warn("[Chats] Background load notice:", err?.message);
       }
+
+      // 3. Fetch usage quotas
+      fetchUsage(email);
     },
     [fetchUsage]
   );
 
-  const retryInit = () => {
-    if (retryTimerRef.current) clearInterval(retryTimerRef.current);
-    setRetryCountdown(0);
-    if (user) fetchChats(user.email);
-  };
-  // Keep retryFnRef in sync with the latest retryInit so fetchChats can call
-  // it without a forward-reference hoisting issue
-  useEffect(() => {
-    retryFnRef.current = retryInit;
-  });
-
   const createNewChat = async () => {
-    try {
-      const r = await API.post(
-        "/create-chat",
-        { user_email: user.email, title: "New Workspace" },
-        { timeout: 12000 }
-      );
-      const nc = { id: r.data.chat_id, title: "New Workspace", messages: [] };
-      setChats((p) => [nc, ...p]);
-      setActiveChatId(nc.id);
-      setCurrentPage("chat");
-      if (window.innerWidth < 1024) setIsSidebarOpen(false);
-    } catch (e) {
-      console.error("createNewChat:", e);
+    const fallbackId = `workspace-${Date.now()}`;
+    const localNewChat = { id: fallbackId, title: "New Workspace", messages: [] };
+    setChats((p) => [localNewChat, ...p]);
+    setActiveChatId(fallbackId);
+    setCurrentPage("chat");
+    if (window.innerWidth < 1024) setIsSidebarOpen(false);
+
+    if (user?.email) {
+      try {
+        const r = await API.post(
+          "/create-chat",
+          { user_email: user.email, title: "New Workspace" },
+          { timeout: 10000 }
+        );
+        if (r.data?.chat_id) {
+          setChats((p) =>
+            p.map((c) => (c.id === fallbackId ? { ...c, id: r.data.chat_id } : c))
+          );
+          setActiveChatId(r.data.chat_id);
+        }
+      } catch (e) {
+        console.warn("[Chat] createNewChat server sync notice:", e?.message);
+      }
     }
   };
 
-  // Auth observer
+  // Firebase Auth State Observer
   useEffect(() => {
     if (isDevGuest) return;
-    const unsub = onAuthStateChanged(auth, (u) => {
+
+    const unsub = onAuthStateChanged(auth, async (u) => {
       if (u) {
         setUser(u);
+        setAuthLoading(false);
+        setShowAuthModal(false);
+
+        // Baseline profile populated from Firebase immediately
         setProfile({
           nickname: u.displayName || "Astra User",
           email: u.email,
           avatar: u.photoURL,
-          is_admin: false, // Admin status resolved server-side via ADMIN_EMAILS env var
+          is_admin: false,
         });
-        API.defaults.headers.common["X-User-Email"] = u.email;
-        fetchChats(u.email);
-        startKeepAlive();
-        setShowAuthModal(false);
-        // Navigate to pending page if any
+
         if (pendingPageRef.current) {
           setCurrentPage(pendingPageRef.current);
           pendingPageRef.current = null;
         }
+
+        // Establish backend session with Firebase ID token (non-blocking)
+        try {
+          const token = await u.getIdToken();
+          if (token) {
+            API.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+          }
+          API.defaults.headers.common["X-User-Email"] = u.email;
+
+          API.post("/api/auth/session", {
+            id_token: token,
+            email: u.email,
+            name: u.displayName,
+            avatar: u.photoURL,
+          })
+            .then((res) => {
+              if (res.data?.user) {
+                setProfile((prev) => ({
+                  ...prev,
+                  ...res.data.user,
+                  nickname: res.data.user.name || prev?.nickname || "Astra User",
+                }));
+              }
+            })
+            .catch((sessionErr) => {
+              console.warn("[Auth] Session sync notice:", sessionErr?.message);
+            });
+        } catch (tokErr) {
+          console.warn("[Auth] ID token acquisition notice:", tokErr);
+        }
+
+        // Background synchronization
+        initBackendAndChats(u.email);
+        startKeepAlive();
       } else {
         stopKeepAlive();
         setUser(null);
-        setChats([]);
-        setActiveChatId(null);
+        setProfile(null);
+        setChats([{ id: initialWorkspaceId, title: "New Workspace", messages: [] }]);
+        setActiveChatId(initialWorkspaceId);
+        setAuthLoading(false);
         delete API.defaults.headers.common["X-User-Email"];
+        delete API.defaults.headers.common["Authorization"];
       }
     });
-    return () => unsub();
-  }, [isDevGuest, fetchChats]);
 
-  // Sync profile & periodic usage polling
+    return () => unsub();
+  }, [isDevGuest, initBackendAndChats]);
+
+  // Periodic usage polling when signed in
   useEffect(() => {
     if (user?.email) {
-      const i = setInterval(() => fetchUsage(user.email), 15000);
+      const i = setInterval(() => fetchUsage(user.email), 30000);
       return () => clearInterval(i);
     }
   }, [user, fetchUsage]);
@@ -234,34 +272,46 @@ export default function Home() {
       await signInWithPopup(auth, provider);
     } catch (e) {
       console.error("Google login failed:", e);
+      throw e; // Pass to AuthModal for friendly error banner
     }
   };
 
   const handleEmailLogin = async (email, password) => {
-    await signInWithEmailAndPassword(auth, email, password);
+    await signInWithEmailAndPassword(auth, email.trim(), password);
   };
 
   const handleEmailSignup = async (email, password) => {
-    await createUserWithEmailAndPassword(auth, email, password);
+    await createUserWithEmailAndPassword(auth, email.trim(), password);
   };
 
   const handlePasswordReset = async (email) => {
-    await sendPasswordResetEmail(auth, email);
+    await sendPasswordResetEmail(auth, email.trim());
   };
 
   const handleLogout = async () => {
     await signOut(auth);
-    setChats([]);
-    setActiveChatId(null);
+    setChats([{ id: initialWorkspaceId, title: "New Workspace", messages: [] }]);
+    setActiveChatId(initialWorkspaceId);
     setProfile(null);
     setCurrentPage("chat");
   };
 
-  const activeChat = chats.find((c) => c.id === activeChatId);
+  const activeChat = chats.find((c) => c.id === activeChatId) || chats[0];
 
-  // 1. PUBLIC LANDING PAGE (Unauthenticated visitors)
+  // 1. FAST INITIAL SPLASH (only while Firebase reads cached auth token from storage)
+  if (authLoading) {
+    return (
+      <div className="fixed inset-0 flex flex-col items-center justify-center bg-[var(--void)] text-[var(--ink-1)]">
+        <div className="w-12 h-12 rounded-2xl bg-[var(--astra-glow)] border border-[var(--edge)] flex items-center justify-center mx-auto mb-4 text-[var(--astra-cyan)] animate-pulse">
+          <Sparkles size={24} />
+        </div>
+        <p className="text-xs font-semibold tracking-wide text-[var(--ink-2)]">Initializing Astra AI...</p>
+      </div>
+    );
+  }
+
+  // 2. PUBLIC LANDING PAGE (Unauthenticated visitors)
   if (!user) {
-    prewarm();
     if (currentPage === "legal") {
       return (
         <div className="h-screen flex flex-col bg-[var(--void)] text-[var(--ink-1)]">
@@ -272,8 +322,15 @@ export default function Home() {
     return (
       <>
         <LandingPage
-          onStartFree={() => { setAuthModalMode("login"); setShowAuthModal(true); }}
-          onGetPass={() => { pendingPageRef.current = "pricing"; setAuthModalMode("login"); setShowAuthModal(true); }}
+          onStartFree={() => {
+            setAuthModalMode("login");
+            setShowAuthModal(true);
+          }}
+          onGetPass={() => {
+            pendingPageRef.current = "pricing";
+            setAuthModalMode("login");
+            setShowAuthModal(true);
+          }}
           onOpenLegal={(tab) => {
             setLegalTab(tab);
             setCurrentPage("legal");
@@ -294,56 +351,7 @@ export default function Home() {
     );
   }
 
-  // 2. LOADING SKELETON
-  if (appLoading && chats.length === 0) {
-    return (
-      <div className="fixed inset-0 flex items-center justify-center px-4 bg-[var(--void)]">
-        <div className="text-center w-full max-w-sm p-8 glass-panel animate-fade-in">
-          <div className="w-12 h-12 rounded-2xl bg-[var(--astra-glow)] border border-[var(--edge)] flex items-center justify-center mx-auto mb-5 text-[var(--astra-cyan)]">
-            <Sparkles size={22} className="animate-spin" />
-          </div>
-          <p className="text-xs font-semibold mb-1 text-[var(--ink-2)]">
-            {appError || "Initializing Astra AI..."}
-          </p>
-          <p className="text-[11px] text-[var(--ink-3)]">Connecting to multi-agent inference engine</p>
-          <div className="mt-5 h-1 w-full rounded-full overflow-hidden bg-white/5">
-            <div className="h-full w-1/2 rounded-full animate-pulse bg-gradient-to-r from-[var(--astra-cyan)] to-[var(--royal-violet)]" />
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // 3. CONNECTION ERROR SCREEN
-  if (appError && chats.length === 0) {
-    return (
-      <div className="fixed inset-0 flex items-center justify-center px-4 bg-[var(--void)]">
-        <div className="text-center max-w-sm w-full p-8 glass-panel">
-          <div className="w-12 h-12 rounded-2xl bg-red-500/10 border border-red-500/20 flex items-center justify-center mx-auto mb-4 text-red-400">
-            <AlertCircle size={22} />
-          </div>
-          <h3 className="text-sm font-bold mb-1 text-[var(--ink-1)]">Connection Timeout</h3>
-          <p className="text-xs mb-5 text-[var(--ink-3)]">{appError}</p>
-          {retryCountdown > 0 && (
-            <p className="text-xs font-mono font-bold mb-3 text-[var(--astra-cyan)]">
-              Auto-retry in {retryCountdown}s
-            </p>
-          )}
-          <button
-            onClick={retryInit}
-            className="btn-astra w-full flex items-center justify-center gap-2 mb-2"
-          >
-            <RefreshCw size={13} /> Retry Connection
-          </button>
-          <button onClick={handleLogout} className="btn-ghost w-full">
-            Sign out
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  // 4. MAIN ASTRA WORKSPACE
+  // 3. AUTHENTICATED ASTRA WORKSPACE (IMMEDIATELY ACCESSIBLE)
   return (
     <div className="fixed inset-0 flex overflow-hidden text-sm bg-[var(--void)] text-[var(--ink-1)]">
       <ConnectionStatus theme={theme} />
@@ -381,6 +389,37 @@ export default function Home() {
           selectedAgent={selectedAgent}
           setSelectedAgent={setSelectedAgent}
         />
+
+        {/* Non-blocking AI Cluster status banner (only if warming up or degraded) */}
+        {aiStatus === "warming_up" && (
+          <div className="px-4 py-1.5 bg-blue-500/10 border-b border-blue-500/20 text-blue-400 text-xs flex items-center justify-between shrink-0 z-10 animate-fade-in">
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-blue-400 animate-pulse" />
+              <span>{backendMessage || "Astra AI cluster is warming up (cold-start). Workspaces are ready."}</span>
+            </div>
+            <button
+              onClick={() => initBackendAndChats(user?.email)}
+              className="text-[11px] font-semibold underline hover:text-blue-300 transition"
+            >
+              Check Status
+            </button>
+          </div>
+        )}
+
+        {aiStatus === "degraded" && (
+          <div className="px-4 py-1.5 bg-amber-500/10 border-b border-amber-500/20 text-amber-300 text-xs flex items-center justify-between shrink-0 z-10 animate-fade-in">
+            <div className="flex items-center gap-2">
+              <AlertCircle size={14} className="text-amber-400 shrink-0" />
+              <span>{backendMessage || "AI inference is temporarily unreachable. You can continue browsing workspaces."}</span>
+            </div>
+            <button
+              onClick={() => initBackendAndChats(user?.email)}
+              className="text-[11px] font-semibold underline hover:text-amber-200 transition"
+            >
+              Retry Connection
+            </button>
+          </div>
+        )}
 
         {/* Dynamic Page Views */}
         {currentPage === "chat" && (

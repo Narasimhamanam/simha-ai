@@ -45,6 +45,7 @@ from security.auth import get_current_user
 
 from routes.payments import router as payments_router
 from routes.admin import router as admin_router
+from routes.auth import router as auth_router
 
 load_dotenv()
 
@@ -92,6 +93,7 @@ app.add_middleware(
 # -----------------------------------
 app.include_router(payments_router)
 app.include_router(admin_router)
+app.include_router(auth_router)
 
 # -----------------------------------
 # HEALTH & KEEP-ALIVE

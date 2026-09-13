@@ -219,11 +219,13 @@ function friendlyError(code, provider) {
     "auth/email-already-in-use": "This email is already registered. Sign in instead.",
     "auth/invalid-email": "Please enter a valid email address.",
     "auth/weak-password": "Password is too weak. Use at least 6 characters.",
-    "auth/popup-closed-by-user": `${provider || "Login"} cancelled.`,
+    "auth/popup-closed-by-user": `${provider || "Login"} window was closed before completing.`,
+    "auth/popup-blocked": "Sign-in popup was blocked by your browser. Please allow popups for this site and try again.",
+    "auth/unauthorized-domain": "This domain is not authorized for Google sign-in in Firebase. Add this hostname to Firebase Console > Authentication > Settings > Authorized Domains.",
     "auth/account-exists-with-different-credential": "An account already exists with a different sign-in method.",
-    "auth/network-request-failed": "Network error. Check your connection.",
-    "auth/too-many-requests": "Too many attempts. Please wait before trying again.",
-    "auth/invalid-credential": "Invalid credentials. Please check and try again.",
+    "auth/network-request-failed": "Network error connecting to authentication service. Check your connection.",
+    "auth/too-many-requests": "Too many attempts. Please wait a few moments before trying again.",
+    "auth/invalid-credential": "Invalid email or password. Please verify and try again.",
   };
   return map[code] || "Authentication failed. Please try again.";
 }

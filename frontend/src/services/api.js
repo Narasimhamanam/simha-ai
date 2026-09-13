@@ -1,4 +1,5 @@
 import axios from "axios";
+import { auth } from "../firebase";
 
 const BACKEND_URL =
   import.meta.env.VITE_BACKEND_URL ||
@@ -9,12 +10,56 @@ const API = axios.create({
   timeout: 30000, // 30s default timeout for regular requests
 });
 
-// ── Retry interceptor ──────────────────────────────────────────────────────
-// Automatically retries failed requests (network errors, 5xx) up to 2 times
+// ── Request interceptor ───────────────────────────────────────────────────
+// Automatically attaches fresh Firebase ID token and user email headers
+API.interceptors.request.use(
+  async (config) => {
+    try {
+      const currentUser = auth?.currentUser;
+      if (currentUser) {
+        const token = await currentUser.getIdToken();
+        if (token) {
+          config.headers["Authorization"] = `Bearer ${token}`;
+        }
+        if (currentUser.email) {
+          config.headers["X-User-Email"] = currentUser.email;
+        }
+      }
+    } catch {
+      // Non-blocking: proceed with existing headers
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
+
+// ── Response & Retry interceptor ──────────────────────────────────────────
 API.interceptors.response.use(
   (response) => response,
   async (error) => {
     const config = error.config;
+    if (!config) return Promise.reject(error);
+
+    // Fast-fail health/ping checks — do not delay with retries
+    if (config.url?.includes("/ping") || config.skipRetry) {
+      return Promise.reject(error);
+    }
+
+    // 401: Attempt a single token refresh
+    if (error.response?.status === 401 && !config.__tokenRefreshed) {
+      config.__tokenRefreshed = true;
+      try {
+        const currentUser = auth?.currentUser;
+        if (currentUser) {
+          const freshToken = await currentUser.getIdToken(true);
+          config.headers["Authorization"] = `Bearer ${freshToken}`;
+          return API(config);
+        }
+      } catch {
+        // Refresh failed, let 401 bubble up
+      }
+      return Promise.reject(error);
+    }
 
     // Skip retry for client-side errors (4xx) or if already retried twice
     if (error.response?.status < 500 && error.response?.status !== undefined) {
@@ -27,7 +72,7 @@ API.interceptors.response.use(
     }
 
     config.__retryCount += 1;
-    const delay = config.__retryCount * 2000; // 2s, 4s
+    const delay = config.__retryCount * 1500; // 1.5s, 3s
 
     await new Promise((resolve) => setTimeout(resolve, delay));
     return API(config);
