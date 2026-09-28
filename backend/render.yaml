@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: astra-ai-backend
+    name: simha-ai-backend
     env: python
     plan: free
     region: oregon
@@ -26,13 +26,13 @@ services:
       - key: ADMIN_EMAILS
         sync: false
       - key: BACKEND_URL
-        # Set to your actual backend Render URL, e.g. https://astra-ai-backend.onrender.com
+        # Set to your actual backend Render URL, e.g. https://simha-ai-backend.onrender.com
         sync: false
       - key: FRONTEND_URL
-        # Set to your actual frontend Render URL, e.g. https://gpt-6-astra.onrender.com
+        # Set to your actual frontend Render URL, e.g. https://simha-ai.onrender.com
         sync: false
       - key: ALLOWED_ORIGINS
-        # Comma-separated list: https://gpt-6-astra.onrender.com,http://localhost:5173
+        # Comma-separated list: https://simha-ai.onrender.com,http://localhost:5173
         sync: false
       - key: FREE_DAILY_MESSAGES
         value: "10"

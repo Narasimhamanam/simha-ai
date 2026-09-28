@@ -9,7 +9,7 @@ from services.usage import check_user_quota, FREE_DAILY_MESSAGES, PREMIUM_DAILY_
 
 
 class TestEntitlementAndUsage(unittest.TestCase):
-    """Tests for Astra AI entitlement engine and 7-day expiration logic."""
+    """Tests for Simha AI entitlement engine and 7-day expiration logic."""
 
     def setUp(self):
         self.loop = asyncio.new_event_loop()

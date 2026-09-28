@@ -65,8 +65,8 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(
-    title="GPT 6 Astra API",
-    description="Astra AI Independent SaaS Backend",
+    title="Simha AI API",
+    description="Simha AI Multi-Agent Platform Backend",
     version="3.0.0",
     lifespan=lifespan,
 )
@@ -95,16 +95,16 @@ app.include_router(auth_router)
 @app.get("/")
 async def root():
     return {
-        "service": "Astra AI (GPT 6 Astra)",
+        "service": "Simha AI (Intelligent Multi-Agent Platform)",
         "status": "operational",
         "version": "3.0.0",
-        "disclaimer": "Astra AI is an independent AI application and is not affiliated with or endorsed by OpenAI.",
+        "disclaimer": "Simha AI is an independent multi-agent AI platform.",
     }
 
 
 @app.get("/ping")
 async def ping():
-    return {"status": "ok", "message": "Astra AI core is warm ⚡"}
+    return {"status": "ok", "message": "Simha AI core is warm ⚡"}
 
 
 @app.get("/health")
@@ -138,7 +138,7 @@ async def fetch_user_entitlement(email: str):
 
 
 # -----------------------------------
-# ASTRA CHAT (STREAMING)
+# SIMHA AI CHAT (STREAMING)
 # -----------------------------------
 @app.post("/stream-chat")
 @app.post("/streamchat")
@@ -200,7 +200,7 @@ async def stream_chat(request: ChatRequest, req: Request):
                     None, lambda: route_query(message, history, stream=False)
                 )
                 if not response_text:
-                    response_text = "No response from Astra AI. Please retry."
+                    response_text = "No response from Simha AI. Please retry."
 
             chunk_size = 12
             for i in range(0, len(response_text), chunk_size):
@@ -209,10 +209,10 @@ async def stream_chat(request: ChatRequest, req: Request):
                 yield chunk
                 await asyncio.sleep(0.01)
         except Exception as exc:
-            err_msg = "Astra AI is momentarily processing high volume. Please try again."
+            err_msg = "Simha AI is momentarily processing high volume. Please try again."
             full_response = err_msg
             yield err_msg
-            print(f"[Astra Stream] Error: {exc}")
+            print(f"[Simha Stream] Error: {exc}")
         finally:
             if full_response:
                 # Record usage upon completion
@@ -245,7 +245,7 @@ async def stream_chat(request: ChatRequest, req: Request):
                                 },
                             )
                         except Exception as db_err:
-                            print("[Astra Stream] DB save error:", db_err)
+                            print("[Simha Stream] DB save error:", db_err)
 
     return StreamingResponse(generate(), media_type="text/plain")
 
@@ -275,7 +275,7 @@ async def chat_endpoint(request: ChatRequest, req: Request):
 
 
 # -----------------------------------
-# ASTRA VISION (IMAGE ANALYSIS)
+# SIMHA VISION (IMAGE ANALYSIS)
 # -----------------------------------
 @app.post("/analyze-image")
 async def analyze_image(request: ImageAnalysisRequest, req: Request):
@@ -342,11 +342,11 @@ async def analyze_image(request: ImageAnalysisRequest, req: Request):
                                 await record_user_usage(user_email, request_type="image")
                                 return {"response": text, "model": model}
                 except Exception as model_err:
-                    print(f"[Astra Vision] Gemini model {model} attempt notice: {model_err}")
+                    print(f"[Simha Vision] Gemini model {model} attempt notice: {model_err}")
                     continue
 
         except Exception as gemini_exc:
-            print(f"[Astra Vision] Gemini REST error, falling back to Groq: {gemini_exc}")
+            print(f"[Simha Vision] Gemini REST error, falling back to Groq: {gemini_exc}")
 
     # ── Option 2: Groq Vision (llama-3.2-11b / 90b) ─────────────────────────
     groq_api_key = os.getenv("GROQ_API_KEY")
@@ -378,7 +378,7 @@ async def analyze_image(request: ImageAnalysisRequest, req: Request):
                     await record_user_usage(user_email, request_type="image")
                     return {"response": response_text, "model": g_model}
             except Exception as groq_exc:
-                print(f"[Astra Vision] Groq {g_model} error: {groq_exc}")
+                print(f"[Simha Vision] Groq {g_model} error: {groq_exc}")
                 continue
 
     raise HTTPException(
@@ -390,7 +390,7 @@ async def analyze_image(request: ImageAnalysisRequest, req: Request):
 
 
 # -----------------------------------
-# ASTRA PRODUCTIVITY: EMAIL
+# SIMHA PRODUCTIVITY: EMAIL
 # -----------------------------------
 @app.post("/generate-email")
 async def generate_email(request: EmailDraftRequest, req: Request):
@@ -411,7 +411,7 @@ async def generate_email(request: EmailDraftRequest, req: Request):
 
 
 # -----------------------------------
-# ASTRA RESEARCH: URL SUMMARIZER
+# SIMHA RESEARCH: URL SUMMARIZER
 # -----------------------------------
 @app.post("/summarize-url")
 async def summarize_url_endpoint(request: SummarizeUrlRequest, req: Request):
@@ -432,7 +432,7 @@ async def summarize_url_endpoint(request: SummarizeUrlRequest, req: Request):
 
 
 # -----------------------------------
-# ASTRA PRODUCTIVITY: CALENDAR
+# SIMHA PRODUCTIVITY: CALENDAR
 # -----------------------------------
 @app.post("/generate-calendar-event")
 async def generate_calendar_endpoint(request: CalendarEventRequest, req: Request):
@@ -453,7 +453,7 @@ async def generate_calendar_endpoint(request: CalendarEventRequest, req: Request
 
 
 # -----------------------------------
-# ASTRA DOCS: UPLOAD & RAG
+# SIMHA DOCS: UPLOAD & RAG
 # -----------------------------------
 @app.post("/upload-pdf")
 async def upload_pdf(
@@ -521,7 +521,7 @@ async def upload_pdf(
     await record_user_usage(user_email or "guest", request_type="document")
 
     return {
-        "message": "Document indexed successfully in Astra Docs",
+        "message": "Document indexed successfully in Simha Docs",
         "doc_id": doc_id,
         "file_name": file.filename,
         "pages": len(chunks),
@@ -560,7 +560,7 @@ async def delete_document(doc_id: str):
         await docs_collection.delete_one({"_id": ObjectId(doc_id)})
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc))
-    return {"message": "Document removed from Astra Docs"}
+    return {"message": "Document removed from Simha Docs"}
 
 
 @app.post("/ask-pdf")
@@ -601,7 +601,7 @@ async def get_chats(user_email: str):
         cursor = collection.find({"user_email": user_email}, sort=[("_id", -1)])
         docs = await cursor.to_list(length=50)
     except Exception as exc:
-        print(f"[Astra DB] get_chats error: {exc}")
+        print(f"[Simha DB] get_chats error: {exc}")
         return []
 
     result = []

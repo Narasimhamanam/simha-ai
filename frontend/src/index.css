@@ -5,7 +5,7 @@
 @tailwind utilities;
 
 /* ══════════════════════════════════════════════════════════════
-   ASTRA AI (GPT 6 ASTRA) — LUXURY SAAS DESIGN SYSTEM
+   SIMHA AI — INTELLIGENT MULTI-AGENT DESIGN SYSTEM
    ══════════════════════════════════════════════════════════════ */
 
 :root {
@@ -19,18 +19,28 @@
   --glass-strong: rgba(17, 24, 39, 0.90);
   --glass-blur: 24px;
 
-  /* ── Astra Edges ── */
+  /* ── Simha Radiant Edges ── */
   --edge: rgba(0, 240, 255, 0.18);
   --edge-hover: rgba(0, 240, 255, 0.40);
   --edge-subtle: rgba(255, 255, 255, 0.07);
 
-  /* ── Astra Signature Cyan / Electric Teal ── */
+  /* ── Simha Signature Neural Cyan & Teal ── */
+  --simha-primary: #00F0FF;
+  --simha-cyan: #00F0FF;
+  --simha-cyan-bright: #2DD4BF;
+  --simha-cyan-dim: #0891B2;
+  --simha-glow: rgba(0, 240, 255, 0.18);
+
+  /* ── Simha Noble Gold / Amber Accents ── */
+  --simha-gold: #FCD34D;
+  --simha-gold-bright: #F59E0B;
+  --simha-gold-glow: rgba(245, 158, 11, 0.18);
+
+  /* ── Backward compatibility aliases ── */
   --astra-cyan: #00F0FF;
   --astra-cyan-bright: #2DD4BF;
   --astra-cyan-dim: #0891B2;
   --astra-glow: rgba(0, 240, 255, 0.18);
-
-  /* ── Backward compatibility aliases ── */
   --mane-gold: #00F0FF;
   --mane-gold-bright: #2DD4BF;
   --mane-gold-dim: #0891B2;
@@ -76,6 +86,14 @@
   --ink-1: #0F172A;
   --ink-2: #334155;
   --ink-3: #64748B;
+  --simha-primary: #0284C7;
+  --simha-cyan: #0284C7;
+  --simha-cyan-bright: #0EA5E9;
+  --simha-cyan-dim: #0369A1;
+  --simha-glow: rgba(14, 165, 233, 0.15);
+  --simha-gold: #D97706;
+  --simha-gold-bright: #F59E0B;
+  --simha-gold-glow: rgba(217, 119, 6, 0.15);
   --astra-cyan: #0284C7;
   --astra-cyan-bright: #0EA5E9;
   --astra-cyan-dim: #0369A1;
@@ -162,7 +180,7 @@
     border-bottom: 1px solid var(--edge-subtle);
   }
 
-  /* ── ZERO-G ASTRA COMPOSER ── */
+  /* ── ZERO-G SIMHA COMPOSER ── */
   .zero-g-composer {
     background: var(--glass-strong);
     backdrop-filter: blur(24px);
@@ -171,30 +189,30 @@
     border-radius: 24px;
     box-shadow:
       0 8px 40px -8px rgba(0, 0, 0, 0.6),
-      0 0 40px -15px var(--astra-glow);
+      0 0 40px -15px var(--simha-glow);
     transition: border-color 0.2s ease, box-shadow 0.3s ease;
   }
   .zero-g-composer:focus-within {
-    border-color: var(--astra-cyan);
+    border-color: var(--simha-cyan);
     box-shadow:
       0 8px 40px -8px rgba(0, 0, 0, 0.6),
-      0 0 60px -10px var(--astra-glow),
+      0 0 60px -10px var(--simha-glow),
       0 0 0 1px rgba(0, 240, 255, 0.25);
   }
 
   /* ── BUTTONS ── */
-  .btn-gold, .btn-astra {
+  .btn-simha, .btn-gold, .btn-astra {
     @apply inline-flex items-center justify-center font-semibold text-xs tracking-wide rounded-xl px-4 py-2.5;
     background: linear-gradient(135deg, #00F0FF, #2DD4BF);
     color: #031D1C;
     box-shadow: 0 2px 16px -2px rgba(0, 240, 255, 0.3);
     transition: all 0.2s ease;
   }
-  .btn-gold:hover, .btn-astra:hover {
+  .btn-simha:hover, .btn-gold:hover, .btn-astra:hover {
     filter: brightness(1.1);
     box-shadow: 0 4px 24px -2px rgba(0, 240, 255, 0.5);
   }
-  .btn-gold:active, .btn-astra:active { transform: scale(0.97); }
+  .btn-simha:active, .btn-gold:active, .btn-astra:active { transform: scale(0.97); }
 
   .btn-ghost {
     @apply inline-flex items-center justify-center font-medium text-xs rounded-xl px-3.5 py-2;
@@ -211,7 +229,7 @@
 }
 
 /* ── TYPOGRAPHY & GRADIENTS ── */
-.text-gold-gradient, .text-astra-gradient {
+.text-simha-gradient, .text-gold-gradient, .text-astra-gradient {
   background: linear-gradient(135deg, #E0F2FE 0%, #00F0FF 45%, #6366F1 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;

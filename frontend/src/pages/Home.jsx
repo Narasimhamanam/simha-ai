@@ -77,7 +77,7 @@ export default function Home() {
     is_premium: false,
   });
 
-  const isPro = usage.is_premium || usage.plan === "ASTRA_7_DAY";
+  const isPro = usage.is_premium || usage.plan === "ASTRA_7_DAY" || usage.plan === "SIMHA_7_DAY";
   const daysRemaining = usage.days_remaining || 0;
   const pendingPageRef = useRef(null);
 
@@ -109,7 +109,7 @@ export default function Home() {
       } catch {
         // Server is spinning up (Render cold-start) or slow
         setAiStatus("warming_up");
-        setBackendMessage("Astra AI inference cluster is warming up (cloud cold-start ~30s). Workspaces are ready.");
+        setBackendMessage("Simha AI inference cluster is warming up (cloud cold-start ~30s). Workspaces are ready.");
 
         // Re-check once in background after a brief delay
         setTimeout(() => {
@@ -200,7 +200,7 @@ export default function Home() {
 
         // Baseline profile populated from Firebase immediately
         setProfile({
-          nickname: u.displayName || "Astra User",
+          nickname: u.displayName || "Simha User",
           email: u.email,
           avatar: u.photoURL,
           is_admin: false,
@@ -230,7 +230,7 @@ export default function Home() {
                 setProfile((prev) => ({
                   ...prev,
                   ...res.data.user,
-                  nickname: res.data.user.name || prev?.nickname || "Astra User",
+                  nickname: res.data.user.name || prev?.nickname || "Simha User",
                 }));
               }
             })
@@ -302,10 +302,10 @@ export default function Home() {
   if (authLoading) {
     return (
       <div className="fixed inset-0 flex flex-col items-center justify-center bg-[var(--void)] text-[var(--ink-1)]">
-        <div className="w-12 h-12 rounded-2xl bg-[var(--astra-glow)] border border-[var(--edge)] flex items-center justify-center mx-auto mb-4 text-[var(--astra-cyan)] animate-pulse">
+        <div className="w-12 h-12 rounded-2xl bg-[var(--simha-glow)] border border-[var(--edge)] flex items-center justify-center mx-auto mb-4 text-[var(--simha-cyan)] animate-pulse">
           <Sparkles size={24} />
         </div>
-        <p className="text-xs font-semibold tracking-wide text-[var(--ink-2)]">Initializing Astra AI...</p>
+        <p className="text-xs font-semibold tracking-wide text-[var(--ink-2)]">Initializing Simha AI...</p>
       </div>
     );
   }
@@ -351,7 +351,7 @@ export default function Home() {
     );
   }
 
-  // 3. AUTHENTICATED ASTRA WORKSPACE (IMMEDIATELY ACCESSIBLE)
+  // 3. AUTHENTICATED SIMHA AI WORKSPACE (IMMEDIATELY ACCESSIBLE)
   return (
     <div className="fixed inset-0 flex overflow-hidden text-sm bg-[var(--void)] text-[var(--ink-1)]">
       <ConnectionStatus theme={theme} />
@@ -395,7 +395,7 @@ export default function Home() {
           <div className="px-4 py-1.5 bg-blue-500/10 border-b border-blue-500/20 text-blue-400 text-xs flex items-center justify-between shrink-0 z-10 animate-fade-in">
             <div className="flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-blue-400 animate-pulse" />
-              <span>{backendMessage || "Astra AI cluster is warming up (cold-start). Workspaces are ready."}</span>
+              <span>{backendMessage || "Simha AI cluster is warming up (cold-start). Workspaces are ready."}</span>
             </div>
             <button
               onClick={() => initBackendAndChats(user?.email)}

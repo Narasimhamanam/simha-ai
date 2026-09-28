@@ -14,12 +14,12 @@ class TestDocAndVision(unittest.TestCase):
     def test_text_doc_processing(self):
         temp_fd, temp_path = tempfile.mkstemp(suffix=".txt")
         with open(temp_fd, "w", encoding="utf-8") as f:
-            f.write("Astra AI is an advanced AI SaaS platform for study, coding, and productivity.")
+            f.write("Simha AI is an advanced AI platform for study, coding, and productivity.")
 
         try:
             chunks = process_document(temp_path)
             self.assertTrue(len(chunks) > 0)
-            self.assertIn("Astra AI", chunks[0].page_content)
+            self.assertIn("Simha AI", chunks[0].page_content)
         finally:
             if os.path.exists(temp_path):
                 os.remove(temp_path)

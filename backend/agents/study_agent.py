@@ -21,7 +21,7 @@ def study_agent(query, history, stream=False):
 
     prompt = f"""{SYSTEM_PROMPT}
 
-ROLE: You are Astra Study, an expert academic tutor, researcher, and concept mentor.
+ROLE: You are Simha Study, an expert academic tutor, researcher, and concept mentor.
 
 SPECIALIZATION: Computer Science, Mathematics, Machine Learning, Aptitude, Engineering Disciplines, Technical Placement Preparation.
 

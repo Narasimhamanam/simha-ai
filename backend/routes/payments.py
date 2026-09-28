@@ -34,7 +34,7 @@ async def create_payment_order(
     current_user: dict = Depends(get_current_user),
 ):
     """
-    Creates an official Cashfree Payment Link for the Astra 7-Day Pass (₹99).
+    Creates an official Cashfree Payment Link for the Simha 7-Day Pass (₹99).
     The amount is strictly server-controlled (99.00 INR).
     Never trusts client-supplied pricing.
     """
@@ -42,7 +42,7 @@ async def create_payment_order(
     if not email or email in ["guest", "guest@local"]:
         raise HTTPException(
             status_code=401,
-            detail="Authentication required. Please sign in to purchase the Astra 7-Day Pass.",
+            detail="Authentication required. Please sign in to purchase the Simha 7-Day Pass.",
         )
 
     # Server-configured return and webhook endpoints
@@ -81,7 +81,7 @@ async def check_payment_status(order_id: str):
     """
     Server-side verification of payment state with Cashfree.
     Never trusts frontend state or client claims of payment success.
-    Idempotently activates Astra 7-Day Pass only after genuine verification.
+    Idempotently activates Simha 7-Day Pass only after genuine verification.
     """
     payments_col = get_payments_collection()
     if payments_col is None:
@@ -122,7 +122,7 @@ async def check_payment_status(order_id: str):
             provider="cashfree",
             provider_payment_id=payment.get("provider_payment_id"),
             verified_at=iso_verified,
-            message="Your Astra 7-Day Pass is active.",
+            message="Your Simha 7-Day Pass is active.",
         )
 
     # If PENDING, query Cashfree official API directly for live status
@@ -152,7 +152,7 @@ async def check_payment_status(order_id: str):
             provider="cashfree",
             provider_payment_id=pg_status.get("provider_payment_id"),
             verified_at=datetime.now(timezone.utc).isoformat(),
-            message="Payment verified successfully! Your Astra 7-Day Pass is active.",
+            message="Payment verified successfully! Your Simha 7-Day Pass is active.",
         )
     elif pg_status.get("status") == "PENDING":
         return PaymentStatusResponse(
@@ -195,7 +195,7 @@ async def cashfree_webhook(
     """
     Official Cashfree Server-to-Server Webhook receiver.
     Verifies cryptographic HMAC-SHA256 signature, validates payment details,
-    and idempotently activates Astra 7-Day Pass.
+    and idempotently activates Simha 7-Day Pass.
     """
     raw_body_bytes = await request.body()
     raw_body_str = raw_body_bytes.decode("utf-8")

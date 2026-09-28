@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { X, Mail, Lock, Eye, EyeOff, ArrowRight, AlertCircle, CheckCircle } from "lucide-react";
-import AstraLogo from "./AstraLogo";
+import SimhaLogo from "./SimhaLogo";
 
 /**
  * AuthModal — Full multi-provider Firebase auth modal.
@@ -82,15 +82,15 @@ export default function AuthModal({
 
         {/* Brand */}
         <div className="flex flex-col items-center mb-7">
-          <AstraLogo size="md" showWordmark={false} className="mb-3" />
+          <SimhaLogo size="md" showWordmark={false} className="mb-3" />
           <h2 className="text-lg font-black text-[var(--ink-1)] tracking-tight">
-            {isReset ? "Reset Password" : isSignup ? "Create Account" : "Sign In to Astra"}
+            {isReset ? "Reset Password" : isSignup ? "Create Account" : "Sign In to Simha AI"}
           </h2>
           <p className="text-xs text-[var(--ink-3)] mt-1">
             {isReset
               ? "Enter your email to receive a reset link."
               : isSignup
-              ? "Join Astra AI — independent, powerful, private."
+              ? "Join Simha AI — Intelligent Multi-Agent Platform."
               : "Welcome back. Continue your AI workspace."}
           </p>
         </div>
@@ -170,7 +170,7 @@ export default function AuthModal({
           <button
             type="submit"
             disabled={loading}
-            className="btn-astra w-full flex items-center justify-center gap-2 mt-1 disabled:opacity-60"
+            className="btn-simha w-full flex items-center justify-center gap-2 mt-1 disabled:opacity-60"
           >
             {loading ? (
               <span className="w-4 h-4 rounded-full border-2 border-white/30 border-t-white animate-spin" />
@@ -205,7 +205,7 @@ export default function AuthModal({
 
         {/* Disclaimer */}
         <p className="mt-6 text-[10px] text-[var(--ink-3)] text-center leading-relaxed">
-          Astra AI is an independent application and is not affiliated with or endorsed by OpenAI.
+          Simha AI · Your Intelligent Multi-Agent AI Platform
         </p>
       </div>
     </div>

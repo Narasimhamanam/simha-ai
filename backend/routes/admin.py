@@ -19,7 +19,7 @@ router = APIRouter(prefix="/api/admin", tags=["Admin"])
 
 @router.get("/metrics", response_model=AdminMetrics)
 async def get_admin_metrics(admin: dict = Depends(require_admin)):
-    """Computes high-level business and operational metrics for Astra SaaS."""
+    """Computes high-level business and operational metrics for Simha AI SaaS."""
     users_col = get_users_collection()
     payments_col = get_payments_collection()
 
@@ -121,7 +121,7 @@ async def grant_entitlement(
     request: AdminGrantRequest,
     admin: dict = Depends(require_admin),
 ):
-    """Manual administrative grant of Astra Pass for customer support."""
+    """Manual administrative grant of Simha Pass for customer support."""
     result = await activate_7_day_pass(
         user_email=request.email,
         source_payment_id=f"ADMIN_GRANT_{admin.get('email')}",

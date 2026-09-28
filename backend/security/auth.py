@@ -77,7 +77,7 @@ async def require_authenticated_user(
     if current_user.get("is_guest"):
         raise HTTPException(
             status_code=401,
-            detail="Authentication required. Please sign in to Astra AI.",
+            detail="Authentication required. Please sign in to Simha AI.",
         )
     return current_user
 
@@ -85,14 +85,14 @@ async def require_authenticated_user(
 async def require_active_premium(
     current_user: dict = Depends(require_authenticated_user),
 ) -> dict:
-    """Ensures the caller holds an active Astra 7-Day Pass."""
+    """Ensures the caller holds an active Simha 7-Day Pass."""
     entitlement = await get_user_entitlement(current_user["email"])
     if not entitlement.get("is_active"):
         raise HTTPException(
             status_code=403,
             detail={
                 "error": "PREMIUM_REQUIRED",
-                "message": "This feature requires an active Astra 7-Day Pass.",
+                "message": "This feature requires an active Simha 7-Day Pass.",
                 "upgrade_url": "/pricing",
             },
         )

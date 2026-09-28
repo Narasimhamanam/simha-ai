@@ -7,6 +7,7 @@ from enum import Enum
 class PlanType(str, Enum):
     FREE = "FREE"
     ASTRA_7_DAY = "ASTRA_7_DAY"
+    SIMHA_7_DAY = "SIMHA_7_DAY"
 
 
 class SubscriptionStatus(str, Enum):

@@ -11,7 +11,7 @@ import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { oneDark } from "react-syntax-highlighter/dist/esm/styles/prism";
 import API from "../services/api";
 import VoiceInput from "./VoiceInput";
-import AstraCanvas3D from "./3d/AstraCanvas3D";
+import SimhaCanvas3D from "./3d/SimhaCanvas3D";
 
 function generateChatTitle(q) {
   const c = q.trim().replace(/[^\w\s]/gi, "").trim();
@@ -20,10 +20,10 @@ function generateChatTitle(q) {
 }
 
 const AGENTS = [
-  { value: "study", label: "Astra Study", icon: BookOpen, color: "#2DD4BF" },
-  { value: "coding", label: "Astra Code", icon: Code2, color: "#818CF8" },
+  { value: "study", label: "Simha Study", icon: BookOpen, color: "#2DD4BF" },
+  { value: "coding", label: "Simha Code", icon: Code2, color: "#818CF8" },
   { value: "productivity", label: "Productivity", icon: Rocket, color: "#A78BFA" },
-  { value: "wisdom", label: "Astra Wisdom", icon: Sparkles, color: "#00F0FF" },
+  { value: "wisdom", label: "Simha Wisdom", icon: Sparkles, color: "#00F0FF" },
 ];
 
 const SUGGESTIONS = {
@@ -265,7 +265,7 @@ export default function ChatArea({
           const err = await res.json().catch(() => ({}));
           const msg = err.detail?.message || err.detail || "Streaming error.";
           if (res.status === 402) {
-            setErrorMessage("Daily usage limit reached. Upgrade to the Astra 7-Day Pass for 100 daily messages.");
+            setErrorMessage("Daily usage limit reached. Upgrade to the Simha 7-Day Pass for 100 daily messages.");
           }
           throw new Error(msg);
         }
@@ -290,7 +290,7 @@ export default function ChatArea({
         }
       }
     } catch (e) {
-      console.error("Astra Chat error:", e);
+      console.error("Simha Chat error:", e);
       updateMessages((m) => {
         const u = [...m];
         if (u[u.length - 1]?.role === "assistant" && !u[u.length - 1].content) {
@@ -331,7 +331,7 @@ export default function ChatArea({
           </div>
           <button
             onClick={onNavigateToPricing}
-            className="btn-astra !py-1 !px-3 text-[11px] font-bold"
+            className="btn-simha !py-1 !px-3 text-[11px] font-bold"
           >
             Get 7-Day Pass — ₹99
           </button>
@@ -350,14 +350,14 @@ export default function ChatArea({
               transition={{ duration: 0.5 }}
               className="flex flex-col items-center text-center pt-2 sm:pt-6"
             >
-              {/* 3D Constellation Core */}
+              {/* 3D Simha Guardian Core */}
               <div className="w-full max-w-md h-52 -mb-2">
-                <AstraCanvas3D selectedAgent={selectedAgent} mode="workspace" />
+                <SimhaCanvas3D selectedAgent={selectedAgent} onSelectAgent={setSelectedAgent} mode="workspace" />
               </div>
 
               {/* Greeting */}
               <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight mb-2 text-[var(--ink-1)]">
-                How can Astra assist you today?
+                How can Simha AI assist you today?
               </h1>
               <p className="text-xs text-[var(--ink-3)] max-w-md mb-8 leading-relaxed">
                 Autonomous multi-agent intelligence for software engineering, study, document research, and execution.
@@ -406,7 +406,7 @@ export default function ChatArea({
                         </span>
                         {!isUser && (
                           <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-white/5 text-[var(--ink-3)] border border-[var(--edge-subtle)]">
-                            Astra Engine
+                            Simha Engine
                           </span>
                         )}
                       </div>
@@ -592,7 +592,7 @@ export default function ChatArea({
               onKeyDown={onKeyDown}
               placeholder={
                 quotaReached
-                  ? "Daily message limit reached. Upgrade to Astra Pass for 100/day."
+                  ? "Daily message limit reached. Upgrade to Simha Pass for 100/day."
                   : `Ask ${agentObj.label}...`
               }
               disabled={quotaReached}
@@ -647,7 +647,7 @@ export default function ChatArea({
                   </AnimatePresence>
                 </div>
 
-                {/* Attach Document (Astra Docs) */}
+                {/* Attach Document (Simha Docs) */}
                 <input
                   type="file"
                   ref={fileRef}
@@ -665,7 +665,7 @@ export default function ChatArea({
                   <Paperclip size={15} />
                 </button>
 
-                {/* Attach Image (Astra Vision) */}
+                {/* Attach Image (Simha Vision) */}
                 <input
                   type="file"
                   ref={imgRef}
@@ -700,7 +700,7 @@ export default function ChatArea({
               <button
                 onClick={() => handleSend()}
                 disabled={(!input.trim() && !selectedFile && !selectedImage) || loading || quotaReached}
-                className="btn-astra !p-2 !rounded-xl disabled:opacity-30 disabled:cursor-not-allowed"
+                className="btn-simha !p-2 !rounded-xl disabled:opacity-30 disabled:cursor-not-allowed"
               >
                 {loading ? <Sparkles size={15} className="animate-spin" /> : <ArrowUp size={15} strokeWidth={2.5} />}
               </button>
@@ -708,7 +708,7 @@ export default function ChatArea({
           </div>
 
           <p className="mt-2 text-center text-[10px] tracking-wide text-[var(--ink-3)] opacity-60">
-            GPT 6 Astra — Independent AI Workspace · Not affiliated with OpenAI
+            Simha AI · Your Intelligent Multi-Agent AI Platform
           </p>
         </div>
       </div>

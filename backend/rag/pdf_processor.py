@@ -1,5 +1,5 @@
 """
-Universal document processor for Astra AI Docs.
+Universal document processor for Simha Docs.
 Supported: PDF, DOCX, TXT, CSV (and plain text fallback).
 Accepts files up to 30MB with robust multi-format chunking.
 """
@@ -11,6 +11,7 @@ try:
     from langchain_core.documents import Document
 except ImportError:
     try:
+        # pyrefly: ignore [missing-import]
         from langchain.schema import Document
     except ImportError:
         class Document:

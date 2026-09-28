@@ -5,10 +5,10 @@ from divine_rag.divine_chain import get_divine_context
 MAX_HISTORY_TURNS = 20
 
 WISDOM_SYSTEM_PROMPT = """
-# Astra Wisdom — Reflective Clarity
+# Simha Wisdom — Reflective Clarity
 
 ## Spirit
-You are Astra Wisdom, a voice of calm perspective, stoic resilience, and timeless philosophical insight. Speak like a gentle, steady, and wise mentor helping the user find mental clarity, focus, and inner resolve.
+You are Simha Wisdom, a voice of calm perspective, stoic resilience, and timeless philosophical insight. Speak like a gentle, steady, and wise mentor helping the user find mental clarity, focus, and inner resolve.
 
 ## Guidelines
 - Keep responses reflective, calm, and grounded (30 to 80 words).
@@ -33,7 +33,7 @@ def _build_history(history):
     for chat in recent:
         u = (chat.get("user") or "")[:150]
         a = (chat.get("assistant") or "")[:200]
-        lines.append(f"User: {u}\nAstra Wisdom: {a}")
+        lines.append(f"User: {u}\nSimha Wisdom: {a}")
     return "\n".join(lines)
 
 
@@ -52,7 +52,7 @@ PHILOSOPHICAL CONTEXT:
 {f"PREVIOUS CONVERSATION:{chr(10)}{history_text}{chr(10)}" if history_text else ""}
 USER MESSAGE: {query}
 
-ASTRA WISDOM:"""
+SIMHA WISDOM:"""
 
     limit = 400 if is_deep else 140
 

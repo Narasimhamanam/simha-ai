@@ -30,11 +30,12 @@ CASHFREE_BASE_URL = (
     else CASHFREE_SANDBOX_BASE_URL
 )
 
-# Product Specification: Astra 7-Day Pass
 ASTRA_PASS_AMOUNT_INR = 99.00
 ASTRA_PASS_CURRENCY = "INR"
 ASTRA_PASS_PLAN = "ASTRA_7_DAY"
-ASTRA_PASS_PURPOSE = "Astra AI 7-Day Pass"
+ASTRA_PASS_PURPOSE = "Simha AI 7-Day Pass"
+SIMHA_PASS_PLAN = "SIMHA_7_DAY"
+SIMHA_PASS_PURPOSE = "Simha AI 7-Day Pass"
 
 
 def verify_cashfree_signature(
@@ -122,9 +123,9 @@ class CashfreeService:
         elif len(phone_digits) > 10:
             phone_digits = phone_digits[-10:]
 
-        name = customer_name or user_email.split("@")[0] or "Astra User"
+        name = customer_name or user_email.split("@")[0] or "Simha User"
 
-        # Format return URL to carry order_id and link_id back to Astra
+        # Format return URL to carry order_id and link_id back to Simha AI
         formatted_return_url = return_url
         if "{order_id}" not in formatted_return_url and "order_id=" not in formatted_return_url:
             separator = "&" if "?" in formatted_return_url else "?"
@@ -152,7 +153,7 @@ class CashfreeService:
             "link_notes": {
                 "order_id": order_id,
                 "user_email": user_email,
-                "product": "Astra 7-Day Pass",
+                "product": "Simha 7-Day Pass",
             },
         }
 
@@ -444,7 +445,7 @@ class CashfreeService:
                 "timestamp": now,
             })
 
-        print(f"[Cashfree] Successfully verified payment & activated Astra 7-Day Pass for {user_email}")
+        print(f"[Cashfree] Successfully verified payment & activated Simha 7-Day Pass for {user_email}")
         return True
 
     @classmethod

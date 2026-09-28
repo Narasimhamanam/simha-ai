@@ -25,7 +25,7 @@ from routes.admin import get_admin_metrics
 
 class TestCashfreePayment(unittest.TestCase):
     """
-    Automated Test Suite for Astra AI Cashfree Payment Links Integration.
+    Automated Test Suite for Simha AI Cashfree Payment Links Integration.
     Covers all 20 required production and security test scenarios.
     """
 

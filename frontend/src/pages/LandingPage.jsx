@@ -14,12 +14,13 @@ import {
   HelpCircle,
   ArrowUpRight,
 } from "lucide-react";
-import AstraCanvas3D from "../components/3d/AstraCanvas3D";
+import SimhaCanvas3D from "../components/3d/SimhaCanvas3D";
+import SimhaLogo from "../components/SimhaLogo";
 
 const CAPABILITIES = [
   {
     id: "chat",
-    title: "Astra Chat",
+    title: "Simha Chat",
     icon: Sparkles,
     color: "#00F0FF",
     tagline: "Natural, nuanced intelligence",
@@ -27,7 +28,7 @@ const CAPABILITIES = [
   },
   {
     id: "code",
-    title: "Astra Code",
+    title: "Simha Code",
     icon: Code2,
     color: "#818CF8",
     tagline: "Software architecture & refactoring",
@@ -35,7 +36,7 @@ const CAPABILITIES = [
   },
   {
     id: "study",
-    title: "Astra Study",
+    title: "Simha Study",
     icon: BookOpen,
     color: "#2DD4BF",
     tagline: "Academic tutoring & concepts",
@@ -43,7 +44,7 @@ const CAPABILITIES = [
   },
   {
     id: "docs",
-    title: "Astra Docs",
+    title: "Simha Docs",
     icon: FileText,
     color: "#F59E0B",
     tagline: "Vector RAG PDF analysis",
@@ -51,15 +52,15 @@ const CAPABILITIES = [
   },
   {
     id: "vision",
-    title: "Astra Vision",
+    title: "Simha Vision",
     icon: ImageIcon,
     color: "#EC4899",
     tagline: "Multimodal visual reasoning",
-    description: "Upload diagrams, terminal logs, or handwritten notes. Astra inspects visual features and provides actionable insights.",
+    description: "Upload diagrams, terminal logs, or handwritten notes. Simha AI inspects visual features and provides actionable insights.",
   },
   {
     id: "research",
-    title: "Astra Research",
+    title: "Simha Research",
     icon: Globe,
     color: "#38BDF8",
     tagline: "Structured URL intelligence",
@@ -67,7 +68,7 @@ const CAPABILITIES = [
   },
   {
     id: "productivity",
-    title: "Astra Productivity",
+    title: "Simha Productivity",
     icon: Rocket,
     color: "#A78BFA",
     tagline: "Executive execution & scheduling",
@@ -77,16 +78,16 @@ const CAPABILITIES = [
 
 const FAQS = [
   {
-    q: "What is GPT 6 Astra / Astra AI?",
-    a: "Astra AI is an independent, high-performance AI workspace and productivity suite designed for students, developers, and knowledge professionals. It features multi-agent routing for code, study, document analysis, and daily workflows.",
+    q: "What is Simha AI?",
+    a: "Simha AI is an intelligent, high-performance multi-agent AI workspace and productivity suite designed for students, software engineers, researchers, and knowledge professionals. It features dynamic routing across specialized domain agents for code, study, document vector analysis, and daily execution.",
   },
   {
-    q: "Is Astra AI affiliated with or endorsed by OpenAI?",
-    a: "No. Astra AI is a completely independent application. It is not affiliated with, sponsored by, or endorsed by OpenAI, Google, or Anthropic. We use licensed commercial AI infrastructure and models to deliver our unique workspace experience.",
+    q: "Is Simha AI affiliated with or endorsed by OpenAI?",
+    a: "No. Simha AI is an independent software application. It is not affiliated with, sponsored by, or endorsed by OpenAI, Google, or Anthropic. We use licensed commercial foundation models through high-speed server inference infrastructure.",
   },
   {
-    q: "How does the Astra 7-Day Pass work?",
-    a: "The Astra 7-Day Pass gives you 7 continuous days of premium access for just ₹99. You receive 100 daily messages, up to 20 document uploads, and access to all specialized Astra agents. It never auto-renews without your consent.",
+    q: "How does the Simha 7-Day Pass work?",
+    a: "The Simha 7-Day Pass gives you 7 continuous days of premium access for just ₹99. You receive 100 daily messages, up to 20 document uploads, and access to all specialized Simha agents. It never auto-renews without your consent.",
   },
   {
     q: "What happens after the 7 days expire?",
@@ -107,19 +108,7 @@ export default function LandingPage({ onStartFree, onGetPass, onOpenLegal }) {
       {/* ── TOP NAVIGATION ── */}
       <header className="sticky top-0 z-40 w-full border-b border-[var(--edge-subtle)] bg-[var(--void)]/80 backdrop-blur-xl">
         <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[var(--astra-cyan)] to-[var(--royal-violet)] flex items-center justify-center shadow-lg shadow-[var(--astra-glow)]">
-              <Sparkles size={16} className="text-[#0B0F17]" />
-            </div>
-            <div className="flex flex-col">
-              <span className="font-extrabold tracking-tight text-sm text-[var(--ink-1)]">
-                Astra <span className="text-[var(--astra-cyan)]">AI</span>
-              </span>
-              <span className="text-[9px] uppercase tracking-widest text-[var(--ink-3)] font-semibold -mt-0.5">
-                GPT 6 Astra
-              </span>
-            </div>
-          </div>
+          <SimhaLogo size="sm" showWordmark={true} showTagline={false} />
 
           <div className="flex items-center gap-3">
             <button
@@ -130,7 +119,7 @@ export default function LandingPage({ onStartFree, onGetPass, onOpenLegal }) {
             </button>
             <button
               onClick={onStartFree}
-              className="btn-astra !py-2 !px-4 text-xs font-bold"
+              className="btn-simha !py-2 !px-4 text-xs font-bold"
             >
               Start Free
             </button>
@@ -150,13 +139,13 @@ export default function LandingPage({ onStartFree, onGetPass, onOpenLegal }) {
 
           {/* Headline */}
           <h1 className="text-4xl sm:text-6xl lg:text-7xl font-black tracking-tight leading-[1.08] mb-6 max-w-3xl">
-            Astra AI <br />
-            <span className="text-astra-gradient">Your intelligent AI workspace.</span>
+            Simha AI <br />
+            <span className="text-simha-gradient">Your Intelligent Multi-Agent Platform.</span>
           </h1>
 
           {/* Subtitle */}
           <p className="text-sm sm:text-base text-[var(--ink-2)] max-w-2xl leading-relaxed mb-8">
-            Chat, code, study, analyze documents, understand images, and get more done with Astra.
+            Chat, code, study, analyze documents, understand images, and get more done with Simha AI.
             High-speed multi-agent intelligence engineered for modern productivity.
           </p>
 
@@ -164,7 +153,7 @@ export default function LandingPage({ onStartFree, onGetPass, onOpenLegal }) {
           <div className="flex flex-col sm:flex-row items-center gap-3 w-full max-w-md justify-center mb-10">
             <button
               onClick={onStartFree}
-              className="btn-astra w-full sm:w-auto px-7 py-3 text-sm font-bold flex items-center justify-center gap-2 shadow-lg shadow-[var(--astra-glow)]"
+              className="btn-simha w-full sm:w-auto px-7 py-3 text-sm font-bold flex items-center justify-center gap-2 shadow-lg shadow-[var(--astra-glow)]"
             >
               <span>Start Free</span>
               <ChevronRight size={15} />
@@ -178,14 +167,14 @@ export default function LandingPage({ onStartFree, onGetPass, onOpenLegal }) {
             </button>
           </div>
 
-          {/* 3D Visual Constellation */}
+          {/* 3D Visual Simha Guardian */}
           <div className="w-full max-w-xl h-64 sm:h-72 my-2">
-            <AstraCanvas3D mode="login" />
+            <SimhaCanvas3D mode="login" />
           </div>
 
           {/* Transparency Disclaimer Pill */}
           <div className="mt-4 p-3 rounded-xl border border-[var(--edge-subtle)] bg-[rgba(255,255,255,0.02)] max-w-xl text-[11px] text-[var(--ink-3)] leading-relaxed">
-            <strong className="text-[var(--ink-2)]">Legal Notice:</strong> Astra AI is an independent AI application and is not affiliated with or endorsed by OpenAI, Google, or Anthropic.
+            <strong className="text-[var(--ink-2)]">Legal Notice:</strong> Simha AI is an independent AI application and is not affiliated with or endorsed by OpenAI, Google, or Anthropic.
           </div>
         </div>
       </section>
@@ -198,7 +187,7 @@ export default function LandingPage({ onStartFree, onGetPass, onOpenLegal }) {
               One Workspace. Seven Specialized Agents.
             </h2>
             <p className="text-xs sm:text-sm text-[var(--ink-3)]">
-              No generic responses. Every query is dynamically routed to the domain-optimized Astra agent.
+              No generic responses. Every query is dynamically routed to the domain-optimized Simha agent.
             </p>
           </div>
 
@@ -232,7 +221,7 @@ export default function LandingPage({ onStartFree, onGetPass, onOpenLegal }) {
                   </div>
 
                   <div className="mt-6 pt-4 border-t border-[var(--edge-subtle)] flex items-center justify-between">
-                    <span className="text-[11px] text-[var(--ink-3)]">Included in Astra</span>
+                    <span className="text-[11px] text-[var(--ink-3)]">Included in Simha AI</span>
                     <button
                       onClick={onStartFree}
                       className="text-xs font-bold text-[var(--astra-cyan)] hover:underline inline-flex items-center gap-1"
@@ -262,7 +251,7 @@ export default function LandingPage({ onStartFree, onGetPass, onOpenLegal }) {
             <div className="glass-panel p-8 flex flex-col justify-between border-[var(--edge-subtle)]">
               <div>
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-bold text-[var(--ink-1)]">Astra Free</h3>
+                  <h3 className="text-lg font-bold text-[var(--ink-1)]">Simha Free</h3>
                   <span className="text-xs px-2.5 py-1 rounded-full border border-[var(--edge-subtle)] text-[var(--ink-3)]">
                     Default
                   </span>
@@ -282,7 +271,7 @@ export default function LandingPage({ onStartFree, onGetPass, onOpenLegal }) {
                   </li>
                   <li className="flex items-center gap-2.5">
                     <Check size={14} className="text-[var(--astra-cyan)] shrink-0" />
-                    <span>Astra Chat, Code & Study access</span>
+                    <span>Simha Chat, Code & Study access</span>
                   </li>
                   <li className="flex items-center gap-2.5">
                     <Check size={14} className="text-[var(--astra-cyan)] shrink-0" />
@@ -298,7 +287,7 @@ export default function LandingPage({ onStartFree, onGetPass, onOpenLegal }) {
               </button>
             </div>
 
-            {/* Astra 7-Day Pass */}
+            {/* Simha 7-Day Pass */}
             <div className="glass-panel p-8 flex flex-col justify-between border-[var(--astra-cyan)] relative shadow-xl shadow-[var(--astra-glow)]">
               <div className="absolute -top-3 right-6 px-3 py-1 rounded-full bg-gradient-to-r from-[var(--astra-cyan)] to-[var(--royal-violet)] text-[10px] font-black text-[#0B0F17] uppercase tracking-wider">
                 Most Popular
@@ -306,13 +295,13 @@ export default function LandingPage({ onStartFree, onGetPass, onOpenLegal }) {
 
               <div>
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-bold text-[var(--ink-1)]">Astra 7-Day Pass</h3>
+                  <h3 className="text-lg font-bold text-[var(--ink-1)]">Simha 7-Day Pass</h3>
                   <span className="text-xs px-2.5 py-1 rounded-full bg-[var(--astra-glow)] text-[var(--astra-cyan)] font-bold">
                     7 Days Access
                   </span>
                 </div>
                 <div className="flex items-baseline gap-1 mb-6">
-                  <span className="text-4xl font-black text-astra-gradient">₹99</span>
+                  <span className="text-4xl font-black text-simha-gradient">₹99</span>
                   <span className="text-xs text-[var(--ink-3)]">/ one-time</span>
                 </div>
                 <ul className="space-y-3 text-xs text-[var(--ink-2)] mb-8">
@@ -326,11 +315,11 @@ export default function LandingPage({ onStartFree, onGetPass, onOpenLegal }) {
                   </li>
                   <li className="flex items-center gap-2.5">
                     <Check size={14} className="text-[var(--astra-cyan)] shrink-0" />
-                    <span>Astra Vision (Image OCR & analysis)</span>
+                    <span>Simha Vision (Image OCR & analysis)</span>
                   </li>
                   <li className="flex items-center gap-2.5">
                     <Check size={14} className="text-[var(--astra-cyan)] shrink-0" />
-                    <span>Astra Research & Executive Productivity</span>
+                    <span>Simha Research & Executive Productivity</span>
                   </li>
                   <li className="flex items-center gap-2.5">
                     <Check size={14} className="text-[var(--astra-cyan)] shrink-0" />
@@ -341,7 +330,7 @@ export default function LandingPage({ onStartFree, onGetPass, onOpenLegal }) {
 
               <button
                 onClick={onGetPass}
-                className="btn-astra w-full !py-3 text-xs font-bold"
+                className="btn-simha w-full !py-3 text-xs font-bold"
               >
                 Get 7-Day Pass — ₹99
               </button>
@@ -357,7 +346,7 @@ export default function LandingPage({ onStartFree, onGetPass, onOpenLegal }) {
             <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight mb-2">
               Frequently Asked Questions
             </h2>
-            <p className="text-xs text-[var(--ink-3)]">Everything you need to know about Astra AI</p>
+            <p className="text-xs text-[var(--ink-3)]">Everything you need to know about Simha AI</p>
           </div>
 
           <div className="space-y-3">
@@ -385,12 +374,7 @@ export default function LandingPage({ onStartFree, onGetPass, onOpenLegal }) {
       {/* ── FOOTER & LEGAL DISCLAIMER ── */}
       <footer className="mt-auto py-12 px-6 border-t border-[var(--edge-subtle)] bg-[var(--void)] text-xs text-[var(--ink-3)]">
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
-          <div className="flex items-center gap-2.5">
-            <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-[var(--astra-cyan)] to-[var(--royal-violet)] flex items-center justify-center">
-              <Sparkles size={12} className="text-[#0B0F17]" />
-            </div>
-            <span className="font-bold text-[var(--ink-2)]">GPT 6 Astra (Astra AI)</span>
-          </div>
+          <SimhaLogo size="xs" showWordmark={true} showTagline={false} />
 
           <div className="flex items-center gap-6 text-[11px]">
             <button onClick={() => onOpenLegal("terms")} className="hover:text-[var(--ink-1)] transition">Terms of Service</button>
@@ -400,12 +384,12 @@ export default function LandingPage({ onStartFree, onGetPass, onOpenLegal }) {
           </div>
 
           <p className="text-[11px]">
-            © {new Date().getFullYear()} Astra AI. All rights reserved.
+            © {new Date().getFullYear()} Simha AI. All rights reserved.
           </p>
         </div>
 
         <div className="max-w-6xl mx-auto mt-6 pt-6 border-t border-[var(--edge-subtle)] text-[10px] text-center text-[var(--ink-3)] leading-relaxed">
-          <strong>Mandatory Disclaimer:</strong> Astra AI is an independent AI software application. It is not affiliated with, authorized by, endorsed by, or in any way officially connected with OpenAI, Google, Anthropic, or any of their subsidiaries or affiliates. "GPT" is a general acronym for Generative Pre-trained Transformer.
+          <strong>Notice:</strong> Simha AI is an independent AI software platform. It is not affiliated with, authorized by, endorsed by, or in any way officially connected with OpenAI, Google, Anthropic, or any of their subsidiaries or affiliates.
         </div>
       </footer>
     </div>

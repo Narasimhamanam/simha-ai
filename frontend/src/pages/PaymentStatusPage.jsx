@@ -31,7 +31,7 @@ export default function PaymentStatusPage({ onReturnToWorkspace, onRetryPayment 
 
         if (data.status === "SUCCESS") {
           setStatus("SUCCESS");
-          setMessage(data.message || "Your Astra 7-Day Pass is active.");
+          setMessage(data.message || "Your Simha 7-Day Pass is active.");
           if (data.access_expires_at) {
             const dt = new Date(data.access_expires_at);
             setExpiryDate(
@@ -81,7 +81,7 @@ export default function PaymentStatusPage({ onReturnToWorkspace, onRetryPayment 
         {/* PENDING STATE */}
         {status === "PENDING" && (
           <div>
-            <div className="w-14 h-14 rounded-2xl bg-[var(--astra-glow)] border border-[var(--edge)] flex items-center justify-center mx-auto mb-5 text-[var(--astra-cyan)]">
+            <div className="w-14 h-14 rounded-2xl bg-[var(--simha-glow)] border border-[var(--edge)] flex items-center justify-center mx-auto mb-5 text-[var(--simha-cyan)]">
               <Loader2 size={26} className="animate-spin" />
             </div>
             <h2 className="text-xl font-bold tracking-tight mb-2">We're verifying your payment...</h2>
@@ -89,10 +89,10 @@ export default function PaymentStatusPage({ onReturnToWorkspace, onRetryPayment 
               {message}
             </p>
             <div className="w-full bg-white/5 rounded-full h-1.5 overflow-hidden mb-6">
-              <div className="h-full bg-[var(--astra-cyan)] w-2/3 rounded-full animate-pulse" />
+              <div className="h-full bg-[var(--simha-cyan)] w-2/3 rounded-full animate-pulse" />
             </div>
             <div className="flex items-center justify-center gap-1.5 text-[11px] text-[var(--ink-3)] mb-4">
-              <ShieldCheck size={13} className="text-[var(--astra-cyan)]" />
+              <ShieldCheck size={13} className="text-[var(--simha-cyan)]" />
               <span>Server-side verification with Cashfree</span>
             </div>
             {!loading && (
@@ -116,8 +116,8 @@ export default function PaymentStatusPage({ onReturnToWorkspace, onRetryPayment 
             <h2 className="text-xl font-bold tracking-tight mb-1 text-[var(--ink-1)]">
               Payment Successful 🎉
             </h2>
-            <p className="text-xs font-semibold text-[var(--astra-cyan)] mb-4">
-              Your Astra 7-Day Pass is active.
+            <p className="text-xs font-semibold text-[var(--simha-cyan)] mb-4">
+              Your Simha 7-Day Pass is active.
             </p>
             
             {expiryDate && (
@@ -129,9 +129,9 @@ export default function PaymentStatusPage({ onReturnToWorkspace, onRetryPayment 
 
             <button
               onClick={onReturnToWorkspace}
-              className="btn-astra w-full flex items-center justify-center gap-2 !py-3 text-xs font-bold"
+              className="btn-simha w-full flex items-center justify-center gap-2 !py-3 text-xs font-bold"
             >
-              <span>Start Using Astra</span>
+              <span>Start Using Simha AI</span>
               <ArrowRight size={14} />
             </button>
           </div>
@@ -153,7 +153,7 @@ export default function PaymentStatusPage({ onReturnToWorkspace, onRetryPayment 
             <div className="space-y-2">
               <button
                 onClick={onRetryPayment}
-                className="btn-astra w-full flex items-center justify-center gap-2 !py-2.5 text-xs font-bold"
+                className="btn-simha w-full flex items-center justify-center gap-2 !py-2.5 text-xs font-bold"
               >
                 <RefreshCw size={13} />
                 <span>Try Again</span>

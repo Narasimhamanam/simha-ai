@@ -54,12 +54,12 @@ async def check_user_quota(email: str, request_type: str = "message") -> dict:
 
     if request_type in ["message", "image", "wisdom"]:
         if current_messages >= message_limit:
-            plan_name = "Free tier" if not is_premium else "Astra Pass"
+            plan_name = "Free tier" if not is_premium else "Simha Pass"
             raise HTTPException(
                 status_code=402,
                 detail={
                     "error": "QUOTA_EXCEEDED",
-                    "message": f"Your daily Astra {request_type} limit ({message_limit} requests) has been reached.",
+                    "message": f"Your daily Simha AI {request_type} limit ({message_limit} requests) has been reached.",
                     "plan": entitlement.get("plan"),
                     "can_upgrade": not is_premium,
                     "upgrade_url": "/pricing",

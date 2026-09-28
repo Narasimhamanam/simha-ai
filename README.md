@@ -1,6 +1,6 @@
 <div align="center">
 
-# ⚡ GPT 6 Astra (Astra AI) — Intelligent Multi-Agent AI Workspace
+# 🦁 Simha AI — Intelligent Multi-Agent AI Platform
 
 **Your complete, autonomous consumer AI workspace for chat, software engineering, academic study, PDF vector analysis, computer vision, research intelligence, and executive productivity.**
 
@@ -15,34 +15,34 @@
 ---
 
 > [!IMPORTANT]
-> **Independent Application Notice & Legal Disclaimer:**  
-> **Astra AI** (product designation: **GPT 6 Astra**) is an independent software application. It is **not** an official OpenAI product, nor is it affiliated with, sponsored by, or endorsed by OpenAI, Google, Anthropic, or Meta. Astra AI utilizes licensed commercial and open-weights foundation models through secure server-side inference infrastructure.
+> **Independent Multi-Agent Platform:**  
+> **Simha AI** is an independent software application and multi-agent AI workspace. It is **not** an official OpenAI product, nor is it affiliated with, sponsored by, or endorsed by OpenAI, Google, Anthropic, or Meta. Simha AI utilizes licensed commercial and open-weights foundation models through secure server-side inference infrastructure.
 
 ---
 
 ## 🌟 Overview
 
-**Astra AI** is an enterprise-grade, multi-tenant consumer AI SaaS platform. Instead of forcing every query through a generic model, Astra features an intelligent **ModelRouter** that dynamically directs queries to specialized domain agents:
+**Simha AI** is an enterprise-grade, multi-tenant consumer AI SaaS platform. Instead of forcing every query through a generic model, Simha features an intelligent **ModelRouter** that dynamically directs queries to specialized domain agents:
 
-- **Astra Chat:** Open-domain, conversational reasoning with context persistence.
-- **Astra Code:** Software architecture, algorithm design (DSA with time/space complexity), debugging, and refactoring.
-- **Astra Study:** Concept breakdown, curriculum prep, technical interview tutoring, and worked examples.
-- **Astra Docs:** Instant PDF vectorization and semantic question-answering powered by ChromaDB RAG.
-- **Astra Vision:** Multimodal visual analysis, diagram inspection, and OCR text extraction.
-- **Astra Research:** URL intelligence and structured content extraction.
-- **Astra Productivity:** Natural language email drafting with tone adaptation and Google Calendar event scheduling.
-- **Astra Wisdom:** Reflective, calm stoic clarity on duty and focus.
+- **Simha Chat:** Open-domain, conversational reasoning with context persistence.
+- **Simha Code:** Software architecture, algorithm design (DSA with time/space complexity), debugging, and refactoring.
+- **Simha Study:** Concept breakdown, curriculum prep, technical interview tutoring, and worked examples.
+- **Simha Docs:** Instant document vectorization and semantic question-answering powered by ChromaDB RAG.
+- **Simha Vision:** Multimodal visual analysis, diagram inspection, and OCR text extraction.
+- **Simha Research:** URL intelligence and structured content extraction.
+- **Simha Productivity:** Natural language email drafting with tone adaptation and Google Calendar event scheduling.
+- **Simha Wisdom:** Reflective, calm stoic clarity on duty, focus, and perspective.
 
 ---
 
 ## 💎 Pricing & Entitlement Engine
 
-Astra AI rejects deceptive pricing tactics, hidden recurring subscriptions, and fake countdowns.
+Simha AI rejects deceptive pricing tactics, hidden recurring subscriptions, and fake countdowns.
 
 | Tier | Price | Duration | Messages | Document Uploads | Special Features |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **Astra Free** | **₹0** | Lifetime | 10 / day | 2 / day | Chat, Code, Study, History |
-| **Astra 7-Day Pass** | **₹99** | 7 Days | 100 / day | 20 / day | All Agents, Vision, Docs RAG, Priority throughput |
+| **Simha Free** | **₹0** | Lifetime | 10 / day | 2 / day | Chat, Code, Study, History |
+| **Simha 7-Day Pass** | **₹99** | 7 Days | 100 / day | 20 / day | All Agents, Vision, Docs RAG, Priority throughput |
 
 ### 7-Day Expiration Lifecycle
 - Passes are non-recurring one-time purchases of **₹99**.
@@ -74,7 +74,7 @@ Payment processing is powered by **Cashfree Payment Gateway & Payment Links** (`
               ▼                       ▼                       ▼
       [MongoDB Atlas]       [Cashfree PG Service]       [ChromaDB Vector RAG]
       - users                - POST /links              - PDF embeddings
-      - payments             - GET /links/{id}          - Astra Wisdom
+      - payments             - GET /links/{id}          - Simha Wisdom
       - entitlements         - POST /cashfree/webhook
       - usages               - POST /reconcile/{id}
       - audit_logs
@@ -130,22 +130,14 @@ python -m unittest discover tests/ -v
 ## 🔒 Security Posture
 
 - **CORS Restricted:** Specific domain policies for production.
-- **Input Validation:** Strict payload constraints (PDFs capped at 10MB, Images at 5MB).
+- **Input Validation:** Strict payload constraints (PDFs capped at 30MB, Images at 20MB).
 - **Rate Limiting:** Sliding-window per-IP limiter preventing denial-of-service.
 - **User Data Isolation:** Database queries enforce user ownership on all chats, documents, and payments.
 - **Zero Insecure Logic:** No dummy payment bypasses or test bypasses in production code.
 
 ---
 
-## 📄 Documentation
-
-- [Migration Audit](docs/ASTRA_MIGRATION_AUDIT.md)
-- [API Documentation](docs/ASTRA_API_DOCUMENTATION.md)
-- [Final Audit Report](docs/ASTRA_FINAL_AUDIT.md)
-
----
-
 ## ⚖️ Legal
 
-© 2026 Astra AI. All rights reserved.  
-Astra AI is an independent software application and is not affiliated with OpenAI.
+© 2026 Simha AI. All rights reserved.  
+Simha AI is an independent software application and is not affiliated with OpenAI.

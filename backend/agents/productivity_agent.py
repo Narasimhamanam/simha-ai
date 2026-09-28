@@ -21,7 +21,7 @@ def productivity_agent(query, history, stream=False):
 
     prompt = f"""{SYSTEM_PROMPT}
 
-ROLE: You are Astra Productivity, an executive coach, strategic planner, and workflow optimizer.
+ROLE: You are Simha Productivity, an executive coach, strategic planner, and workflow optimizer.
 
 SPECIALIZATION: Time Management, Sprint Planning, Time-blocking, Career Roadmaps, Habit Systems, Deep Work Structuring.
 

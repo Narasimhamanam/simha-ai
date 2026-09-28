@@ -5,11 +5,11 @@ import API from "../services/api";
 export default function PricingPage({ user, usage, onBack, onStartFree }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const isPassActive = usage?.is_premium || usage?.plan === "ASTRA_7_DAY";
+  const isPassActive = usage?.is_premium || usage?.plan === "ASTRA_7_DAY" || usage?.plan === "SIMHA_7_DAY";
 
   const handleCashfreeCheckout = async () => {
     if (!user?.email) {
-      setError("Please sign in first to purchase the Astra 7-Day Pass.");
+      setError("Please sign in first to purchase the Simha 7-Day Pass.");
       return;
     }
 
@@ -57,11 +57,11 @@ export default function PricingPage({ user, usage, onBack, onStartFree }) {
 
         {/* Title */}
         <div className="text-center max-w-xl mx-auto mb-10">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[var(--astra-glow)] border border-[var(--edge)] text-xs font-bold text-[var(--astra-cyan)] mb-3">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[var(--simha-glow)] border border-[var(--edge)] text-xs font-bold text-[var(--simha-cyan)] mb-3">
             <Zap size={13} /> Official Cashfree Integration
           </div>
           <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight mb-2">
-            Upgrade to Astra 7-Day Pass
+            Upgrade to Simha 7-Day Pass
           </h1>
           <p className="text-xs sm:text-sm text-[var(--ink-3)] leading-relaxed">
             High-capacity AI intelligence for one full week. Single payment of ₹99. No recurring charges.
@@ -76,7 +76,7 @@ export default function PricingPage({ user, usage, onBack, onStartFree }) {
                 <Calendar size={20} />
               </div>
               <div className="text-left">
-                <p className="text-xs font-bold text-emerald-300">Astra Pass Active</p>
+                <p className="text-xs font-bold text-emerald-300">Simha Pass Active</p>
                 <p className="text-[11px] text-[var(--ink-2)]">
                   You currently have {usage?.days_remaining || 7} days remaining. Any additional pass safely stacks onto your current expiry.
                 </p>
@@ -104,7 +104,7 @@ export default function PricingPage({ user, usage, onBack, onStartFree }) {
           <div className="glass-panel p-6 sm:p-8 flex flex-col justify-between border-[var(--edge-subtle)]">
             <div>
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-bold text-[var(--ink-1)]">Astra Free</h2>
+                <h2 className="text-lg font-bold text-[var(--ink-1)]">Simha Free</h2>
                 <span className="text-xs px-2.5 py-0.5 rounded-full border border-[var(--edge-subtle)] text-[var(--ink-3)]">
                   Active by Default
                 </span>
@@ -115,19 +115,19 @@ export default function PricingPage({ user, usage, onBack, onStartFree }) {
               </div>
               <ul className="space-y-3 text-xs text-[var(--ink-2)] mb-8">
                 <li className="flex items-center gap-2.5">
-                  <Check size={14} className="text-[var(--astra-cyan)] shrink-0" />
+                  <Check size={14} className="text-[var(--simha-cyan)] shrink-0" />
                   <span>10 messages per day</span>
                 </li>
                 <li className="flex items-center gap-2.5">
-                  <Check size={14} className="text-[var(--astra-cyan)] shrink-0" />
+                  <Check size={14} className="text-[var(--simha-cyan)] shrink-0" />
                   <span>2 PDF uploads per day</span>
                 </li>
                 <li className="flex items-center gap-2.5">
-                  <Check size={14} className="text-[var(--astra-cyan)] shrink-0" />
-                  <span>Astra Chat, Code & Study access</span>
+                  <Check size={14} className="text-[var(--simha-cyan)] shrink-0" />
+                  <span>Simha Chat, Code & Study access</span>
                 </li>
                 <li className="flex items-center gap-2.5">
-                  <Check size={14} className="text-[var(--astra-cyan)] shrink-0" />
+                  <Check size={14} className="text-[var(--simha-cyan)] shrink-0" />
                   <span>Standard model response queue</span>
                 </li>
               </ul>
@@ -141,45 +141,45 @@ export default function PricingPage({ user, usage, onBack, onStartFree }) {
           </div>
 
           {/* 7-Day Pass Card */}
-          <div className="glass-panel p-6 sm:p-8 flex flex-col justify-between border-[var(--astra-cyan)] relative shadow-2xl shadow-[var(--astra-glow)]">
-            <div className="absolute -top-3 right-6 px-3 py-1 rounded-full bg-gradient-to-r from-[var(--astra-cyan)] to-[var(--royal-violet)] text-[10px] font-black text-[#0B0F17] uppercase tracking-wider">
+          <div className="glass-panel p-6 sm:p-8 flex flex-col justify-between border-[var(--simha-cyan)] relative shadow-2xl shadow-[var(--simha-glow)]">
+            <div className="absolute -top-3 right-6 px-3 py-1 rounded-full bg-gradient-to-r from-[var(--simha-cyan)] to-[var(--royal-violet)] text-[10px] font-black text-[#0B0F17] uppercase tracking-wider">
               Popular Choice
             </div>
 
             <div>
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-bold text-[var(--ink-1)]">Astra 7-Day Pass</h2>
-                <span className="text-xs px-2.5 py-0.5 rounded-full bg-[var(--astra-glow)] text-[var(--astra-cyan)] font-bold">
+                <h2 className="text-lg font-bold text-[var(--ink-1)]">Simha 7-Day Pass</h2>
+                <span className="text-xs px-2.5 py-0.5 rounded-full bg-[var(--simha-glow)] text-[var(--simha-cyan)] font-bold">
                   7 Days
                 </span>
               </div>
               <div className="flex items-baseline gap-1 mb-6">
-                <span className="text-3xl font-black text-astra-gradient">₹99</span>
+                <span className="text-3xl font-black text-simha-gradient">₹99</span>
                 <span className="text-xs text-[var(--ink-3)]">/ one-time payment</span>
               </div>
               <ul className="space-y-3 text-xs text-[var(--ink-2)] mb-8">
                 <li className="flex items-center gap-2.5 font-semibold text-[var(--ink-1)]">
-                  <Check size={14} className="text-[var(--astra-cyan)] shrink-0" />
+                  <Check size={14} className="text-[var(--simha-cyan)] shrink-0" />
                   <span>Higher AI usage (100 messages/day)</span>
                 </li>
                 <li className="flex items-center gap-2.5">
-                  <Check size={14} className="text-[var(--astra-cyan)] shrink-0" />
-                  <span>Astra premium features (Email & Calendar)</span>
+                  <Check size={14} className="text-[var(--simha-cyan)] shrink-0" />
+                  <span>Simha premium features (Email & Calendar)</span>
                 </li>
                 <li className="flex items-center gap-2.5">
-                  <Check size={14} className="text-[var(--astra-cyan)] shrink-0" />
+                  <Check size={14} className="text-[var(--simha-cyan)] shrink-0" />
                   <span>Documents (20 PDF uploads + Vector RAG)</span>
                 </li>
                 <li className="flex items-center gap-2.5">
-                  <Check size={14} className="text-[var(--astra-cyan)] shrink-0" />
+                  <Check size={14} className="text-[var(--simha-cyan)] shrink-0" />
                   <span>Coding agent with automated debugging</span>
                 </li>
                 <li className="flex items-center gap-2.5">
-                  <Check size={14} className="text-[var(--astra-cyan)] shrink-0" />
+                  <Check size={14} className="text-[var(--simha-cyan)] shrink-0" />
                   <span>Study agent with structured curricula</span>
                 </li>
                 <li className="flex items-center gap-2.5">
-                  <Check size={14} className="text-[var(--astra-cyan)] shrink-0" />
+                  <Check size={14} className="text-[var(--simha-cyan)] shrink-0" />
                   <span>Vision (Image analysis & OCR)</span>
                 </li>
               </ul>
@@ -188,7 +188,7 @@ export default function PricingPage({ user, usage, onBack, onStartFree }) {
             <button
               onClick={handleCashfreeCheckout}
               disabled={loading}
-              className="btn-astra w-full !py-3 text-xs font-bold flex items-center justify-center gap-2 disabled:opacity-50"
+              className="btn-simha w-full !py-3 text-xs font-bold flex items-center justify-center gap-2 disabled:opacity-50"
             >
               {loading ? (
                 <>
@@ -208,15 +208,15 @@ export default function PricingPage({ user, usage, onBack, onStartFree }) {
         {/* Security Trust Badges */}
         <div className="mt-10 max-w-xl mx-auto flex flex-wrap items-center justify-center gap-6 text-[11px] text-[var(--ink-3)]">
           <div className="flex items-center gap-1.5">
-            <ShieldCheck size={14} className="text-[var(--astra-cyan)]" />
+            <ShieldCheck size={14} className="text-[var(--simha-cyan)]" />
             <span>Official Cashfree Payments</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <Lock size={14} className="text-[var(--astra-cyan)]" />
+            <Lock size={14} className="text-[var(--simha-cyan)]" />
             <span>256-Bit SSL Encryption</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <Sparkles size={14} className="text-[var(--astra-cyan)]" />
+            <Sparkles size={14} className="text-[var(--simha-cyan)]" />
             <span>Instant Server-Verified Activation</span>
           </div>
         </div>

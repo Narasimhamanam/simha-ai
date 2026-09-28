@@ -110,7 +110,7 @@ export default function AdminDashboard({ user, onBack }) {
               <ArrowLeft size={13} /> Return to app
             </button>
             <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
-              Astra SaaS Administration
+              Simha AI SaaS Administration
             </h1>
             <p className="text-xs text-[var(--ink-3)] mt-1">
               Operational metrics, Cashfree transaction logs, and customer pass entitlements
@@ -172,9 +172,9 @@ export default function AdminDashboard({ user, onBack }) {
               <div className="text-[10px] text-[var(--ink-3)] mt-0.5">Declined / Dropped</div>
             </div>
 
-            <div className="glass-panel p-4 border-[var(--astra-cyan)]">
-              <div className="text-[11px] text-[var(--astra-cyan)] mb-1">Total Revenue</div>
-              <div className="text-xl font-black text-astra-gradient">₹{metrics.total_revenue_inr.toFixed(0)}</div>
+            <div className="glass-panel p-4 border-[var(--simha-cyan)]">
+              <div className="text-[11px] text-[var(--simha-cyan)] mb-1">Total Revenue</div>
+              <div className="text-xl font-black text-simha-gradient">₹{metrics.total_revenue_inr.toFixed(0)}</div>
               <div className="text-[10px] text-[var(--ink-3)] mt-0.5">Verified Net</div>
             </div>
           </div>
@@ -183,7 +183,7 @@ export default function AdminDashboard({ user, onBack }) {
         {/* Quick Operations: Manual Entitlement Grant */}
         <div className="glass-panel p-6 mb-8 border-[var(--edge-subtle)]">
           <h2 className="text-sm font-bold flex items-center gap-2 mb-3">
-            <Gift size={16} className="text-[var(--astra-cyan)]" />
+            <Gift size={16} className="text-[var(--simha-cyan)]" />
             <span>Manual Customer Entitlement Grant</span>
           </h2>
           <form onSubmit={handleGrantPass} className="flex flex-wrap items-center gap-3">
@@ -192,7 +192,7 @@ export default function AdminDashboard({ user, onBack }) {
               value={grantEmail}
               onChange={(e) => setGrantEmail(e.target.value)}
               placeholder="customer@example.com"
-              className="px-3.5 py-2 rounded-xl bg-white/5 border border-[var(--edge-subtle)] text-xs text-[var(--ink-1)] outline-none focus:border-[var(--astra-cyan)] min-w-[240px]"
+              className="px-3.5 py-2 rounded-xl bg-white/5 border border-[var(--edge-subtle)] text-xs text-[var(--ink-1)] outline-none focus:border-[var(--simha-cyan)] min-w-[240px]"
               required
             />
             <select
@@ -206,13 +206,13 @@ export default function AdminDashboard({ user, onBack }) {
             </select>
             <button
               type="submit"
-              className="btn-astra !py-2 !px-4 text-xs font-semibold"
+              className="btn-simha !py-2 !px-4 text-xs font-semibold"
             >
               Grant Pass
             </button>
           </form>
           {grantMsg && (
-            <p className="mt-2 text-xs text-[var(--astra-cyan)] font-medium">{grantMsg}</p>
+            <p className="mt-2 text-xs text-[var(--simha-cyan)] font-medium">{grantMsg}</p>
           )}
         </div>
 
@@ -288,7 +288,7 @@ export default function AdminDashboard({ user, onBack }) {
                           <button
                             onClick={() => handleReconcile(tx.order_id)}
                             disabled={reconcilingId === tx.order_id}
-                            className="px-2 py-1 rounded bg-[var(--astra-glow)] text-[var(--astra-cyan)] border border-[var(--edge)] hover:bg-[var(--astra-cyan)] hover:text-black transition text-[10px] font-semibold inline-flex items-center gap-1"
+                            className="px-2 py-1 rounded bg-[var(--simha-glow)] text-[var(--simha-cyan)] border border-[var(--edge)] hover:bg-[var(--simha-cyan)] hover:text-black transition text-[10px] font-semibold inline-flex items-center gap-1"
                           >
                             <RefreshCw size={10} className={reconcilingId === tx.order_id ? "animate-spin" : ""} />
                             <span>Reconcile</span>
@@ -319,7 +319,7 @@ export default function AdminDashboard({ user, onBack }) {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Filter by email..."
-                className="pl-8 pr-3 py-1.5 rounded-xl bg-white/5 border border-[var(--edge-subtle)] text-xs text-[var(--ink-1)] outline-none focus:border-[var(--astra-cyan)] w-60"
+                className="pl-8 pr-3 py-1.5 rounded-xl bg-white/5 border border-[var(--edge-subtle)] text-xs text-[var(--ink-1)] outline-none focus:border-[var(--simha-cyan)] w-60"
               />
             </div>
           </div>
@@ -347,7 +347,7 @@ export default function AdminDashboard({ user, onBack }) {
                           : "bg-white/5 text-[var(--ink-3)] border border-[var(--edge-subtle)]"
                       }`}
                     >
-                      {u.is_active_pass ? "Astra 7-Day Pass" : "Free"}
+                      {u.is_active_pass ? "Simha 7-Day Pass" : "Free"}
                     </span>
                     {u.access_expires_at && u.is_active_pass && (
                       <p className="text-[10px] text-emerald-400/80 font-mono mt-1">

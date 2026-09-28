@@ -5,14 +5,15 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import API from "../services/api";
+import SimhaLogo from "./SimhaLogo";
 
 const NAV_ITEMS = [
-  { id: "chat", icon: MessageSquare, label: "Astra Chat" },
-  { id: "documents", icon: FileText, label: "Astra Docs" },
+  { id: "chat", icon: MessageSquare, label: "Simha Chat" },
+  { id: "documents", icon: FileText, label: "Simha Docs" },
   { id: "email", icon: Mail, label: "Email Composer" },
   { id: "calendar", icon: CalendarDays, label: "AI Scheduler" },
   { id: "url", icon: Globe, label: "URL Research" },
-  { id: "pricing", icon: Zap, label: "Astra Pass (₹99)" },
+  { id: "pricing", icon: Zap, label: "Simha Pass (₹99)" },
   { id: "history", icon: History, label: "Chat History" },
   { id: "settings", icon: Settings, label: "Settings" },
 ];
@@ -87,28 +88,15 @@ export default function Sidebar({
         {/* Brand Header */}
         <div
           className={`flex items-center h-14 border-b border-[var(--edge-subtle)] shrink-0 ${
-            expanded ? "px-4 gap-3" : "justify-center px-0"
+            expanded ? "px-4 justify-between" : "justify-center px-0"
           }`}
         >
-          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[var(--astra-cyan)] to-[var(--royal-violet)] flex items-center justify-center shrink-0 shadow-md shadow-[var(--astra-glow)]">
-            <Sparkles size={16} className="text-[#0B0F17]" />
-          </div>
-
-          {expanded && (
-            <div className="flex flex-col min-w-0 animate-fade-in">
-              <span className="text-sm font-black text-[var(--ink-1)] tracking-tight truncate">
-                Astra <span className="text-[var(--astra-cyan)]">AI</span>
-              </span>
-              <span className="text-[9px] text-[var(--ink-3)] font-semibold uppercase tracking-wider">
-                GPT 6 Astra
-              </span>
-            </div>
-          )}
+          <SimhaLogo size="sm" showWordmark={expanded} showTagline={false} />
 
           {expanded && (
             <button
               onClick={() => setIsSidebarOpen(false)}
-              className="lg:hidden ml-auto p-1 rounded text-[var(--ink-3)] hover:text-[var(--ink-1)]"
+              className="lg:hidden p-1 rounded text-[var(--ink-3)] hover:text-[var(--ink-1)]"
             >
               <X size={15} />
             </button>
@@ -122,7 +110,7 @@ export default function Sidebar({
               createNewChat();
               if (window.innerWidth < 1024) setIsSidebarOpen(false);
             }}
-            className={`btn-astra w-full flex items-center justify-center gap-2 ${
+            className={`btn-simha w-full flex items-center justify-center gap-2 ${
               expanded ? "" : "!px-0"
             }`}
           >
@@ -239,7 +227,7 @@ export default function Sidebar({
               className="w-full mb-2.5 flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-bold bg-[var(--astra-glow)] border border-[var(--edge)] text-[var(--astra-cyan)] hover:bg-[rgba(0,240,255,0.25)] transition shadow-sm"
             >
               <span className="flex items-center gap-1.5">
-                <Zap size={13} /> Get Astra Pass — ₹99
+                <Zap size={13} /> Get Simha Pass — ₹99
               </span>
               <ChevronRight size={13} />
             </button>
@@ -248,7 +236,7 @@ export default function Sidebar({
           {expanded && isPro && (
             <div className="w-full mb-2.5 flex items-center justify-between px-3 py-2 rounded-xl text-xs font-bold bg-emerald-500/10 border border-emerald-500/25 text-emerald-400">
               <span className="flex items-center gap-1.5">
-                <Crown size={13} /> Astra Pass Active
+                <Crown size={13} /> Simha Pass Active
               </span>
               <span className="text-[10px] font-mono">{daysRemaining || 7}d left</span>
             </div>
@@ -268,7 +256,7 @@ export default function Sidebar({
               />
             ) : (
               <div className="w-7 h-7 rounded-lg bg-[var(--astra-glow)] border border-[var(--edge)] flex items-center justify-center shrink-0 text-xs font-bold text-[var(--astra-cyan)]">
-                {profile?.nickname?.charAt(0)?.toUpperCase() || "A"}
+                {profile?.nickname?.charAt(0)?.toUpperCase() || "S"}
               </div>
             )}
 
@@ -276,7 +264,7 @@ export default function Sidebar({
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-1.5">
                   <span className="text-xs font-bold truncate text-[var(--ink-1)]">
-                    {profile?.nickname?.split(" ")[0] || "Astra User"}
+                    {profile?.nickname?.split(" ")[0] || "Simha User"}
                   </span>
                   {isPro && (
                     <span className="text-[9px] px-1 rounded font-bold bg-[var(--astra-glow)] text-[var(--astra-cyan)]">

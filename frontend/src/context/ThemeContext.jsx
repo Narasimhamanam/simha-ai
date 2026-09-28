@@ -1,10 +1,10 @@
-﻿import { createContext, useContext, useState, useEffect } from "react";
+import { createContext, useContext, useState, useEffect } from "react";
 
 const ThemeContext = createContext(null);
 
 function resolveInitialTheme() {
   try {
-    const stored = localStorage.getItem("astra-theme");
+    const stored = localStorage.getItem("simha-theme") || localStorage.getItem("astra-theme");
     if (stored === "light" || stored === "dark" || stored === "system") return stored;
   } catch {}
   return "system";
@@ -33,7 +33,10 @@ export function ThemeProvider({ children }) {
   useEffect(() => {
     const eff = applyTheme(preference);
     setEffective(eff);
-    try { localStorage.setItem("astra-theme", preference); } catch {}
+    try {
+      localStorage.setItem("simha-theme", preference);
+      localStorage.setItem("astra-theme", preference);
+    } catch {}
   }, [preference]);
 
   useEffect(() => {

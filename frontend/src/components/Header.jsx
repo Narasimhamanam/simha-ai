@@ -2,10 +2,10 @@ import { Menu, SquarePen, Zap, Crown, BookOpen, Code2, Rocket, Sparkles } from "
 import ThemeToggle from "./ThemeToggle";
 
 const AGENTS = [
-  { value: "study", label: "Astra Study", icon: BookOpen, color: "#2DD4BF" },
-  { value: "coding", label: "Astra Code", icon: Code2, color: "#818CF8" },
+  { value: "study", label: "Simha Study", icon: BookOpen, color: "#2DD4BF" },
+  { value: "coding", label: "Simha Code", icon: Code2, color: "#818CF8" },
   { value: "productivity", label: "Productivity", icon: Rocket, color: "#A78BFA" },
-  { value: "wisdom", label: "Wisdom", icon: Sparkles, color: "#00F0FF" },
+  { value: "wisdom", label: "Simha Wisdom", icon: Sparkles, color: "#00F0FF" },
 ];
 
 export default function Header({

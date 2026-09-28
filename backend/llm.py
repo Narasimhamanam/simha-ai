@@ -19,7 +19,7 @@ def generate_response(
     system_prompt: str = None,
 ):
     """
-    Unified Astra AI generator delegating to the ModelRouter.
+    Unified Simha AI generator delegating to the ModelRouter.
     Provides automated fallback, exponential backoff, and streaming.
     """
     return global_model_router.route_generate(

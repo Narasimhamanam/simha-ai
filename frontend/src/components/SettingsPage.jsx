@@ -14,6 +14,7 @@ export default function SettingsPage({
 
   const handleSave = () => {
     if (profile?.email) {
+      localStorage.setItem(`simha_profile_${profile.email}`, JSON.stringify(profile));
       localStorage.setItem(`astra_profile_${profile.email}`, JSON.stringify(profile));
     }
     setSaved(true);
@@ -32,7 +33,7 @@ export default function SettingsPage({
 
   const tabs = [
     { id: "profile", label: "Profile", icon: User },
-    { id: "pass", label: "Astra Pass & Plan", icon: Zap },
+    { id: "pass", label: "Simha Pass & Plan", icon: Zap },
     { id: "account", label: "Security", icon: Shield },
     { id: "model", label: "AI Architecture", icon: Cpu },
   ];
@@ -50,7 +51,7 @@ export default function SettingsPage({
             <Settings size={20} className="text-[var(--astra-cyan)]" /> Preferences & Account
           </h1>
           <p className="text-xs mt-1 text-[var(--ink-3)]">
-            Manage your Astra AI profile, subscriptions, and system settings
+            Manage your Simha AI profile, subscriptions, and system settings
           </p>
         </div>
       </div>
@@ -101,7 +102,7 @@ export default function SettingsPage({
                     </label>
                   </div>
                   <div>
-                    <p className="text-sm font-bold">{profile?.nickname || "Astra User"}</p>
+                    <p className="text-sm font-bold">{profile?.nickname || "Simha User"}</p>
                     <p className="text-[11px] text-[var(--ink-3)]">{profile?.email || ""}</p>
                     {isPro && (
                       <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-[var(--astra-glow)] text-[var(--astra-cyan)] mt-1 border border-[var(--edge)]">
@@ -149,7 +150,7 @@ export default function SettingsPage({
                             : "bg-white/10 text-[var(--ink-2)]"
                         }`}
                       >
-                        {isPro ? "Astra 7-Day Pass" : "Astra Free"}
+                        {isPro ? "Simha 7-Day Pass" : "Simha Free"}
                       </span>
                     </div>
                     <p className="text-xs text-[var(--ink-3)]">
@@ -161,7 +162,7 @@ export default function SettingsPage({
 
                   <button
                     onClick={onNavigateToPricing}
-                    className="btn-astra self-start sm:self-auto text-xs font-bold shrink-0"
+                    className="btn-simha self-start sm:self-auto text-xs font-bold shrink-0"
                   >
                     {isPro ? "Renew Pass — ₹99" : "Get 7-Day Pass — ₹99"}
                   </button>
@@ -184,9 +185,9 @@ export default function SettingsPage({
             {tab === "model" && (
               <div className="text-center py-6">
                 <Sparkles size={28} className="mx-auto mb-3 text-[var(--astra-cyan)]" />
-                <p className="text-sm font-semibold">Astra Multi-Agent Architecture</p>
+                <p className="text-sm font-semibold">Simha Multi-Agent Architecture</p>
                 <p className="text-xs mt-1 max-w-sm mx-auto text-[var(--ink-3)] leading-relaxed">
-                  Astra routes requests via our server-side ModelRouter to high-speed commercial infrastructure. API keys are kept 100% server-side.
+                  Simha AI routes requests via our server-side ModelRouter to high-speed commercial infrastructure. API keys are kept 100% server-side.
                 </p>
               </div>
             )}
@@ -194,7 +195,7 @@ export default function SettingsPage({
 
           {/* Save Button */}
           <div className="mt-4 flex justify-end">
-            <button onClick={handleSave} className="btn-astra flex items-center gap-2 text-xs font-bold">
+            <button onClick={handleSave} className="btn-simha flex items-center gap-2 text-xs font-bold">
               {saved ? <Check size={14} className="text-emerald-950" /> : <Sparkles size={14} />}
               <span>{saved ? "Saved!" : "Save Preferences"}</span>
             </button>

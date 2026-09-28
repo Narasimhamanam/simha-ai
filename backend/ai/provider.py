@@ -96,7 +96,7 @@ class GroqProvider(BaseAIProvider):
                     print(f"[GroqProvider] Error on {model}: {e}")
                     break
 
-        return "⚠️ Astra AI service is momentarily busy. Please try again in a moment."
+        return "⚠️ Simha AI service is momentarily busy. Please try again in a moment."
 
     def stream_generate(
         self,
@@ -144,7 +144,7 @@ class GroqProvider(BaseAIProvider):
                     print(f"[GroqProvider Stream] Error on {model}: {e}")
                     break
 
-        yield "⚠️ Astra AI service is momentarily busy. Please try again in a moment."
+        yield "⚠️ Simha AI service is momentarily busy. Please try again in a moment."
 
 
 class ModelRouter:

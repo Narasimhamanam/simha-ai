@@ -1,54 +1,71 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48" fill="none">
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" fill="none">
   <defs>
-    <!-- Primary Electric Cyan to Royal Indigo -->
-    <linearGradient id="astraGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#00F0FF"/>
-      <stop offset="50%" stop-color="#38BDF8"/>
-      <stop offset="100%" stop-color="#6366F1"/>
+    <!-- Simha Neural Gradient (Cyan to Indigo with Gold highlight) -->
+    <linearGradient id="simhaGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00F0FF" />
+      <stop offset="50%" stop-color="#2DD4BF" />
+      <stop offset="100%" stop-color="#6366F1" />
     </linearGradient>
-    <!-- Neural Core Radial Glow -->
-    <radialGradient id="coreGlow" cx="50%" cy="50%" r="50%">
-      <stop offset="0%" stop-color="#00F0FF" stop-opacity="1"/>
-      <stop offset="60%" stop-color="#6366F1" stop-opacity="0.5"/>
-      <stop offset="100%" stop-color="#0B0F17" stop-opacity="0"/>
+
+    <!-- Warm Gold Crown Accent -->
+    <linearGradient id="goldAccent" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FCD34D" />
+      <stop offset="100%" stop-color="#F59E0B" />
+    </linearGradient>
+
+    <!-- Background Void Gradient -->
+    <radialGradient id="simhaBg" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#111827" />
+      <stop offset="100%" stop-color="#070A0F" />
     </radialGradient>
-    <!-- Dark background gradient -->
-    <radialGradient id="bgGrad" cx="50%" cy="50%" r="50%">
-      <stop offset="0%" stop-color="#111827"/>
-      <stop offset="100%" stop-color="#0B0F17"/>
+
+    <!-- Neural Core Glow -->
+    <radialGradient id="simhaCoreGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#00F0FF" stop-opacity="1" />
+      <stop offset="60%" stop-color="#2DD4BF" stop-opacity="0.6" />
+      <stop offset="100%" stop-color="#070A0F" stop-opacity="0" />
     </radialGradient>
-    <!-- Subtle glow filter -->
-    <filter id="glow" x="-30%" y="-30%" width="160%" height="160%">
-      <feGaussianBlur stdDeviation="1.2" result="blur"/>
-      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+
+    <!-- Soft Glow Filter -->
+    <filter id="simhaGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="1.5" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
     </filter>
   </defs>
 
-  <!-- Background rounded square -->
-  <rect width="48" height="48" rx="12" fill="url(#bgGrad)"/>
-  <rect width="48" height="48" rx="12" fill="none" stroke="url(#astraGrad)" stroke-width="1" opacity="0.4"/>
+  <!-- Deep Obsidian Container with Subtile Border -->
+  <rect width="64" height="64" rx="16" fill="url(#simhaBg)" />
+  <rect width="64" height="64" rx="16" fill="none" stroke="url(#simhaGrad)" stroke-width="1.2" opacity="0.4" />
 
-  <!-- Outer dashed orbit ring -->
-  <circle cx="24" cy="24" r="19" stroke="url(#astraGrad)" stroke-width="0.8" stroke-dasharray="3.5 2.5" opacity="0.4"/>
+  <!-- Outer Orbital Ring -->
+  <circle cx="32" cy="32" r="26" stroke="url(#simhaGrad)" stroke-width="0.8" stroke-dasharray="4 3" opacity="0.35" />
 
-  <!-- Four-Point Quantum Star (Astra emblem) -->
-  <path
-    d="M24 4L27.2 18.8L42 22L27.2 25.2L24 40L20.8 25.2L6 22L20.8 18.8L24 4Z"
-    fill="url(#astraGrad)"
-    filter="url(#glow)"
-    opacity="0.92"
-  />
+  <!-- Stylized Geometric Simha (Lion Crest) -->
+  <!-- Crown / Top Mane Facets -->
+  <polygon points="32,10 37,18 32,22 27,18" fill="url(#goldAccent)" opacity="0.95" />
+  <polygon points="27,18 20,15 24,24 30,22" fill="url(#simhaGrad)" opacity="0.8" />
+  <polygon points="37,18 44,15 40,24 34,22" fill="url(#simhaGrad)" opacity="0.8" />
 
-  <!-- Diamond inner cutout (dark) -->
-  <polygon points="24,11 31,22 24,33 17,22" fill="#0B0F17" opacity="0.85"/>
+  <!-- Lion Face / Cheeks Geometric Shield -->
+  <polygon points="24,24 16,28 22,36 30,32" fill="url(#simhaGrad)" opacity="0.75" />
+  <polygon points="40,24 48,28 42,36 34,32" fill="url(#simhaGrad)" opacity="0.75" />
 
-  <!-- Pulsing cognitive core -->
-  <circle cx="24" cy="22" r="4" fill="url(#coreGlow)"/>
-  <circle cx="24" cy="22" r="1.8" fill="#FFFFFF"/>
+  <!-- Lower Mane & Muzzle Chin V -->
+  <polygon points="22,36 32,54 30,37" fill="url(#simhaGrad)" opacity="0.9" />
+  <polygon points="42,36 32,54 34,37" fill="url(#simhaGrad)" opacity="0.9" />
+  <polygon points="30,37 32,54 34,37" fill="#00F0FF" opacity="0.7" />
 
-  <!-- Cardinal stellar nodes -->
-  <circle cx="24" cy="4.5" r="1.4" fill="#00F0FF"/>
-  <circle cx="41.5" cy="22" r="1.4" fill="#38BDF8"/>
-  <circle cx="24" cy="39.5" r="1.4" fill="#6366F1"/>
-  <circle cx="6.5" cy="22" r="1.4" fill="#818CF8"/>
+  <!-- Central Cognitive Core (Heart of Simha) -->
+  <circle cx="32" cy="30" r="5" fill="url(#simhaCoreGlow)" filter="url(#simhaGlow)" />
+  <circle cx="32" cy="30" r="2.2" fill="#FFFFFF" />
+
+  <!-- Neural Eyes -->
+  <circle cx="27" cy="27" r="1.3" fill="#00F0FF" />
+  <circle cx="37" cy="27" r="1.3" fill="#00F0FF" />
+
+  <!-- Orbital Cardinal Nodes -->
+  <circle cx="32" cy="6" r="1.5" fill="#FCD34D" />
+  <circle cx="58" cy="32" r="1.5" fill="#00F0FF" />
+  <circle cx="32" cy="58" r="1.5" fill="#6366F1" />
+  <circle cx="6" cy="32" r="1.5" fill="#2DD4BF" />
 </svg>
