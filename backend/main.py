@@ -30,9 +30,9 @@ from agents.router import route_query
 from agents.email_agent import generate_email_draft
 from agents.automation_agent import summarize_url, generate_calendar_event
 from memory.chat_memory import conversation_memory
-from rag.pdf_processor import process_pdf
+from rag.pdf_processor import process_pdf, process_document
 from rag.vector_store import create_vector_store
-from rag.rag_chain import ask_pdf
+from rag.rag_chain import ask_pdf, query_document_rag
 
 from services.entitlement import get_user_entitlement
 from services.usage import (
@@ -196,9 +196,21 @@ async def stream_chat(request: ChatRequest, req: Request):
         try:
             async with groq_semaphore:
                 loop = asyncio.get_event_loop()
-                response_text = await loop.run_in_executor(
-                    None, lambda: route_query(message, history, stream=False)
-                )
+                # If document is attached, perform grounded RAG retrieval
+                if request.doc_id or request.file_name or request.doc_context:
+                    query_text = request.query or request.message or message
+                    rag_result = await loop.run_in_executor(
+                        None, lambda: query_document_rag(question=query_text, doc_id=request.doc_id)
+                    )
+                    response_text = rag_result.get("response", "")
+                    sources = rag_result.get("sources", [])
+                    if sources:
+                        citation_lines = "\n\n**Sources:**\n" + "\n".join([f"• `{s['filename']}` — Page {s.get('page', 1)}" for s in sources])
+                        response_text += citation_lines
+                else:
+                    response_text = await loop.run_in_executor(
+                        None, lambda: route_query(message, history, stream=False)
+                    )
                 if not response_text:
                     response_text = "No response from Simha AI. Please retry."
 
@@ -393,6 +405,7 @@ async def analyze_image(request: ImageAnalysisRequest, req: Request):
 # SIMHA PRODUCTIVITY: EMAIL
 # -----------------------------------
 @app.post("/generate-email")
+@app.post("/generate-email-draft")
 async def generate_email(request: EmailDraftRequest, req: Request):
     rate_limit_check(req)
     user_email = request.user_email or "guest"
@@ -403,7 +416,15 @@ async def generate_email(request: EmailDraftRequest, req: Request):
     await check_user_quota(user_email, request_type="message")
 
     try:
-        draft = generate_email_draft(prompt=request.prompt.strip(), sender_name=request.sender_name or "")
+        draft = generate_email_draft(
+            prompt=request.prompt.strip(),
+            sender_name=request.sender_name or "",
+            recipient_name=request.recipient_name or "",
+            recipient_email=request.recipient_email or "",
+            context=request.context or "",
+            tone=request.tone or "professional",
+            additional_instructions=request.additional_instructions or "",
+        )
         await record_user_usage(user_email, request_type="message")
         return draft
     except Exception as exc:
@@ -491,19 +512,8 @@ async def upload_pdf(
     with open(file_path, "wb") as buffer:
         buffer.write(content)
 
-    # Process and vectorize (supports PDF, DOCX, TXT, CSV)
-    try:
-        chunks = process_pdf(file_path)
-        create_vector_store(chunks)
-    except Exception as proc_err:
-        # Cleanup orphan file on failure
-        try:
-            os.remove(file_path)
-        except OSError:
-            pass
-        raise HTTPException(status_code=422, detail=f"Document processing failed: {str(proc_err)}")
-
-    doc_id = None
+    # Assign persistent doc_id (from MongoDB or deterministic UUID)
+    doc_id = uuid.uuid4().hex[:16]
     docs_collection = get_documents_collection()
     if docs_collection is not None and user_email:
         doc_record = {
@@ -512,11 +522,31 @@ async def upload_pdf(
             "file_size": file_size,
             "file_type": file.content_type or f"application/{ext.lstrip('.')}",
             "chat_id": chat_id or None,
-            "pages": len(chunks),
+            "pages": 0,
             "uploaded_at": datetime.datetime.now(datetime.timezone.utc),
         }
         res = await docs_collection.insert_one(doc_record)
         doc_id = str(res.inserted_id)
+
+    # Process and vectorize (supports PDF, DOCX, TXT, CSV, MD)
+    try:
+        chunks = process_pdf(file_path, filename=file.filename, doc_id=doc_id)
+        create_vector_store(chunks)
+        if docs_collection is not None and user_email and doc_id:
+            try:
+                await docs_collection.update_one(
+                    {"_id": ObjectId(doc_id)},
+                    {"$set": {"pages": len(chunks)}},
+                )
+            except Exception:
+                pass
+    except Exception as proc_err:
+        # Cleanup orphan file on failure
+        try:
+            os.remove(file_path)
+        except OSError:
+            pass
+        raise HTTPException(status_code=422, detail=f"Document processing failed: {str(proc_err)}")
 
     await record_user_usage(user_email or "guest", request_type="document")
 
@@ -525,6 +555,7 @@ async def upload_pdf(
         "doc_id": doc_id,
         "file_name": file.filename,
         "pages": len(chunks),
+        "status": "ready",
     }
 
 
@@ -565,10 +596,11 @@ async def delete_document(doc_id: str):
 
 @app.post("/ask-pdf")
 async def ask_pdf_question(request: ChatRequest):
-    if not request.message:
+    question = request.message or request.query
+    if not question:
         raise HTTPException(status_code=400, detail="Question is required.")
-    response = ask_pdf(request.message)
-    return {"response": response}
+    result = query_document_rag(question=question, doc_id=request.doc_id)
+    return result
 
 
 # -----------------------------------

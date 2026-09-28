@@ -43,6 +43,7 @@ class ChatRequest(BaseModel):
     file_name: Optional[str] = None
     file_data: Optional[Dict[str, Any]] = None
     doc_context: Optional[str] = None
+    doc_id: Optional[str] = None
 
 
 # ── Image & Productivity Schemas ───────────────────────────────────
@@ -57,6 +58,11 @@ class EmailDraftRequest(BaseModel):
     prompt: str
     sender_name: Optional[str] = ""
     user_email: Optional[str] = ""
+    recipient_name: Optional[str] = ""
+    recipient_email: Optional[str] = ""
+    context: Optional[str] = ""
+    tone: Optional[str] = "professional"
+    additional_instructions: Optional[str] = ""
 
 
 class SummarizeUrlRequest(BaseModel):

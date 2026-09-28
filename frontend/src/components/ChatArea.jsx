@@ -69,6 +69,9 @@ export default function ChatArea({
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
+  const [uploadState, setUploadState] = useState(""); // "" | "uploading" | "indexing" | "ready" | "failed"
+  const [uploadErrorMsg, setUploadErrorMsg] = useState("");
+  const [activeDoc, setActiveDoc] = useState(null); // { doc_id, file_name, pages }
   const [selectedImage, setSelectedImage] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
   const [uploading, setUploading] = useState(false);
@@ -136,16 +139,31 @@ export default function ChatArea({
     if (user?.email) fd.append("user_email", user.email);
     if (activeChatId) fd.append("chat_id", activeChatId);
     setUploading(true);
+    setUploadState("uploading");
+    setUploadErrorMsg("");
     try {
+      setUploadState("indexing");
       const res = await API.post("/upload-pdf", fd, {
         headers: { "Content-Type": "multipart/form-data" },
       });
+      setUploadState("ready");
+      setActiveDoc(res.data);
       return res.data;
     } catch (e) {
-      throw new Error(e?.response?.data?.detail?.message || e?.response?.data?.detail || "Upload failed.", { cause: e });
+      setUploadState("failed");
+      const detail = e?.response?.data?.detail;
+      const msg = typeof detail === "string" ? detail : (detail?.message || e.message || "Upload failed.");
+      setUploadErrorMsg(msg);
+      throw new Error(msg, { cause: e });
     } finally {
       setUploading(false);
     }
+  };
+
+  const handleFilePicked = (file) => {
+    if (!file) return;
+    setSelectedFile(file);
+    uploadFile(file).catch(() => {});
   };
 
   const handleSend = async (overrideText) => {
@@ -221,14 +239,21 @@ export default function ChatArea({
           return u;
         });
       } else {
-        let doc = null;
-        if (file) {
+        let currentDocId = activeDoc?.doc_id || null;
+        let currentFileName = activeDoc?.file_name || file?.name || null;
+
+        if (file && !activeDoc) {
           try {
-            doc = await uploadFile(file);
+            const uploaded = await uploadFile(file);
+            if (uploaded?.doc_id) {
+              currentDocId = uploaded.doc_id;
+              currentFileName = uploaded.file_name;
+              setActiveDoc(uploaded);
+            }
           } catch (e) {
             updateMessages((m) => [
               ...m,
-              { role: "assistant", content: `⚠️ ${e.message}`, agent: selectedAgent },
+              { role: "assistant", content: `⚠️ Document processing failed: ${e.message}`, agent: selectedAgent },
             ]);
             setLoading(false);
             return;
@@ -257,7 +282,9 @@ export default function ChatArea({
             chat_id: activeChatId,
             user_id: user?.email || "guest",
             agent: selectedAgent,
-            doc_context: doc?.context || null,
+            doc_id: currentDocId,
+            file_name: currentFileName,
+            doc_context: null,
           }),
         });
 
@@ -351,7 +378,7 @@ export default function ChatArea({
               className="flex flex-col items-center text-center pt-2 sm:pt-6"
             >
               {/* 3D Simha Guardian Core */}
-              <div className="w-full max-w-md h-52 -mb-2">
+              <div className="w-full max-w-sm h-44 sm:h-48 mb-3 relative flex items-center justify-center pointer-events-auto">
                 <SimhaCanvas3D selectedAgent={selectedAgent} onSelectAgent={setSelectedAgent} mode="workspace" />
               </div>
 
@@ -567,17 +594,45 @@ export default function ChatArea({
                 </div>
               )}
               {selectedFile && (
-                <div className="flex items-center gap-2 px-2.5 py-1 rounded-xl glass-panel">
-                  <FileText size={13} className="text-[var(--astra-cyan)]" />
-                  <span className="text-[11px] text-[var(--ink-2)] max-w-[120px] truncate">{selectedFile.name}</span>
-                  <button onClick={() => setSelectedFile(null)} className="text-[var(--ink-3)] hover:text-[var(--ink-1)]">
+                <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl glass-panel text-xs border border-[var(--edge-subtle)]">
+                  <FileText size={14} className="text-[var(--astra-cyan)] shrink-0" />
+                  <div className="flex flex-col text-left">
+                    <span className="text-[11px] font-medium text-[var(--ink-1)] max-w-[180px] truncate">{selectedFile.name}</span>
+                    <span className="text-[9px] text-[var(--ink-3)]">
+                      {uploadState === "uploading" && "Uploading document..."}
+                      {uploadState === "indexing" && "Indexing into Simha Docs..."}
+                      {uploadState === "ready" && `✓ Ready (${activeDoc?.pages || 1} sections indexed)`}
+                      {uploadState === "failed" && `⚠️ ${uploadErrorMsg || "Upload failed"}`}
+                    </span>
+                  </div>
+                  <button
+                    onClick={() => {
+                      setSelectedFile(null);
+                      setActiveDoc(null);
+                      setUploadState("");
+                      setUploadErrorMsg("");
+                      if (fileRef.current) fileRef.current.value = "";
+                    }}
+                    className="p-1 rounded text-[var(--ink-3)] hover:text-rose-400 hover:bg-white/5 transition ml-1"
+                    title="Remove document"
+                  >
                     <X size={12} />
                   </button>
                 </div>
               )}
-              {uploading && (
-                <div className="flex items-center gap-1.5 px-3 py-1 rounded-xl text-[11px] font-medium bg-[var(--astra-glow)] text-[var(--astra-cyan)]">
-                  <Sparkles size={11} className="animate-spin" /> Vectorizing document...
+              {activeDoc && !selectedFile && (
+                <div className="flex items-center gap-2 px-2.5 py-1 rounded-xl bg-[var(--astra-glow)] border border-[var(--edge)] text-xs">
+                  <FileText size={13} className="text-[var(--astra-cyan)]" />
+                  <span className="text-[11px] text-[var(--ink-2)] font-medium max-w-[160px] truncate">
+                    Attached: {activeDoc.file_name}
+                  </span>
+                  <button
+                    onClick={() => setActiveDoc(null)}
+                    className="p-0.5 rounded text-[var(--ink-3)] hover:text-[var(--ink-1)]"
+                    title="Detach document"
+                  >
+                    <X size={11} />
+                  </button>
                 </div>
               )}
             </div>
@@ -654,7 +709,7 @@ export default function ChatArea({
                   hidden
                   accept=".pdf,.docx,.doc,.txt,.md,.csv,.rst"
                   onChange={(e) => {
-                    if (e.target.files?.[0]) setSelectedFile(e.target.files[0]);
+                    if (e.target.files?.[0]) handleFilePicked(e.target.files[0]);
                   }}
                 />
                 <button

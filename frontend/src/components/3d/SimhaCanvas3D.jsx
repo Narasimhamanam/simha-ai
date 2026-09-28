@@ -35,7 +35,7 @@ export default function SimhaCanvas3D({
     // ── SCENE & CAMERA ──
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(isLogin ? 40 : 45, width / height, 0.1, 100);
-    camera.position.set(0, 0, isLogin ? 8.5 : 6.8);
+    camera.position.set(0, isLogin ? 0 : 0.15, isLogin ? 8.5 : 6.4);
 
     // ── RENDERER ──
     const renderer = new THREE.WebGLRenderer({
@@ -386,10 +386,10 @@ export default function SimhaCanvas3D({
     };
   }, [mode, onSelectAgent]);
 
-  const h = mode === "login" ? "h-full" : "h-[220px] sm:h-[280px] md:h-[320px]";
+  const h = "h-full";
 
   return (
-    <div className={`relative w-full ${h} flex items-center justify-center select-none`}>
+    <div className={`relative w-full ${h} flex items-center justify-center select-none overflow-hidden`}>
       <div ref={mountRef} className="w-full h-full cursor-grab active:cursor-grabbing" />
     </div>
   );

@@ -39,11 +39,11 @@ class GroqProvider(BaseAIProvider):
 
     def __init__(self, api_key: Optional[str] = None):
         self.api_key = api_key or os.getenv("GROQ_API_KEY")
-        self.default_model = os.getenv("AI_MODEL", "qwen/qwen3.8-27b")
+        self.default_model = os.getenv("AI_MODEL", "llama-3.3-70b-versatile")
 
         raw_fallbacks = os.getenv(
             "AI_FALLBACK_MODELS",
-            "qwen/qwen3.8-27b,groq/compound-mini,groq/compound,openai/gpt-oss-120b",
+            "llama-3.3-70b-versatile,llama-3.1-8b-instant,mixtral-8x7b-32768,gemma2-9b-it",
         )
         self.models_to_try = [m.strip() for m in raw_fallbacks.split(",") if m.strip()]
         if self.default_model not in self.models_to_try:
@@ -52,6 +52,8 @@ class GroqProvider(BaseAIProvider):
     def _get_client(self):
         from groq import Groq
         key = self.api_key or os.getenv("GROQ_API_KEY")
+        if not key:
+            raise ValueError("GROQ_API_KEY is not configured in the environment.")
         return Groq(api_key=key)
 
     def generate(
