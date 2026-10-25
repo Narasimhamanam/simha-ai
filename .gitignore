@@ -1,7 +1,29 @@
+# Environment files
 .env
 .env.*
-node_modules
-dist
-shadcn-extension.json
-.activity-logs
+!.env.example
+
+# Dependencies
+node_modules/
+
+# Build artifacts
+dist/
+build/
+__pycache__/
+*.pyc
+
+# Local databases and uploads
+chroma_db/
+chromadb/
+uploads/
+*.sqlite3
+
+# Logs & temp
+.activity-logs/
 *.log
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+shadcn-extension.json
