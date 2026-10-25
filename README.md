@@ -1,143 +1,186 @@
-<div align="center">
-
 # 🦁 Simha AI — Intelligent Multi-Agent AI Platform
 
-**Your complete, autonomous consumer AI workspace for chat, software engineering, academic study, PDF vector analysis, computer vision, research intelligence, and executive productivity.**
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.115+-009688?style=flat&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
+[![React](https://img.shields.io/badge/React-19-61DAFB?style=flat&logo=react&logoColor=black)](https://react.dev)
+[![Python](https://img.shields.io/badge/Python-3.11+-3776AB?style=flat&logo=python&logoColor=white)](https://python.org)
+[![MongoDB](https://img.shields.io/badge/Database-MongoDB_Motor-47A248?style=flat&logo=mongodb&logoColor=white)](https://www.mongodb.com)
+[![ChromaDB](https://img.shields.io/badge/Vector_DB-ChromaDB-FF6F00?style=flat)](https://trychroma.com)
+[![Cashfree](https://img.shields.io/badge/Payments-Cashfree_PG-00BFA5?style=flat)](https://cashfree.com)
+[![Groq](https://img.shields.io/badge/Inference-Groq_LPUs-F55036?style=flat)](https://groq.com)
 
-[![FastAPI](https://img.shields.io/badge/FastAPI-0.136-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
-[![React](https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev)
-[![Cashfree](https://img.shields.io/badge/Payment-Cashfree_PG-14b8a6?style=for-the-badge)](https://cashfree.com)
-[![Python](https://img.shields.io/badge/Python-3.11+-3b82f6?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
-[![MongoDB](https://img.shields.io/badge/Database-MongoDB_Motor-47A248?style=for-the-badge&logo=mongodb&logoColor=white)](https://www.mongodb.com)
-
-</div>
+**Simha AI** is an independent, full-stack multi-agent AI SaaS platform. Rather than routing all queries through a monolithic generalist prompt, Simha AI employs a server-side **ModelRouter** that classifies user intent and dispatches queries to domain-specialized agent personas, augmented by ChromaDB vector retrieval and a server-side entitlement engine with Cashfree payments.
 
 ---
 
 > [!IMPORTANT]
-> **Independent Multi-Agent Platform:**  
-> **Simha AI** is an independent software application and multi-agent AI workspace. It is **not** an official OpenAI product, nor is it affiliated with, sponsored by, or endorsed by OpenAI, Google, Anthropic, or Meta. Simha AI utilizes licensed commercial and open-weights foundation models through secure server-side inference infrastructure.
+> **Independent Software Notice:**  
+> Simha AI is an independent software application and academic portfolio project. It is **not** affiliated with, sponsored by, or endorsed by OpenAI, Google, Anthropic, or Meta. Inference is executed via licensed cloud API providers (Groq LPUs with open-weights models such as LLaMA 3.3 70B and Qwen).
 
 ---
 
-## 🌟 Overview
+## 🏗️ System Architecture
 
-**Simha AI** is an enterprise-grade, multi-tenant consumer AI SaaS platform. Instead of forcing every query through a generic model, Simha features an intelligent **ModelRouter** that dynamically directs queries to specialized domain agents:
+```mermaid
+graph TD
+    Client["React 19 Frontend<br/>(Vite + Tailwind CSS + Lucide)"]
+    API["FastAPI Backend<br/>(Python 3.11 + Uvicorn)"]
+    Router["ModelRouter & Intent Classifier<br/>(System Prompt Orchestration)"]
+    LLM["Groq Cloud Inference<br/>(LLaMA 3.3 70B / Qwen Fallback)"]
+    Vector["ChromaDB Vector Store<br/>(PDF RAG & Text Embeddings)"]
+    DB[("MongoDB Atlas<br/>(Motor Async Driver)")]
+    PG["Cashfree PG API<br/>(Payment Links & Webhooks)"]
 
-- **Simha Chat:** Open-domain, conversational reasoning with context persistence.
-- **Simha Code:** Software architecture, algorithm design (DSA with time/space complexity), debugging, and refactoring.
-- **Simha Study:** Concept breakdown, curriculum prep, technical interview tutoring, and worked examples.
-- **Simha Docs:** Instant document vectorization and semantic question-answering powered by ChromaDB RAG.
-- **Simha Vision:** Multimodal visual analysis, diagram inspection, and OCR text extraction.
-- **Simha Research:** URL intelligence and structured content extraction.
-- **Simha Productivity:** Natural language email drafting with tone adaptation and Google Calendar event scheduling.
-- **Simha Wisdom:** Reflective, calm stoic clarity on duty, focus, and perspective.
-
----
-
-## 💎 Pricing & Entitlement Engine
-
-Simha AI rejects deceptive pricing tactics, hidden recurring subscriptions, and fake countdowns.
-
-| Tier | Price | Duration | Messages | Document Uploads | Special Features |
-| :--- | :--- | :--- | :--- | :--- | :--- |
-| **Simha Free** | **₹0** | Lifetime | 10 / day | 2 / day | Chat, Code, Study, History |
-| **Simha 7-Day Pass** | **₹99** | 7 Days | 100 / day | 20 / day | All Agents, Vision, Docs RAG, Priority throughput |
-
-### 7-Day Expiration Lifecycle
-- Passes are non-recurring one-time purchases of **₹99**.
-- Expiration is enforced server-side (`access_expires_at < current_time`).
-- Upon expiry, the user account gracefully reverts to the **Free** tier.
-- Conversations, history, and uploaded files are **never** deleted upon expiration.
+    Client -->|REST / Streaming HTTP| API
+    API -->|Intent Routing| Router
+    Router -->|Inference Prompts| LLM
+    Router -.->|Semantic Context| Vector
+    API -->|Users, Quotas, Chats, Audit Logs| DB
+    API <-->|HMAC-Verified Checkout| PG
+```
 
 ---
 
-## 🛡️ Cashfree Payment Links Integration
+## 🤖 Specialized Agent Ecosystem
 
-Payment processing is powered by **Cashfree Payment Gateway & Payment Links** (`2023-08-01` API):
+Simha AI partitions user tasks into specialized agent profiles:
 
-1. **Order Initiation:** Backend generates unique internal order & link IDs and initiates a server-controlled Payment Link (`POST /links`) for ₹99.00 INR.
-2. **Hosted Checkout:** Customer is redirected to Cashfree's hosted payment page (UPI, Credit/Debit Cards, Net Banking).
-3. **Cryptographic Webhook Verification:** Cashfree sends asynchronous webhooks verified with HMAC-SHA256 (`x-webhook-signature` computed over `timestamp + raw_body`).
-4. **Server-Side Status Polling:** The application independently verifies payment status against Cashfree's status API before activating entitlements.
-5. **Idempotency Guarantee:** Duplicate webhooks or retried verification checks never duplicate or over-extend subscriptions.
-6. **Zero Client Trust:** Neither frontend redirects nor client state can activate premium access. Expiry is computed strictly from server time.
+| Agent | Core Focus | Technical Implementation |
+| :--- | :--- | :--- |
+| **Simha Chat** | Conversational dialogue & context recall | History sliding window (15 turns) with user memory persistence. |
+| **Simha Code** | Architecture, refactoring & algorithm design | Strict system prompt enforcing time/space complexity analysis (Big-O). |
+| **Simha Study** | Pedagogical concept breakdowns & interview prep | First-principles explanations, interactive quizzes, and step-by-step derivations. |
+| **Simha Docs** | Semantic document analysis | PDF ingestion, chunking, and similarity vector retrieval via ChromaDB. |
+| **Simha Vision** | Visual analysis & diagram reasoning | Multimodal image understanding via Groq/Gemini vision inference models. |
+| **Simha Wisdom** | Reflective clarity on focus & duty | Vector-augmented retrieval over embedded classical philosophical literature. |
+| **Simha Productivity**| Sprint planning & email draft generation | Prompt-engineered time-blocking frameworks and structured templates *(Note: Produces text output; does not connect to external Google Calendar/Gmail APIs)*. |
 
 ---
 
-## 🏗️ Architecture
+## 💳 Payment Gateway & Entitlement Architecture
+
+Simha AI features a server-controlled subscription and quota management engine powered by **Cashfree Payment Gateway** (`2023-08-01` API):
 
 ```
-[React 19 Frontend (Vite)] ──> [FastAPI Backend] ──> [ModelRouter / GroqProvider]
-                                      │
-              ┌───────────────────────┼───────────────────────┐
-              ▼                       ▼                       ▼
-      [MongoDB Atlas]       [Cashfree PG Service]       [ChromaDB Vector RAG]
-      - users                - POST /links              - PDF embeddings
-      - payments             - GET /links/{id}          - Simha Wisdom
-      - entitlements         - POST /cashfree/webhook
-      - usages               - POST /reconcile/{id}
-      - audit_logs
+User Click Upgrade
+       │
+       ▼
+FastAPI (POST /api/payments/create-link) ──> Cashfree Payment Link API (₹99.00 INR)
+                                                    │
+                                                    ▼
+Customer Checkout ◄───────────────────── Hosted Cashfree Checkout Page
+       │ (UPI, Cards, NetBanking)
+       ▼
+Cashfree Webhook (POST /api/payments/cashfree/webhook)
+       │
+       ├── 1. Verify Timestamp & HMAC-SHA256 signature (x-webhook-signature)
+       ├── 2. Independent Server Status Poll (GET /links/{id})
+       └── 3. Idempotent Entitlement Activation (7-Day Pass: access_expires_at = now + 7d)
+```
+
+### Entitlement Matrix
+- **Free Tier (₹0):** 10 messages/day, 2 document uploads/day. Access to Chat, Code, and Study agents.
+- **7-Day Pass (₹99):** 100 messages/day, 20 document uploads/day. Full access to Vision, Docs RAG, and high-throughput routing.
+- **Expiration Policy:** Passes are strictly non-recurring. Upon expiry (`access_expires_at < current_time`), accounts gracefully revert to the Free tier without data loss.
+
+---
+
+## 🗂️ Project Structure
+
+```
+simha-ai/
+├── backend/
+│   ├── agents/               # Domain agent implementations & ModelRouter
+│   ├── ai/                   # Groq / fallback provider interface
+│   ├── models/               # Pydantic schemas and MongoDB models
+│   ├── rag/                  # PDF processor & vector store logic
+│   ├── routes/               # FastAPI endpoints (chat, auth, payments, admin)
+│   ├── security/             # JWT auth, password hashing, and IP rate limiting
+│   ├── services/             # Cashfree payment, entitlement, and usage logic
+│   ├── tests/                # Automated pytest test suites (6 test files)
+│   ├── .env.example          # Backend environment configuration template
+│   ├── Dockerfile            # Container deployment specification
+│   ├── requirements.txt      # Python dependencies
+│   └── main.py               # FastAPI application entry point
+│
+├── frontend/
+│   ├── src/
+│   │   ├── components/       # ChatArea, Sidebar, Header, Modals
+│   │   ├── pages/            # Home, LandingPage, Pricing, AdminDashboard
+│   │   └── services/         # Axios client & auth services
+│   ├── .env.example          # Frontend environment template
+│   └── package.json
+│
+├── .gitignore                # Environment, database, and artifact ignore rules
+├── render.yaml               # Render Blueprint infrastructure spec
+└── README.md
 ```
 
 ---
 
 ## 🚀 Quickstart & Local Setup
 
-### 1. Backend Setup
+### Prerequisites
+- Python 3.11+
+- Node.js 18+
+- MongoDB instance (Local or [MongoDB Atlas](https://www.mongodb.com/cloud/atlas))
+- Groq Cloud API Key ([console.groq.com](https://console.groq.com))
 
+### 1. Clone the Repository
+```bash
+git clone https://github.com/Narasimhamanam/simha-ai.git
+cd simha-ai
+```
+
+### 2. Backend Setup
 ```bash
 cd backend
-python -m venv venv
+python -m venv .venv
+
 # On Windows:
-.\venv\Scripts\activate
-# On macOS/Linux:
-source venv/bin/activate
+.venv\Scripts\activate
+# On macOS / Linux:
+source .venv/bin/activate
 
 pip install -r requirements.txt
 cp .env.example .env
-# Edit .env with your MONGO_URL, GROQ_API_KEY, and CASHFREE credentials
+# Edit .env and supply your MONGO_URL and GROQ_API_KEY
+
 uvicorn main:app --reload --port 8000
+# Backend running at http://localhost:8000 (Docs: http://localhost:8000/docs)
 ```
 
-### 2. Frontend Setup
-
+### 3. Frontend Setup
 ```bash
+# In a separate terminal
 cd frontend
+cp .env.example .env
+# VITE_BACKEND_URL defaults to http://localhost:8000
+
 npm install
 npm run dev
+# Frontend running at http://localhost:5173
 ```
-
-The frontend will start at `http://localhost:5173` connecting to the backend at `http://localhost:8000`.
 
 ---
 
-## 🧪 Automated Tests
+## 🧪 Automated Test Suite
 
-Execute backend test suites covering authentication, entitlements, quotas, and Cashfree payment integration:
+The repository includes a comprehensive test suite across security, billing, and isolation:
 
 ```bash
 cd backend
-python -m unittest discover tests/ -v
+pytest tests/ -v
 ```
 
-- `test_cashfree_payment.py`: Cashfree Payment Links creation, amount verification (₹99), HMAC-SHA256 webhook signatures, idempotency, 7-day expiry calculation.
-- `test_entitlement_and_usage.py`: Quotas, auto-expiration, and multi-tenant isolation.
-- `test_auth_and_isolation.py`: Per-IP sliding-window rate limiting and admin security guards.
+### Test Coverage Highlights:
+- **`tests/test_auth_and_isolation.py`**: Verifies user data isolation and unauthorized route guards.
+- **`tests/test_cashfree_payment.py`**: Validates payment link creation, mock webhook payload signatures, and idempotency.
+- **`tests/test_entitlement_and_usage.py`**: Validates daily message quota resets and 7-day expiration state transitions.
+- **`tests/test_doc_and_vision.py`**: Verifies document upload size caps and vision fallback chains.
 
 ---
 
-## 🔒 Security Posture
+## ⚠️ Limitations & Honest Status
 
-- **CORS Restricted:** Specific domain policies for production.
-- **Input Validation:** Strict payload constraints (PDFs capped at 30MB, Images at 20MB).
-- **Rate Limiting:** Sliding-window per-IP limiter preventing denial-of-service.
-- **User Data Isolation:** Database queries enforce user ownership on all chats, documents, and payments.
-- **Zero Insecure Logic:** No dummy payment bypasses or test bypasses in production code.
-
----
-
-## ⚖️ Legal
-
-© 2026 Simha AI. All rights reserved.  
-Simha AI is an independent software application and is not affiliated with OpenAI.
+- **External Integrations:** Email and Calendar productivity features output formatted drafts and time-blocking schedules via prompt engineering; direct external OAuth syncing with Google Workspace is not currently implemented.
+- **Inference Dependence:** System availability relies on upstream Groq Cloud LPU availability; fallback chains are configured to degrade gracefully to secondary model endpoints during rate limits.
